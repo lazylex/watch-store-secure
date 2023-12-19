@@ -1,0 +1,27 @@
+instance: "secure1"
+env: "local"
+use_kafka: false
+secure:
+  root_login: "root"
+  root_password: "root"
+  salt: "salt"
+http_server:
+  address: "localhost:8159"
+  read_timeout: 5s
+  write_timeout: 10s
+  idle_timeout: 60s
+  shutdown_timeout: 15s
+persistent_storage:
+  database_login: "secure1"
+  database_password: "python"
+  database_address: "localhost"
+  database_max_open_connections: 10
+  database_name: "secure1"
+  query_timeout: 5s
+kafka:
+  kafka_brokers: ["localhost:9092"]
+  kafka_topic_update_price: "secure.update-token"
+redis:
+  redis_address: "localhost:6379"
+  redis_password: ""
+  redis_db: 0
