@@ -1,3 +1,3 @@
 package id
 
-type Id int
+type id string

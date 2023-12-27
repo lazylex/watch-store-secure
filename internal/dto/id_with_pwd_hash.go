@@ -1,10 +1,8 @@
 package dto
 
-import (
-	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/id"
-)
+import "github.com/google/uuid"
 
 type IdWithPasswordHashDTO struct {
-	Id   id.Id  `json:"id"`
-	Hash string `json:"hash"`
+	Id   uuid.UUID `json:"id"`
+	Hash string    `json:"hash"`
 }

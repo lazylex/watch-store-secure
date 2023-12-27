@@ -18,6 +18,7 @@ type Config struct {
 	Instance          string `yaml:"instance" env:"INSTANCE" env-required:"true"`
 	Env               string `yaml:"env" env:"ENV" env-required:"true"`
 	UseKafka          bool   `yaml:"use_kafka" env:"USE_KAFKA"`
+	Redis             `yaml:"redis"`
 	HttpServer        `yaml:"http_server"`
 	PersistentStorage `yaml:"persistent_storage"`
 	Secure            `yaml:"secure"`
