@@ -9,5 +9,5 @@ import (
 type Interface interface {
 	SaveSession(context.Context, dto.SessionDTO) error
 	SaveLoginAndPasswordHash(context.Context, dto.LoginWithPasswordHashDTO) error
-	GetIdAndPasswordHash(context.Context, login.Login) (dto.IdWithPasswordHashDTO, error)
+	GetUserIdAndPasswordHash(context.Context, login.Login) (dto.UserIdWithPasswordHashDTO, error)
 }

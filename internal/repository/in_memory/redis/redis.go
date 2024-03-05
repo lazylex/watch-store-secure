@@ -23,7 +23,7 @@ func Create(cfg config.Redis) *Redis {
 // SaveSession сохраняет данные о времени жизни сессии и её пользователе. Переданный токен служит для создания ключа,
 // по которому хранится идентификатор пользователя (хранение осуществляется переданное в TTL количество секунд)
 func (r *Redis) SaveSession(dto dto.SessionDTO) error {
-	_, err := r.client.Set(sessionKey(dto.Token), dto.Id, time.Duration(float64(dto.TTL))*time.Second).Result()
+	_, err := r.client.Set(sessionKey(dto.Token), dto.UserId, time.Duration(float64(dto.TTL))*time.Second).Result()
 	return err
 }
 

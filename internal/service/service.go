@@ -57,7 +57,7 @@ func (s *Service) login(token string, userId uuid.UUID) {
 	go s.metrics.LoginInc()
 
 	// TODO сделать чтение TTL из конфигурации
-	if err = s.repository.SaveSession(ctx, dto.SessionDTO{Token: token, Id: userId, TTL: 600}); err != nil {
+	if err = s.repository.SaveSession(ctx, dto.SessionDTO{Token: token, UserId: userId, TTL: 600}); err != nil {
 		return
 	}
 }
@@ -67,12 +67,12 @@ func (s *Service) login(token string, userId uuid.UUID) {
 func (s *Service) getUserIdIfLoginAndPasswordCorrect(dto *dto.LoginPasswordDTO) uuid.UUID {
 	// TODO implement
 	ctx := context.Background()
-	idAndPasswordHash, err := s.repository.GetIdAndPasswordHash(ctx, dto.Login)
+	userIdAndPasswordHash, err := s.repository.GetUserIdAndPasswordHash(ctx, dto.Login)
 	if err != nil {
 		return uuid.Nil
 	}
 
-	if !s.isPasswordCorrect(dto.Password, idAndPasswordHash.Hash) {
+	if !s.isPasswordCorrect(dto.Password, userIdAndPasswordHash.Hash) {
 		return uuid.Nil
 	}
 

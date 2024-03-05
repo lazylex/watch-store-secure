@@ -6,7 +6,7 @@ import (
 )
 
 type SessionDTO struct {
-	Id    uuid.UUID `json:"id"`
-	Token string    `json:"token"`
-	TTL   ttl.TTL   `json:"ttl"`
+	UserId uuid.UUID `json:"user_id"`
+	Token  string    `json:"token"`
+	TTL    ttl.TTL   `json:"ttl"`
 }

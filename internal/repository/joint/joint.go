@@ -15,6 +15,7 @@ type Repository struct {
 }
 
 func New(memory in_memory.Interface, persistent persistent.Interface) Repository {
+	go makeDataCache()
 	return Repository{memory: memory, persistent: persistent}
 }
 
@@ -27,12 +28,17 @@ func (r *Repository) SaveLoginAndPasswordHash(ctx context.Context, dto dto.Login
 	return nil
 }
 
-func (r *Repository) GetIdAndPasswordHash(ctx context.Context, login login.Login) (dto.IdWithPasswordHashDTO, error) {
+func (r *Repository) GetUserIdAndPasswordHash(ctx context.Context, login login.Login) (dto.UserIdWithPasswordHashDTO, error) {
 	// TODO implement
-	return dto.IdWithPasswordHashDTO{}, nil
+	return dto.UserIdWithPasswordHashDTO{}, nil
 }
 
 func (r *Repository) GetId(ctx context.Context, login login.Login) (uuid.UUID, error) {
 	// TODO implement
 	return uuid.UUID{}, nil
+}
+
+// makeDataCache считывает все данные (которые возможно кешировать) из постоянного хранилища в хралищие в памяти
+func makeDataCache() {
+	// TODO implement
 }
