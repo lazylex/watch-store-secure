@@ -14,7 +14,7 @@ func main() {
 	cfg := config.MustLoad()
 	log := logger.MustCreate(cfg.Env, cfg.Instance)
 	metrics := prometheusMetrics.MustCreate(&cfg.Prometheus, log)
-	inMemoryRepo := redis.Create(cfg.Redis)
+	inMemoryRepo := redis.MustCreate(cfg.Redis, log)
 	persistentRepo := postgresql.Create(cfg.PersistentStorage)
 	repo := joint.New(inMemoryRepo, persistentRepo)
 	_ = service.New(metrics.Service, repo)

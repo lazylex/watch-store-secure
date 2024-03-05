@@ -1,11 +1,14 @@
 package redis
 
 import (
+	"context"
 	"fmt"
-	"github.com/go-redis/redis"
 	"github.com/google/uuid"
 	"github.com/lazylex/watch-store/secure/internal/config"
 	"github.com/lazylex/watch-store/secure/internal/dto"
+	"github.com/redis/go-redis/v9"
+	"log/slog"
+	"os"
 	"time"
 )
 
@@ -13,26 +16,35 @@ type Redis struct {
 	client *redis.Client
 }
 
-// Create создание структуры с клиентом для взаимодействия с Redis
-func Create(cfg config.Redis) *Redis {
+// MustCreate создание структуры с клиентом для взаимодействия с Redis. При ошибке соеднинения с сервером Redis выводит
+// ошибку в лог и прекращает работу приложения
+func MustCreate(cfg config.Redis, log *slog.Logger) *Redis {
 	client := redis.NewClient(
-		&redis.Options{Addr: cfg.RedisAddress, Password: cfg.RedisPassword, DB: cfg.RedisDB})
+		&redis.Options{Addr: cfg.RedisAddress, Username: cfg.RedisUser, Password: cfg.RedisPassword, DB: cfg.RedisDB})
+
+	if _, err := client.Ping(context.Background()).Result(); err != nil {
+		log.Error(err.Error())
+		os.Exit(1)
+	} else {
+		log.Info("successfully received pong from redis server")
+	}
+
 	return &Redis{client: client}
 }
 
 // SaveSession сохраняет данные о времени жизни сессии и её пользователе. Переданный токен служит для создания ключа,
 // по которому хранится идентификатор пользователя (хранение осуществляется переданное в TTL количество секунд)
-func (r *Redis) SaveSession(dto dto.SessionDTO) error {
-	_, err := r.client.Set(sessionKey(dto.Token), dto.UserId, time.Duration(float64(dto.TTL))*time.Second).Result()
+func (r *Redis) SaveSession(ctx context.Context, dto dto.SessionDTO) error {
+	_, err := r.client.Set(ctx, sessionKey(dto.Token), dto.UserId, time.Duration(float64(dto.TTL))*time.Second).Result()
 	return err
 }
 
 // GetUserUUIDFromSession получает UUID пользователя сессии
-func (r *Redis) GetUserUUIDFromSession(sessionToken string) (uuid.UUID, error) {
+func (r *Redis) GetUserUUIDFromSession(ctx context.Context, sessionToken string) (uuid.UUID, error) {
 	var val []byte
 	var err error
 
-	if val, err = r.client.Get(sessionKey(sessionToken)).Bytes(); err != nil {
+	if val, err = r.client.Get(ctx, sessionKey(sessionToken)).Bytes(); err != nil {
 		return uuid.Nil, err
 	}
 

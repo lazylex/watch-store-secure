@@ -62,6 +62,7 @@ type Prometheus struct {
 
 type Redis struct {
 	RedisAddress  string `yaml:"redis_address" env:"REDIS_ADDRESS" env-required:"true"`
+	RedisUser     string `yaml:"redis_user" env:"REDIS_USER"`
 	RedisPassword string `yaml:"redis_password" env:"REDIS_PWD"`
 	RedisDB       int    `yaml:"redis_db" env:"REDIS_DB"`
 }

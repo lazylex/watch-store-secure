@@ -20,7 +20,7 @@ func New(memory in_memory.Interface, persistent persistent.Interface) Repository
 }
 
 func (r *Repository) SaveSession(ctx context.Context, dto dto.SessionDTO) error {
-	return r.memory.SaveSession(dto)
+	return r.memory.SaveSession(ctx, dto)
 }
 
 func (r *Repository) SaveLoginAndPasswordHash(ctx context.Context, dto dto.LoginWithPasswordHashDTO) error {

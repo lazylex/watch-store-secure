@@ -1,7 +1,10 @@
 package in_memory
 
-import "github.com/lazylex/watch-store/secure/internal/dto"
+import (
+	"context"
+	"github.com/lazylex/watch-store/secure/internal/dto"
+)
 
 type Interface interface {
-	SaveSession(dto.SessionDTO) error
+	SaveSession(context.Context, dto.SessionDTO) error
 }
