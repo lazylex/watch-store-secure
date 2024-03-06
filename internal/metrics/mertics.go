@@ -69,7 +69,7 @@ func registerMetrics() (*Metrics, error) {
 func startHTTP(url, port string, log *slog.Logger) {
 	go func() {
 		mux := http.NewServeMux()
-
+		log = log.With(internalLogger.OPLabel, "metrics.startHTTP")
 		mux.Handle(url, promhttp.Handler())
 		log.Info(fmt.Sprintf(":%s%s ready for prometheus", port, url))
 		err := http.ListenAndServe(":"+port, mux)

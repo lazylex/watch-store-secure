@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/lazylex/watch-store/secure/internal/config"
 	"github.com/lazylex/watch-store/secure/internal/dto"
+	"github.com/lazylex/watch-store/secure/internal/logger"
 	"github.com/redis/go-redis/v9"
 	"log/slog"
 	"os"
@@ -19,6 +20,7 @@ type Redis struct {
 // MustCreate создание структуры с клиентом для взаимодействия с Redis. При ошибке соеднинения с сервером Redis выводит
 // ошибку в лог и прекращает работу приложения
 func MustCreate(cfg config.Redis, log *slog.Logger) *Redis {
+	log = log.With(logger.OPLabel, "repository.in_memory.redis.MustCreate")
 	client := redis.NewClient(
 		&redis.Options{Addr: cfg.RedisAddress, Username: cfg.RedisUser, Password: cfg.RedisPassword, DB: cfg.RedisDB})
 
