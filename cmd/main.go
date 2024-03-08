@@ -8,13 +8,14 @@ import (
 	"github.com/lazylex/watch-store/secure/internal/repository/joint"
 	"github.com/lazylex/watch-store/secure/internal/repository/persistent/postgresql"
 	"github.com/lazylex/watch-store/secure/internal/service"
+	"log/slog"
 )
 
 func main() {
 	cfg := config.MustLoad()
-	log := logger.MustCreate(cfg.Env, cfg.Instance)
-	metrics := prometheusMetrics.MustCreate(&cfg.Prometheus, log)
-	inMemoryRepo := redis.MustCreate(cfg.Redis, log)
+	slog.SetDefault(logger.MustCreate(cfg.Env, cfg.Instance))
+	metrics := prometheusMetrics.MustCreate(&cfg.Prometheus)
+	inMemoryRepo := redis.MustCreate(cfg.Redis)
 	persistentRepo := postgresql.Create(cfg.PersistentStorage)
 	repo := joint.New(inMemoryRepo, persistentRepo)
 	_ = service.New(metrics.Service, repo)

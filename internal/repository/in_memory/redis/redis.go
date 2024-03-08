@@ -19,8 +19,8 @@ type Redis struct {
 
 // MustCreate создание структуры с клиентом для взаимодействия с Redis. При ошибке соеднинения с сервером Redis выводит
 // ошибку в лог и прекращает работу приложения
-func MustCreate(cfg config.Redis, log *slog.Logger) *Redis {
-	log = log.With(logger.OPLabel, "repository.in_memory.redis.MustCreate")
+func MustCreate(cfg config.Redis) *Redis {
+	log := slog.With(logger.OPLabel, "repository.in_memory.redis.MustCreate")
 	client := redis.NewClient(
 		&redis.Options{Addr: cfg.RedisAddress, Username: cfg.RedisUser, Password: cfg.RedisPassword, DB: cfg.RedisDB})
 

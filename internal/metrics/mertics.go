@@ -21,11 +21,9 @@ type Metrics struct {
 
 // MustCreate возвращает метрики *Metrics или останавливает программу, если не удалось запустить http сервер для
 // работы с Prometheus или занести метрики в регистр
-func MustCreate(cfg *config.Prometheus, logger *slog.Logger) *Metrics {
+func MustCreate(cfg *config.Prometheus) *Metrics {
 	var port = "9323"
 	var url = "/metrics"
-
-	log := logger.With(slog.String(internalLogger.OPLabel, "metrics.MustCreate"))
 
 	if len(cfg.PrometheusPort) > 0 {
 		port = cfg.PrometheusPort
@@ -35,11 +33,11 @@ func MustCreate(cfg *config.Prometheus, logger *slog.Logger) *Metrics {
 		url = cfg.PrometheusMetricsURL
 	}
 
-	startHTTP(url, port, logger)
+	startHTTP(url, port)
 
 	metrics, err := registerMetrics()
 	if err != nil {
-		log.Error(err.Error())
+		slog.With(slog.String(internalLogger.OPLabel, "metrics.MustCreate")).Error(err.Error())
 		os.Exit(1)
 	}
 
@@ -66,10 +64,10 @@ func registerMetrics() (*Metrics, error) {
 
 // startHTTP запускает http сервер для связи с Prometheus на переданном в функцию порту и url. При неудаче выводит
 // ошибку в лог и останавливает программу
-func startHTTP(url, port string, log *slog.Logger) {
+func startHTTP(url, port string) {
 	go func() {
 		mux := http.NewServeMux()
-		log = log.With(internalLogger.OPLabel, "metrics.startHTTP")
+		log := slog.With(internalLogger.OPLabel, "metrics.startHTTP")
 		mux.Handle(url, promhttp.Handler())
 		log.Info(fmt.Sprintf(":%s%s ready for prometheus", port, url))
 		err := http.ListenAndServe(":"+port, mux)
