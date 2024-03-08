@@ -18,6 +18,7 @@ require (
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
+	github.com/lmittmann/tint v1.0.4 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.31.1 // indirect

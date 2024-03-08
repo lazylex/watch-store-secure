@@ -9,11 +9,17 @@ import (
 	"github.com/lazylex/watch-store/secure/internal/repository/persistent/postgresql"
 	"github.com/lazylex/watch-store/secure/internal/service"
 	"log/slog"
+	"os"
+	"os/exec"
 )
 
 func main() {
 	cfg := config.MustLoad()
 	slog.SetDefault(logger.MustCreate(cfg.Env, cfg.Instance))
+	if err := clearScreen(); err != nil {
+		slog.Error(err.Error())
+	}
+
 	metrics := prometheusMetrics.MustCreate(&cfg.Prometheus)
 	inMemoryRepo := redis.MustCreate(cfg.Redis)
 	persistentRepo := postgresql.Create(cfg.PersistentStorage)
@@ -23,4 +29,10 @@ func main() {
 	// TODO удалить, когда будет запущен http-сервер для обработки внешних запросов
 	c := make(chan struct{})
 	_ = <-c
+}
+
+func clearScreen() error {
+	cmd := exec.Command("clear")
+	cmd.Stdout = os.Stdout
+	return cmd.Run()
 }

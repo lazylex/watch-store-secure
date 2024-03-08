@@ -3,9 +3,11 @@ package logger
 import (
 	"context"
 	"github.com/lazylex/watch-store/secure/internal/config"
+	"github.com/lmittmann/tint"
 	"log"
 	"log/slog"
 	"os"
+	"time"
 )
 
 type ContextKey int
@@ -23,7 +25,10 @@ func MustCreate(environment, instance string) *slog.Logger {
 	var logger *slog.Logger
 	switch environment {
 	case config.EnvironmentLocal:
-		logger = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+		logger = slog.New(tint.NewHandler(os.Stdout, &tint.Options{
+			Level:      slog.LevelDebug,
+			TimeFormat: time.TimeOnly,
+		}))
 	case config.EnvironmentDebug:
 		logger = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 		logger = logger.With(slog.String("instance", instance))
