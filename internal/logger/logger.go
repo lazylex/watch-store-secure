@@ -3,11 +3,10 @@ package logger
 import (
 	"context"
 	"github.com/lazylex/watch-store/secure/internal/config"
-	"github.com/lmittmann/tint"
+	"github.com/lazylex/watch-store/secure/pkg/colorlog"
 	"log"
 	"log/slog"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -26,33 +25,9 @@ func MustCreate(environment, instance string) *slog.Logger {
 	var logger *slog.Logger
 	switch environment {
 	case config.EnvironmentLocal:
-		logger = slog.New(tint.NewHandler(os.Stdout, &tint.Options{
+		logger = slog.New(colorlog.NewHandler(os.Stdout, &colorlog.Options{
 			Level:      slog.LevelDebug,
 			TimeFormat: time.TimeOnly,
-			ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
-				if a.Key == slog.MessageKey {
-					a.Value = slog.StringValue("\u001B[47m" + "💬 " + "\u001B[30m" + a.Value.String() + "\u001B[0m")
-				}
-				if a.Key == slog.LevelKey {
-					if strings.Contains(a.Value.String(), "INF") {
-						a.Value = slog.StringValue("🟢\t")
-					}
-					if strings.Contains(a.Value.String(), "ERR") {
-						a.Value = slog.StringValue("🛑\t")
-					}
-					if strings.Contains(a.Value.String(), "D") {
-						a.Value = slog.StringValue("⚒️\t")
-					}
-					if strings.Contains(a.Value.String(), "W") {
-						a.Value = slog.StringValue("⚠️\t")
-					}
-				}
-				if a.Key == OPLabel {
-					a.Key = "👀"
-				}
-
-				return a
-			},
 		}))
 	case config.EnvironmentDebug:
 		logger = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
