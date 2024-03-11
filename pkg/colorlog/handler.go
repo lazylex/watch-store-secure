@@ -1,6 +1,7 @@
 package colorlog
 
 // Базируется на пакете https://pkg.go.dev/github.com/lmittmann/tint
+// Опция NoColor не работает и уровень сообщения не выводится после внесённых мной изменений
 
 import (
 	"context"
@@ -58,28 +59,20 @@ var (
 	currentBackColor = ansiBackgroundBlack
 )
 
-// getTextColor возвращает текущий цвет для текста и делает его инверсию. ПотокоНЕбезопасно!
-func getTextColor() string {
-	original := ansiTextWhite // цвета original и inverted должны отличаться, но пока мне это не нужно
-	inverted := ansiTextWhite
-	if currentTextColor == inverted {
-		currentTextColor = original
-		return inverted
+// getTextColor возвращает текущий цвет для текста
+func getTextColor(inverted bool) string {
+	if inverted {
+		return ansiTextBlack
 	}
-	currentTextColor = inverted
-	return original
+	return ansiTextWhite
 }
 
-// getBackColor возвращает текущий цвет для фона и делает его инверсию. ПотокоНЕбезопасно!
-func getBackColor() string {
-	original := ansiBackgroundBlack
-	inverted := ansiBackgroundDarkGray
-	if currentBackColor == inverted {
-		currentBackColor = original
-		return inverted
+// getBackColor возвращает текущий цвет для фона
+func getBackColor(inverted bool) string {
+	if inverted {
+		return ansiBackgroundDarkGray
 	}
-	currentBackColor = inverted
-	return original
+	return ansiBackgroundBlack
 }
 
 const errKey = "err"
@@ -240,7 +233,7 @@ func (h *handler) Handle(_ context.Context, r slog.Record) error {
 
 	// write message
 	if rep == nil {
-		buf.WriteString("💬 " + r.Message)
+		buf.WriteString(fmt.Sprintf("💬 %s ", r.Message))
 
 	} else if a := rep(nil /* groups */, slog.String(slog.MessageKey, r.Message)); a.Key != "" {
 		h.appendValue(buf, a.Value, false)
@@ -258,16 +251,16 @@ func (h *handler) Handle(_ context.Context, r slog.Record) error {
 		return true
 	})
 
-	if len(*buf) == 0 {
+	if len(buf.Text) == 0 {
 		return nil
 	}
 	buf.WriteString(ansiReset + " ")
-	(*buf)[len(*buf)-1] = '\n' // replace last space with newline
+	(buf.Text)[len(buf.Text)-1] = '\n' // replace last space with newline
 
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
-	_, err := h.w.Write(*buf)
+	_, err := h.w.Write(buf.Text)
 	return err
 }
 
@@ -284,7 +277,7 @@ func (h *handler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	for _, attr := range attrs {
 		h.appendAttr(buf, attr, h.groupPrefix, h.groups)
 	}
-	h2.attrsPrefix = h.attrsPrefix + string(*buf)
+	h2.attrsPrefix = h.attrsPrefix + string(buf.Text)
 	return h2
 }
 
@@ -299,7 +292,7 @@ func (h *handler) WithGroup(name string) slog.Handler {
 }
 
 func (h *handler) appendTime(buf *buffer, t time.Time) {
-	*buf = t.AppendFormat(*buf, h.timeFormat)
+	buf.Text = t.AppendFormat(buf.Text, h.timeFormat)
 }
 
 func (h *handler) appendLevel(buf *buffer, level slog.Level) {
@@ -325,7 +318,7 @@ func appendLevelDelta(buf *buffer, delta slog.Level) {
 	} else if delta > 0 {
 		buf.WriteByte('+')
 	}
-	*buf = strconv.AppendInt(*buf, int64(delta), 10)
+	buf.Text = strconv.AppendInt(buf.Text, int64(delta), 10)
 }
 
 func (h *handler) appendSource(buf *buffer, src *slog.Source) {
@@ -362,7 +355,7 @@ func (h *handler) appendAttr(buf *buffer, attr slog.Attr, groupsPrefix string, g
 		h.appendTintError(buf, err, groupsPrefix)
 		buf.WriteByte(' ')
 	} else {
-		buf.WriteString(getBackColor())
+		buf.WriteString(getBackColor(buf.inverted))
 		h.appendKey(buf, attr.Key, groupsPrefix)
 		h.appendValue(buf, attr.Value, true)
 		buf.WriteByte(' ')
@@ -371,7 +364,7 @@ func (h *handler) appendAttr(buf *buffer, attr slog.Attr, groupsPrefix string, g
 
 func (h *handler) appendKey(buf *buffer, key, groups string) {
 	if key == "op" {
-		appendString(buf, "👀", false)
+		appendString(buf, " 👀 ", false)
 	} else {
 		buf.WriteString(ansiTextOrange)
 		appendString(buf, groups+key, true)
@@ -380,18 +373,18 @@ func (h *handler) appendKey(buf *buffer, key, groups string) {
 }
 
 func (h *handler) appendValue(buf *buffer, v slog.Value, quote bool) {
-	buf.WriteString(getTextColor())
+	buf.WriteString(getTextColor(buf.Inverse()))
 	switch v.Kind() {
 	case slog.KindString:
 		appendString(buf, v.String(), quote)
 	case slog.KindInt64:
-		*buf = strconv.AppendInt(*buf, v.Int64(), 10)
+		buf.Text = strconv.AppendInt(buf.Text, v.Int64(), 10)
 	case slog.KindUint64:
-		*buf = strconv.AppendUint(*buf, v.Uint64(), 10)
+		buf.Text = strconv.AppendUint(buf.Text, v.Uint64(), 10)
 	case slog.KindFloat64:
-		*buf = strconv.AppendFloat(*buf, v.Float64(), 'g', -1, 64)
+		buf.Text = strconv.AppendFloat(buf.Text, v.Float64(), 'g', -1, 64)
 	case slog.KindBool:
-		*buf = strconv.AppendBool(*buf, v.Bool())
+		buf.Text = strconv.AppendBool(buf.Text, v.Bool())
 	case slog.KindDuration:
 		appendString(buf, v.Duration().String(), quote)
 	case slog.KindTime:
@@ -422,7 +415,7 @@ func (h *handler) appendTintError(buf *buffer, err error, groupsPrefix string) {
 
 func appendString(buf *buffer, s string, quote bool) {
 	if quote && needsQuoting(s) {
-		*buf = strconv.AppendQuote(*buf, s)
+		buf.Text = strconv.AppendQuote(buf.Text, s)
 	} else {
 		buf.WriteString(s)
 	}
