@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/lazylex/watch-store/secure/internal/config"
 	"github.com/lazylex/watch-store/secure/internal/logger"
 	prometheusMetrics "github.com/lazylex/watch-store/secure/internal/metrics"
@@ -11,6 +12,7 @@ import (
 	"log/slog"
 	"os"
 	"os/exec"
+	"os/signal"
 )
 
 func main() {
@@ -26,9 +28,13 @@ func main() {
 	repo := joint.New(inMemoryRepo, persistentRepo)
 	_ = service.New(metrics.Service, repo)
 
-	// TODO удалить, когда будет запущен http-сервер для обработки внешних запросов
-	c := make(chan struct{})
-	_ = <-c
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	signal.Notify(c, os.Kill)
+
+	sig := <-c
+	fmt.Println() // так красивее, если вывод логов производится в стандартный терминал
+	slog.Info(fmt.Sprintf("%s signal received. Shutdown started", sig))
 }
 
 func clearScreen() error {
