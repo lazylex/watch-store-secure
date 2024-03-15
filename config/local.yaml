@@ -22,7 +22,7 @@ kafka:
   kafka_brokers: ["localhost:9092"]
   kafka_topic_update_price: "secure.update-token"
 redis:
-  redis_address: "192.168.31.224:6379"
+  redis_address: "127.0.0.0:6379"
   redis_user: ""
   redis_password: ""
   redis_db: 0
