@@ -47,8 +47,6 @@ func (r *Repository) GetUserIdAndPasswordHash(ctx context.Context, login login.L
 	var err error
 
 	if data, err = r.memory.GetUserIdAndPasswordHash(ctx, login); err != nil {
-		///////////////////////////////
-
 		if data, err = r.persistent.GetUserIdAndPasswordHash(ctx, login); err != nil {
 			return dto.UserIdWithPasswordHashDTO{}, err
 		} else if data != (dto.UserIdWithPasswordHashDTO{}) {

@@ -62,23 +62,20 @@ func (r *Redis) GetUserUUIDFromSession(ctx context.Context, sessionToken string)
 func (r *Redis) GetUserIdAndPasswordHash(ctx context.Context, login login.Login) (dto.UserIdWithPasswordHashDTO, error) {
 	var err error
 	var parsedUUID uuid.UUID
-	var userId, hash string
+	var values map[string]string
 
 	key := userIdAndPasswordHashKey(login)
 
-	if userId, err = r.client.HGet(ctx, key, userIdField).Result(); err != nil {
-		return dto.UserIdWithPasswordHashDTO{}, err
-	}
-	if hash, err = r.client.HGet(ctx, key, hashField).Result(); err != nil {
+	if values, err = r.client.HGetAll(ctx, key).Result(); err != nil {
 		return dto.UserIdWithPasswordHashDTO{}, err
 	}
 
 	// TODO определить ttl из конфигурации
 	r.client.Expire(ctx, key, 1*time.Hour)
-	if parsedUUID, err = uuid.Parse(userId); err != nil {
+	if parsedUUID, err = uuid.Parse(values[userIdField]); err != nil {
 		return dto.UserIdWithPasswordHashDTO{}, err
 	}
-	return dto.UserIdWithPasswordHashDTO{UserId: parsedUUID, Hash: hash}, nil
+	return dto.UserIdWithPasswordHashDTO{UserId: parsedUUID, Hash: values[hashField]}, nil
 }
 
 func (r *Redis) SetUserIdAndPasswordHash(ctx context.Context, data dto.UserLoginAndIdWithPasswordHashDTO) error {
