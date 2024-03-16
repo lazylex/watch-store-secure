@@ -8,6 +8,7 @@ import (
 	"github.com/lazylex/watch-store/secure/internal/dto"
 	"github.com/lazylex/watch-store/secure/internal/ports/metrics/service"
 	"github.com/lazylex/watch-store/secure/internal/repository/joint"
+	"log/slog"
 )
 
 type Service struct {
@@ -65,7 +66,6 @@ func (s *Service) login(token string, userId uuid.UUID) {
 // getUserIdIfLoginAndPasswordCorrect возвращает uuid пользователя (сервиса), если он является аутентифицированным.
 // Иначе - возвращает uuid.Nil
 func (s *Service) getUserIdIfLoginAndPasswordCorrect(dto *dto.LoginPasswordDTO) uuid.UUID {
-	// TODO implement
 	ctx := context.Background()
 	userIdAndPasswordHash, err := s.repository.GetUserIdAndPasswordHash(ctx, dto.Login)
 	if err != nil {
@@ -76,11 +76,12 @@ func (s *Service) getUserIdIfLoginAndPasswordCorrect(dto *dto.LoginPasswordDTO) 
 		return uuid.Nil
 	}
 
-	return uuid.Nil
+	return userIdAndPasswordHash.UserId
 }
 
 func (s *Service) isPasswordCorrect(password password.Password, hash string) bool {
 	// TODO implement
+	slog.Debug(serviceError("isPasswordCorrect not implemented").Error())
 	return true
 }
 
@@ -88,6 +89,7 @@ func (s *Service) isPasswordCorrect(password password.Password, hash string) boo
 func (s *Service) createToken() string {
 	// TODO implement
 	// Возможно, стоит создавать JWT-токен, подпись которого известна только в данном сервисе. В токен записывать
-	// ip адрес получателя
+	// ip адрес получателя или его instance
+	slog.Debug(serviceError("createToken not implemented").Error())
 	return ""
 }
