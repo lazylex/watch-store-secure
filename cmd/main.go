@@ -24,7 +24,7 @@ func main() {
 
 	metrics := prometheusMetrics.MustCreate(&cfg.Prometheus)
 	inMemoryRepo := redis.MustCreate(cfg.Redis)
-	persistentRepo := postgresql.Create(cfg.PersistentStorage)
+	persistentRepo := postgresql.MustCreate(cfg.PersistentStorage)
 	repo := joint.New(inMemoryRepo, persistentRepo)
 	_ = service.New(metrics.Service, repo)
 
@@ -35,6 +35,7 @@ func main() {
 	sig := <-c
 	fmt.Println() // так красивее, если вывод логов производится в стандартный терминал
 	slog.Info(fmt.Sprintf("%s signal received. Shutdown started", sig))
+	persistentRepo.Close()
 }
 
 func clearScreen() error {

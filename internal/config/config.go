@@ -44,6 +44,7 @@ type PersistentStorage struct {
 	DatabaseLogin              string `yaml:"database_login" env:"DATABASE_LOGIN" env-required:"true"`
 	DatabasePassword           string `yaml:"database_password" env:"DATABASE_PASSWORD" env-required:"true"`
 	DatabaseAddress            string `yaml:"database_address" env:"DATABASE_ADDRESS" env-required:"true"`
+	DatabasePort               string `yaml:"database_port" env:"DATABASE_PORT" env-required:"true"`
 	DatabaseName               string `yaml:"database_name" env:"DATABASE_NAME" env-required:"true"`
 	DatabaseMaxOpenConnections int    `yaml:"database_max_open_connections" env:"DATABASE_MAX_OPEN_CONNECTIONS" env-required:"true"`
 

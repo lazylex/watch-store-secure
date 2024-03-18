@@ -12,9 +12,10 @@ http_server:
   idle_timeout: 60s
   shutdown_timeout: 15s
 persistent_storage:
-  database_login: "secure1"
+  database_login: "lex"
   database_password: "python"
-  database_address: "localhost"
+  database_address: "192.168.31.225"
+  database_port: "5432"
   database_max_open_connections: 10
   database_name: "secure1"
   query_timeout: 5s

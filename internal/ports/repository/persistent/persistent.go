@@ -8,4 +8,5 @@ import (
 
 type Interface interface {
 	GetUserIdAndPasswordHash(context.Context, login.Login) (dto.UserIdWithPasswordHashDTO, error)
+	Close()
 }
