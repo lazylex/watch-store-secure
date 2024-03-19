@@ -25,29 +25,36 @@ func postgreError(text string) error {
 // MustCreate возвращает структуру для взаимодействия с базой данных в СУБД PostgreSQL. В случае ошибки завершает
 // работу всего приложения
 func MustCreate(cfg config.PersistentStorage) *PostgreSQL {
-	psqlconn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+	connection := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		cfg.DatabaseAddress, cfg.DatabasePort, cfg.DatabaseLogin, cfg.DatabasePassword, cfg.DatabaseName)
 
-	db, err := sql.Open("postgres", psqlconn)
+	db, err := sql.Open("postgres", connection)
 	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
+		exitWithError(err)
 	}
 	if err = db.Ping(); err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
+		exitWithError(err)
 	}
-	slog.Info("successfully ping postgres DB")
 
+	slog.Info("successfully ping postgres DB")
 	client := &PostgreSQL{db: db}
-	defer client.createNotExistedTables()
+
+	if err = client.createNotExistedTables(); err != nil {
+		exitWithError(err)
+	}
 
 	return client
 }
 
+// exitWithError выводит ошибку в лог и завершает приложение
+func exitWithError(err error) {
+	slog.Error(postgreError(err.Error()).Error())
+	os.Exit(1)
+}
+
 // createNotExistedTables создает таблицы в БД, если они отсутствуют
-func (p *PostgreSQL) createNotExistedTables() {
-	slog.Info("creating not existed tables")
+func (p *PostgreSQL) createNotExistedTables() error {
+	// account table
 	stmt := `CREATE TABLE IF NOT EXISTS account (
 		uuid varchar(36) NOT NULL UNIQUE,
 		login varchar(100) NOT NULL UNIQUE,
@@ -55,10 +62,13 @@ func (p *PostgreSQL) createNotExistedTables() {
 		enabled integer NOT NULL DEFAULT '1',
 		PRIMARY KEY (uuid))`
 	if _, err := p.db.Exec(stmt); err != nil {
-		slog.Error(err.Error())
+		return err
 	}
+
 	// TODO add tables
 	slog.Debug(postgreError("only one table created in DB").Error())
+
+	return nil
 }
 
 // Close закрывает соединение с БД
