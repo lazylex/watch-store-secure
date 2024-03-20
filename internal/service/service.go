@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"github.com/google/uuid"
+	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/account_state"
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/password"
 	"github.com/lazylex/watch-store/secure/internal/dto"
 	"github.com/lazylex/watch-store/secure/internal/ports/metrics/service"
 	"github.com/lazylex/watch-store/secure/internal/repository/joint"
+	"golang.org/x/crypto/bcrypt"
 	"log/slog"
 )
 
@@ -18,7 +20,9 @@ type Service struct {
 }
 
 var (
-	ErrAuthenticationData = serviceError("Неправильный логин или пароль")
+	ErrAuthenticationData = serviceError("неправильный логин или пароль")
+	ErrNotEnabledAccount  = serviceError("учетная запись не активна")
+	ErrCreatePwdHash      = serviceError("ошибка при хешировании пароля")
 )
 
 func serviceError(text string) error {
@@ -26,7 +30,6 @@ func serviceError(text string) error {
 }
 
 // TODO заменить параметры на Option (при необходимости)
-// TODO считывать salt с конфигурации
 
 // New конструктор для сервиса
 func New(metrics service.MetricsInterface, repository joint.Repository) *Service {
@@ -36,10 +39,19 @@ func New(metrics service.MetricsInterface, repository joint.Repository) *Service
 
 // Login совершает логин пользователя (сервиса) по переданным в dto логину и паролю. Воввращает токен сессии и ошибку
 func (s *Service) Login(dto *dto.LoginPasswordDTO) (string, error) {
-	userId := s.getUserIdIfLoginAndPasswordCorrect(dto)
-	if userId == uuid.Nil {
+	// TODO адаптировать ошибки приходящие из репозитория к ошибкам сервиса
+	state, err := s.repository.GetAccountState(context.Background(), dto.Login)
+	if err != nil {
+		return "", err
+	}
+	if state != account_state.Enabled {
+		return "", ErrNotEnabledAccount
+	}
+
+	userId, errGetUsr := s.getUserId(dto)
+	if userId == uuid.Nil || errGetUsr != nil {
 		s.metrics.AuthenticationErrorInc()
-		return "", ErrAuthenticationData
+		return "", err
 	}
 
 	token := s.createToken()
@@ -47,6 +59,24 @@ func (s *Service) Login(dto *dto.LoginPasswordDTO) (string, error) {
 	go s.login(token, userId)
 
 	return token, nil
+}
+
+// CreateAccount создаёт активную учетную запись
+func (s *Service) CreateAccount(loginAndPwd *dto.LoginPasswordDTO) error {
+	ctx := context.Background()
+	// TODO определять стоимость создания пароля в конфиге
+	bytes, err := bcrypt.GenerateFromPassword([]byte(loginAndPwd.Password), 14)
+	if err != nil {
+		return ErrCreatePwdHash
+	}
+	data := dto.AccountLoginDataDTO{
+		Login:  loginAndPwd.Login,
+		UserId: uuid.New(),
+		Hash:   string(bytes),
+		State:  account_state.Enabled,
+	}
+
+	return s.repository.SetAccountLoginData(ctx, data)
 }
 
 // login совершает логин пользователя, пароль которого прошел проверку. В функцию передается токен token, который будет
@@ -63,20 +93,19 @@ func (s *Service) login(token string, userId uuid.UUID) {
 	}
 }
 
-// getUserIdIfLoginAndPasswordCorrect возвращает uuid пользователя (сервиса), если он является аутентифицированным.
-// Иначе - возвращает uuid.Nil
-func (s *Service) getUserIdIfLoginAndPasswordCorrect(dto *dto.LoginPasswordDTO) uuid.UUID {
-	ctx := context.Background()
-	userIdAndPasswordHash, err := s.repository.GetUserIdAndPasswordHash(ctx, dto.Login)
+// getUserId возвращает uuid пользователя (сервиса)
+func (s *Service) getUserId(dto *dto.LoginPasswordDTO) (uuid.UUID, error) {
+	// TODO адаптировать ошибки приходящие из репозитория к ошибкам сервиса
+	userIdAndPasswordHash, err := s.repository.GetUserIdAndPasswordHash(context.Background(), dto.Login)
 	if err != nil {
-		return uuid.Nil
+		return uuid.Nil, err
 	}
 
 	if !s.isPasswordCorrect(dto.Password, userIdAndPasswordHash.Hash) {
-		return uuid.Nil
+		return uuid.Nil, ErrAuthenticationData
 	}
 
-	return userIdAndPasswordHash.UserId
+	return userIdAndPasswordHash.UserId, nil
 }
 
 func (s *Service) isPasswordCorrect(password password.Password, hash string) bool {

@@ -7,6 +7,7 @@ import (
 )
 
 type Interface interface {
-	GetUserIdAndPasswordHash(context.Context, login.Login) (dto.UserIdWithPasswordHashDTO, error)
+	GetAccountLoginData(context.Context, login.Login) (dto.AccountLoginDataDTO, error)
+	SetAccountLoginData(context.Context, dto.AccountLoginDataDTO) error
 	Close()
 }

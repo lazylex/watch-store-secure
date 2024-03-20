@@ -2,15 +2,18 @@ package redis
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/lazylex/watch-store/secure/internal/config"
-	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/login"
+	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/account_state"
+	loginVO "github.com/lazylex/watch-store/secure/internal/domain/value_objects/login"
 	"github.com/lazylex/watch-store/secure/internal/dto"
 	"github.com/lazylex/watch-store/secure/internal/logger"
 	"github.com/redis/go-redis/v9"
 	"log/slog"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -22,6 +25,15 @@ const (
 	userIdField = "user_id"
 	hashField   = "hash"
 )
+
+var (
+	ErrNotNumericValue = redisErr("not numeric value")
+)
+
+// redisErr возвращает ошибку с префиксом redis
+func redisErr(text string) error {
+	return errors.New("redis: " + text)
+}
 
 // MustCreate создание структуры с клиентом для взаимодействия с Redis. При ошибке соеднинения с сервером Redis выводит
 // ошибку в лог и прекращает работу приложения
@@ -59,7 +71,7 @@ func (r *Redis) GetUserUUIDFromSession(ctx context.Context, sessionToken string)
 	return uuid.FromBytes(val)
 }
 
-func (r *Redis) GetUserIdAndPasswordHash(ctx context.Context, login login.Login) (dto.UserIdWithPasswordHashDTO, error) {
+func (r *Redis) GetUserIdAndPasswordHash(ctx context.Context, login loginVO.Login) (dto.UserIdWithPasswordHashDTO, error) {
 	var err error
 	var parsedUUID uuid.UUID
 	var values map[string]string
@@ -78,14 +90,42 @@ func (r *Redis) GetUserIdAndPasswordHash(ctx context.Context, login login.Login)
 	return dto.UserIdWithPasswordHashDTO{UserId: parsedUUID, Hash: values[hashField]}, nil
 }
 
-func (r *Redis) SetUserIdAndPasswordHash(ctx context.Context, data dto.UserLoginAndIdWithPasswordHashDTO) error {
-	var err error
+func (r *Redis) SetUserIdAndPasswordHash(ctx context.Context, data dto.UserLoginAndIdWithPasswordHashDTO) {
 	key := userIdAndPasswordHashKey(data.Login)
-	if err = r.client.HSet(ctx, key, userIdField, data.UserId.String(), hashField, data.Hash).Err(); err != nil {
-		return err
-	}
+	r.client.HSet(ctx, key, userIdField, data.UserId.String(), hashField, data.Hash)
 	// TODO определить ttl из конфигурации
-	return r.client.Expire(ctx, key, 1*time.Hour).Err()
+	r.client.Expire(ctx, key, 1*time.Hour)
+}
+
+// GetAccountStateByLogin возвращает состояние учетной записи с переданным логином
+func (r *Redis) GetAccountStateByLogin(ctx context.Context, login loginVO.Login) (account_state.State, error) {
+	var numericVal int
+	var err error
+	var val string
+
+	key := accountStateByLoginKey(login)
+
+	if val, err = r.client.Get(ctx, key).Result(); err != nil {
+		return 0, err
+	}
+
+	if numericVal, err = strconv.Atoi(val); err != nil {
+		return 0, ErrNotNumericValue
+	}
+
+	// TODO определить ttl из конфигурации
+	defer r.client.Expire(ctx, key, 24*time.Hour)
+
+	return account_state.State(numericVal), err
+}
+
+// SetAccountStateByLogin сохраняет состояние аккаунта с переданным логином
+func (r *Redis) SetAccountStateByLogin(ctx context.Context, login loginVO.Login, state account_state.State) {
+	if !account_state.IsStateCorrect(state) {
+		return
+	}
+	// TODO считывать ttl из конфигурации
+	r.client.Set(ctx, accountStateByLoginKey(login), int(state), 24*time.Hour)
 }
 
 // sessionKey ключ для получения UUID пользователя сессии
@@ -98,7 +138,12 @@ func permissionsKey(service string, id uuid.UUID) string {
 	return fmt.Sprintf("perm:%s:%s", service, id.String())
 }
 
-// userIdAndPasswordHashKey ключ для получения идентификатора пользователя и хэша его пароля
-func userIdAndPasswordHashKey(login login.Login) string {
-	return fmt.Sprintf("uuid:hash:%s", login)
+// userIdAndPasswordHashKey ключ для получения идентификатора пользователя и хэша его пароля по логину
+func userIdAndPasswordHashKey(login loginVO.Login) string {
+	return fmt.Sprintf("uuid:hash:%s", string(login))
+}
+
+// accountStateByLoginKey ключ для получения состояния учетной записи по логину
+func accountStateByLoginKey(login loginVO.Login) string {
+	return fmt.Sprintf("account_state:%s", login)
 }
