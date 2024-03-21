@@ -20,9 +20,9 @@ type Service struct {
 }
 
 var (
-	ErrAuthenticationData = serviceError("неправильный логин или пароль")
-	ErrNotEnabledAccount  = serviceError("учетная запись не активна")
-	ErrCreatePwdHash      = serviceError("ошибка при хешировании пароля")
+	ErrAuthenticationData = serviceError("incorrect login or password")
+	ErrNotEnabledAccount  = serviceError("account is not active")
+	ErrCreatePwdHash      = serviceError("error while hashing password")
 )
 
 func serviceError(text string) error {
