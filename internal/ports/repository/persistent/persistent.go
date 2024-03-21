@@ -6,8 +6,15 @@ import (
 	"github.com/lazylex/watch-store/secure/internal/dto"
 )
 
-type Interface interface {
+type LoginInterface interface {
 	GetAccountLoginData(context.Context, login.Login) (dto.AccountLoginDataDTO, error)
 	SetAccountLoginData(context.Context, dto.AccountLoginDataDTO) error
+}
+
+type RBACInterface interface{}
+
+type Interface interface {
+	LoginInterface
+	RBACInterface
 	Close()
 }
