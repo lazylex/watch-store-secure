@@ -28,6 +28,7 @@ const (
 
 var (
 	ErrNotNumericValue = redisErr("not numeric value")
+	ErrIncorrectState  = redisErr("incorrect state")
 )
 
 // redisErr возвращает ошибку с префиксом redis
@@ -119,13 +120,13 @@ func (r *Redis) GetAccountStateByLogin(ctx context.Context, login loginVO.Login)
 	return account_state.State(numericVal), err
 }
 
-// SetAccountStateByLogin сохраняет состояние аккаунта с переданным логином
-func (r *Redis) SetAccountStateByLogin(ctx context.Context, login loginVO.Login, state account_state.State) {
-	if !account_state.IsStateCorrect(state) {
-		return
+// SetAccountState сохраняет состояние аккаунта с переданным логином
+func (r *Redis) SetAccountState(ctx context.Context, stateDTO dto.LoginStateDTO) error {
+	if !account_state.IsStateCorrect(stateDTO.State) {
+		return ErrIncorrectState
 	}
 	// TODO считывать ttl из конфигурации
-	r.client.Set(ctx, accountStateByLoginKey(login), int(state), 24*time.Hour)
+	return r.client.Set(ctx, accountStateByLoginKey(stateDTO.Login), int(stateDTO.State), 24*time.Hour).Err()
 }
 
 // sessionKey ключ для получения UUID пользователя сессии

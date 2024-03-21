@@ -11,7 +11,7 @@ type LoginInterface interface {
 	SaveSession(context.Context, dto.SessionDTO) error
 	SetUserIdAndPasswordHash(context.Context, dto.UserLoginAndIdWithPasswordHashDTO)
 	GetUserIdAndPasswordHash(context.Context, login.Login) (dto.UserIdWithPasswordHashDTO, error)
-	SetAccountStateByLogin(context.Context, login.Login, account_state.State)
+	SetAccountState(ctx context.Context, stateDTO dto.LoginStateDTO) error
 	GetAccountStateByLogin(context.Context, login.Login) (account_state.State, error)
 }
 

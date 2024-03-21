@@ -12,7 +12,7 @@ type LoginInterface interface {
 	SetAccountLoginData(context.Context, dto.AccountLoginDataDTO) error
 	GetAccountLoginData(context.Context, login.Login) (dto.AccountLoginDataDTO, error)
 	GetUserIdAndPasswordHash(context.Context, login.Login) (dto.UserIdWithPasswordHashDTO, error)
-	// TODO add SetAccountState method
+	SetAccountState(ctx context.Context, stateDTO dto.LoginStateDTO) error
 	GetAccountState(context.Context, login.Login) (account_state.State, error)
 }
 

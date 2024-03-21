@@ -15,6 +15,10 @@ type PostgreSQL struct {
 	db *pgx.Conn
 }
 
+var (
+	ErrZeroRowsAffected = postgreError("zero rows affected")
+)
+
 // postgreError возвращает ошибку с префиксом данного пакета
 func postgreError(text string) error {
 	return errors.New("postgresql: " + text)
@@ -103,5 +107,18 @@ func (p *PostgreSQL) SetAccountLoginData(ctx context.Context, data dto.AccountLo
 		return err
 	}
 
+	return nil
+}
+
+// SetAccountState устанавливает состояние учетной записи
+func (p *PostgreSQL) SetAccountState(ctx context.Context, stateDTO dto.LoginStateDTO) error {
+	stmt := `UPDATE account SET state = $1 WHERE login = $2;`
+	exec, err := p.db.Exec(stmt, stateDTO.State, stateDTO.Login)
+	if err != nil {
+		return err
+	}
+	if exec.RowsAffected() == 0 {
+		return ErrZeroRowsAffected
+	}
 	return nil
 }

@@ -7,6 +7,7 @@ import (
 )
 
 type LoginInterface interface {
+	SetAccountState(context.Context, dto.LoginStateDTO) error
 	GetAccountLoginData(context.Context, login.Login) (dto.AccountLoginDataDTO, error)
 	SetAccountLoginData(context.Context, dto.AccountLoginDataDTO) error
 }

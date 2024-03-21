@@ -33,11 +33,16 @@ func (r *Repository) SaveSession(ctx context.Context, dto dto.SessionDTO) error 
 // SetAccountLoginData сохраняет в постоянном хранилище логин, хеш пароля, статус учетной записи и идентификатор
 // пользователя. В памяти по возможности кеширует статус учетной записи, идентификатор пользователя и хеш пароля
 func (r *Repository) SetAccountLoginData(ctx context.Context, data dto.AccountLoginDataDTO) error {
-	if err := r.persistent.SetAccountLoginData(ctx, data); err != nil {
+	var err error
+
+	if err = r.persistent.SetAccountLoginData(ctx, data); err != nil {
 		return err
 	}
 
-	r.memory.SetAccountStateByLogin(ctx, data.Login, data.State)
+	if err = r.memory.SetAccountState(ctx, dto.LoginStateDTO{Login: data.Login, State: data.State}); err != nil {
+		return err
+	}
+
 	r.memory.SetUserIdAndPasswordHash(ctx,
 		dto.UserLoginAndIdWithPasswordHashDTO{UserId: data.UserId, Hash: data.Hash, Login: data.Login})
 	return nil
@@ -54,9 +59,17 @@ func (r *Repository) GetUserIdAndPasswordHash(ctx context.Context, login loginVO
 		return dto.UserIdWithPasswordHashDTO{}, errGetData
 	}
 
-	r.saveToMemoryLoginData(ctx, data)
+	_ = r.saveToMemoryLoginData(ctx, data)
 
 	return dto.UserIdWithPasswordHashDTO{UserId: data.UserId, Hash: data.Hash}, nil
+}
+
+// SetAccountState устанавливает состояние аккаунта
+func (r *Repository) SetAccountState(ctx context.Context, stateDTO dto.LoginStateDTO) error {
+	if err := r.persistent.SetAccountState(ctx, stateDTO); err != nil {
+		return err
+	}
+	return r.memory.SetAccountState(ctx, stateDTO)
 }
 
 // GetAccountState получает состояние учетной записи пользователя (сервиса)
@@ -94,15 +107,15 @@ func (r *Repository) GetAccountLoginData(ctx context.Context, login loginVO.Logi
 		return dto.AccountLoginDataDTO{}, err
 	}
 
-	defer r.saveToMemoryLoginData(ctx, loginData)
+	_ = r.saveToMemoryLoginData(ctx, loginData)
 
 	return loginData, nil
 }
 
 // saveToMemoryLoginData сохраняет в памяти данные, необходимые для процесса входа в систему пользователя (сервиса)
-func (r *Repository) saveToMemoryLoginData(ctx context.Context, data dto.AccountLoginDataDTO) {
+func (r *Repository) saveToMemoryLoginData(ctx context.Context, data dto.AccountLoginDataDTO) error {
 	r.memory.SetUserIdAndPasswordHash(ctx, dto.UserLoginAndIdWithPasswordHashDTO{UserId: data.UserId, Login: data.Login, Hash: data.Hash})
-	r.memory.SetAccountStateByLogin(ctx, data.Login, data.State)
+	return r.memory.SetAccountState(ctx, dto.LoginStateDTO{Login: data.Login, State: data.State})
 }
 
 // makeDataCache считывает все данные (которые возможно кешировать) из постоянного хранилища в хралищие в памяти
