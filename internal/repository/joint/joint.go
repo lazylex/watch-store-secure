@@ -7,13 +7,15 @@ import (
 	loginVO "github.com/lazylex/watch-store/secure/internal/domain/value_objects/login"
 	"github.com/lazylex/watch-store/secure/internal/dto"
 	"github.com/lazylex/watch-store/secure/internal/ports/repository/in_memory"
+	"github.com/lazylex/watch-store/secure/internal/ports/repository/joint"
 	"github.com/lazylex/watch-store/secure/internal/ports/repository/persistent"
 	"log/slog"
 )
 
 type Repository struct {
-	memory     in_memory.Interface
-	persistent persistent.Interface
+	stateLocker joint.StateLocker
+	memory      in_memory.Interface
+	persistent  persistent.Interface
 }
 
 func jointRepositoryError(text string) error {
@@ -22,7 +24,7 @@ func jointRepositoryError(text string) error {
 
 func New(memory in_memory.Interface, persistent persistent.Interface) Repository {
 	go makeDataCache()
-	return Repository{memory: memory, persistent: persistent}
+	return Repository{memory: memory, persistent: persistent, stateLocker: joint.CreateStateLocker()}
 }
 
 // SaveSession сохраняет в памяти данные сессии
@@ -66,6 +68,9 @@ func (r *Repository) GetUserIdAndPasswordHash(ctx context.Context, login loginVO
 
 // SetAccountState устанавливает состояние аккаунта
 func (r *Repository) SetAccountState(ctx context.Context, stateDTO dto.LoginStateDTO) error {
+	r.stateLocker.Lock(stateDTO.Login)
+	defer r.stateLocker.Unlock(stateDTO.Login)
+
 	if err := r.persistent.SetAccountState(ctx, stateDTO); err != nil {
 		return err
 	}
@@ -77,6 +82,11 @@ func (r *Repository) GetAccountState(ctx context.Context, login loginVO.Login) (
 	var data dto.AccountLoginDataDTO
 	var err error
 	var state account_state.State
+
+	c := make(chan bool)
+	if !r.stateLocker.ReadyToRead(login, c) {
+		<-c
+	}
 
 	if state, err = r.memory.GetAccountStateByLogin(ctx, login); err == nil && account_state.IsStateCorrect(state) {
 		return state, err
