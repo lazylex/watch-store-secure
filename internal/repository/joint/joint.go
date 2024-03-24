@@ -7,13 +7,12 @@ import (
 	loginVO "github.com/lazylex/watch-store/secure/internal/domain/value_objects/login"
 	"github.com/lazylex/watch-store/secure/internal/dto"
 	"github.com/lazylex/watch-store/secure/internal/ports/repository/in_memory"
-	"github.com/lazylex/watch-store/secure/internal/ports/repository/joint"
 	"github.com/lazylex/watch-store/secure/internal/ports/repository/persistent"
 	"log/slog"
 )
 
 type Repository struct {
-	stateLocker joint.StateLocker
+	stateLocker StateLocker
 	memory      in_memory.Interface
 	persistent  persistent.Interface
 }
@@ -24,7 +23,7 @@ func jointRepositoryError(text string) error {
 
 func New(memory in_memory.Interface, persistent persistent.Interface) Repository {
 	go makeDataCache()
-	return Repository{memory: memory, persistent: persistent, stateLocker: joint.CreateStateLocker()}
+	return Repository{memory: memory, persistent: persistent, stateLocker: CreateStateLocker()}
 }
 
 // SaveSession сохраняет в памяти данные сессии
