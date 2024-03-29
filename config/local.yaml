@@ -14,7 +14,7 @@ http_server:
 persistent_storage:
   database_login: "lex"
   database_password: "python"
-  database_address: "192.168.31.225"
+  database_address: "192.168.31.224"
   database_port: 5432
   database_max_open_connections: 10
   database_name: "secure1"
