@@ -2,40 +2,94 @@ package joint
 
 import (
 	loginVO "github.com/lazylex/watch-store/secure/internal/domain/value_objects/login"
+	"sync"
 )
 
+var (
+	mutexW sync.Mutex
+	mutexR sync.Mutex
+)
+
+type writersLocker struct {
+	// канал для блокировки/разблокировки писателей
+	channel chan struct{}
+	// счетчик ожидающих писателей
+	counter int
+}
+
 type StateLocker struct {
-	waiting map[loginVO.Login][]chan bool
+	writers map[loginVO.Login]writersLocker
+	// мапа с массивом каналов, куда будут приходить сигналы о возможности чтения данных
+	readers map[loginVO.Login][]chan struct{}
 }
 
-// CreateStateLocker конструктор для блокировщика
+// CreateStateLocker конструктор для блокировщика записи/чтения статуса
 func CreateStateLocker() StateLocker {
-	return StateLocker{waiting: make(map[loginVO.Login][]chan bool)}
+	return StateLocker{
+		writers: make(map[loginVO.Login]writersLocker),
+		readers: make(map[loginVO.Login][]chan struct{}),
+	}
 }
 
-// Lock блокировка чтения состояния для переданного логина
-func (s *StateLocker) Lock(login loginVO.Login) {
-	s.waiting[login] = make([]chan bool, 0)
+// Lock вызывается писателем для получения канала, в который необходимо считать сигнал о разрешении записи. Блокирует
+// разрешение на запись для других писателей
+func (s *StateLocker) Lock(login loginVO.Login) chan struct{} {
+	mutexW.Lock()
+	defer mutexW.Unlock()
+
+	if _, ok := s.writers[login]; !ok {
+		// для писателей данных создается канал с буфером равным одному, чтобы одновременно мог писать только один
+		// писатель
+		c := make(chan struct{}, 1)
+		s.writers[login] = writersLocker{channel: c, counter: 0}
+		return c
+	} else {
+		s.writers[login] = writersLocker{channel: s.writers[login].channel, counter: s.writers[login].counter + 1}
+		return s.writers[login].channel
+	}
 }
 
-// Unlock разблокировка чтения состояния для переданного логина
+// Unlock вызывается писателем при окончании записи данных. Если писатель был последним в очереди, читателям открывается
+// доступ для чтения данных
 func (s *StateLocker) Unlock(login loginVO.Login) {
-	for _, c := range s.waiting[login] {
-		c <- true
-		close(c)
+	if _, ok := s.writers[login]; !ok {
+		s.releaseReaders(login)
+		return
 	}
 
-	delete(s.waiting, login)
+	<-s.writers[login].channel
+
+	mutexW.Lock()
+	defer mutexW.Unlock()
+
+	s.writers[login] = writersLocker{channel: s.writers[login].channel, counter: s.writers[login].counter - 1}
+
+	if s.writers[login].counter == 0 {
+		close(s.writers[login].channel)
+		delete(s.writers, login)
+	}
 }
 
-// ReadyToRead запрашивает, возможно ли в данный момент получить значение для переданного логина. На случай, если в
-// данный момент это не возможно, передается канал, в который необходимо отправить сообщение, когда эта возможность
-// появится
-func (s *StateLocker) ReadyToRead(login loginVO.Login, c chan bool) bool {
-	if _, ok := s.waiting[login]; !ok {
+// WantRead возвращает true, если в данных момент не происходит запись статуса для переданного логина и чтение значения
+// статуса разрешено. В противном случае заносит переданный канал в очередь на рассылку сигнала о разрешении на чтение
+func (s *StateLocker) WantRead(login loginVO.Login, c chan struct{}) bool {
+	if _, ok := s.writers[login]; !ok {
 		return true
 	} else {
-		s.waiting[login] = append(s.waiting[login], c)
+		mutexR.Lock()
+		s.readers[login] = append(s.readers[login], c)
+		mutexR.Unlock()
 	}
 	return false
+}
+
+// releaseReaders производит рассылку в каналы сигнала о разрешении на чтение данных
+func (s *StateLocker) releaseReaders(login loginVO.Login) {
+	mutexR.Lock()
+	mutexR.Unlock()
+
+	for _, c := range s.readers[login] {
+		c <- struct{}{}
+		close(c)
+	}
 }

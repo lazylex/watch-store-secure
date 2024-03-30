@@ -67,12 +67,13 @@ func (r *Repository) GetUserIdAndPasswordHash(ctx context.Context, login loginVO
 
 // SetAccountState устанавливает состояние аккаунта
 func (r *Repository) SetAccountState(ctx context.Context, stateDTO dto.LoginStateDTO) error {
-	r.stateLocker.Lock(stateDTO.Login)
 	defer r.stateLocker.Unlock(stateDTO.Login)
+	r.stateLocker.Lock(stateDTO.Login) <- struct{}{}
 
 	if err := r.persistent.SetAccountState(ctx, stateDTO); err != nil {
 		return err
 	}
+
 	return r.memory.SetAccountState(ctx, stateDTO)
 }
 
@@ -82,8 +83,7 @@ func (r *Repository) GetAccountState(ctx context.Context, login loginVO.Login) (
 	var err error
 	var state account_state.State
 
-	c := make(chan bool)
-	if !r.stateLocker.ReadyToRead(login, c) {
+	if c := make(chan struct{}); !r.stateLocker.WantRead(login, c) {
 		<-c
 	}
 
