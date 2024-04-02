@@ -60,13 +60,14 @@ func exitWithError(err error) {
 
 // createNotExistedTables создает таблицы в БД, если они отсутствуют
 func (p *PostgreSQL) createNotExistedTables() error {
+	var stmt string
 	// account table
 	// TODO разобраться, почему не работает плейсхолдер и приходится хардкодить значение в запросе
-	stmt := `CREATE TABLE IF NOT EXISTS account (
-		uuid varchar(36) NOT NULL UNIQUE,
-		login varchar(100) NOT NULL UNIQUE,
-		pwd_hash varchar(60) NOT NULL UNIQUE,
-		state integer NOT NULL DEFAULT '1',
+	stmt = `CREATE TABLE IF NOT EXISTS account (
+		uuid UUID NOT NULL UNIQUE,
+		login VARCHAR(100) NOT NULL UNIQUE,
+		pwd_hash VARCHAR(60) NOT NULL UNIQUE,
+		state INTEGER NOT NULL DEFAULT '1',
 		PRIMARY KEY (uuid))`
 	if _, err := p.db.Exec(stmt); err != nil {
 		return err
