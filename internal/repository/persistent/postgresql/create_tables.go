@@ -1,7 +1,12 @@
 package postgresql
 
+import (
+	"log/slog"
+)
+
 // createNotExistedTables создает таблицы в БД, если они отсутствуют
 func (p *PostgreSQL) createNotExistedTables() error {
+	// TODO добавить каскадное удаление
 	var stmt string
 	// accounts table
 	stmt = `CREATE TABLE IF NOT EXISTS accounts 
@@ -14,6 +19,8 @@ func (p *PostgreSQL) createNotExistedTables() error {
 		)`
 	if _, err := p.db.Exec(stmt); err != nil {
 		return err
+	} else {
+		slog.Info("created table", slog.String("table name", "accounts"))
 	}
 
 	// services table
@@ -25,6 +32,8 @@ func (p *PostgreSQL) createNotExistedTables() error {
 		)`
 	if _, err := p.db.Exec(stmt); err != nil {
 		return err
+	} else {
+		slog.Info("created table", slog.String("table name", "services"))
 	}
 
 	// instances table
@@ -36,6 +45,8 @@ func (p *PostgreSQL) createNotExistedTables() error {
 		)`
 	if _, err := p.db.Exec(stmt); err != nil {
 		return err
+	} else {
+		slog.Info("created table", slog.String("table name", "instances"))
 	}
 
 	// permissions table
@@ -49,6 +60,8 @@ func (p *PostgreSQL) createNotExistedTables() error {
 		)`
 	if _, err := p.db.Exec(stmt); err != nil {
 		return err
+	} else {
+		slog.Info("created table", slog.String("table name", "permissions"))
 	}
 
 	// accounts instances permissions table
@@ -61,6 +74,8 @@ func (p *PostgreSQL) createNotExistedTables() error {
 		)`
 	if _, err := p.db.Exec(stmt); err != nil {
 		return err
+	} else {
+		slog.Info("created table", slog.String("table name", "accounts_instances_permissions"))
 	}
 
 	// roles table
@@ -72,6 +87,8 @@ func (p *PostgreSQL) createNotExistedTables() error {
 		)`
 	if _, err := p.db.Exec(stmt); err != nil {
 		return err
+	} else {
+		slog.Info("created table", slog.String("table name", "roles"))
 	}
 
 	// role permissions table
@@ -83,6 +100,8 @@ func (p *PostgreSQL) createNotExistedTables() error {
 		)`
 	if _, err := p.db.Exec(stmt); err != nil {
 		return err
+	} else {
+		slog.Info("created table", slog.String("table name", "role_permissions"))
 	}
 
 	// account roles table
@@ -94,6 +113,8 @@ func (p *PostgreSQL) createNotExistedTables() error {
 		)`
 	if _, err := p.db.Exec(stmt); err != nil {
 		return err
+	} else {
+		slog.Info("created table", slog.String("table name", "account_roles"))
 	}
 
 	// groups table
@@ -105,10 +126,12 @@ func (p *PostgreSQL) createNotExistedTables() error {
 		)`
 	if _, err := p.db.Exec(stmt); err != nil {
 		return err
+	} else {
+		slog.Info("created table", slog.String("table name", "groups"))
 	}
 
 	// group roles table
-	stmt = `CREATE TABLE IF NOT EXISTS group_role
+	stmt = `CREATE TABLE IF NOT EXISTS group_roles
 		(
 			role_fk INTEGER REFERENCES roles,
 			groups_fk INTEGER REFERENCES groups,
@@ -116,10 +139,12 @@ func (p *PostgreSQL) createNotExistedTables() error {
 		)`
 	if _, err := p.db.Exec(stmt); err != nil {
 		return err
+	} else {
+		slog.Info("created table", slog.String("table name", "group_roles"))
 	}
 
 	// group permissions table
-	stmt = `CREATE TABLE IF NOT EXISTS group_permission
+	stmt = `CREATE TABLE IF NOT EXISTS group_permissions
 		(
 			permission_fk INTEGER REFERENCES permissions,
 			groups_fk INTEGER REFERENCES groups,
@@ -127,6 +152,8 @@ func (p *PostgreSQL) createNotExistedTables() error {
 		)`
 	if _, err := p.db.Exec(stmt); err != nil {
 		return err
+	} else {
+		slog.Info("created table", slog.String("table name", "group_permissions"))
 	}
 
 	// account groups table
@@ -138,6 +165,8 @@ func (p *PostgreSQL) createNotExistedTables() error {
 		)`
 	if _, err := p.db.Exec(stmt); err != nil {
 		return err
+	} else {
+		slog.Info("created table", slog.String("table name", "account_groups"))
 	}
 
 	return nil
