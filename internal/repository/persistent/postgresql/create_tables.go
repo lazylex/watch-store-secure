@@ -97,10 +97,12 @@ func (p *PostgreSQL) createNotExistedTables() error {
 	}
 
 	// groups table
-	stmt = `CREATE TABLE IF NOT EXISTS groups (
-		id SERIAL PRIMARY KEY,
-		name VARCHAR(100) NOT NULL,
-		description TEXT)`
+	stmt = `CREATE TABLE IF NOT EXISTS groups 
+		(
+			id SERIAL PRIMARY KEY,
+			name VARCHAR(100) NOT NULL,
+			description TEXT
+		)`
 	if _, err := p.db.Exec(stmt); err != nil {
 		return err
 	}
