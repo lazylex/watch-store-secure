@@ -58,27 +58,6 @@ func exitWithError(err error) {
 	os.Exit(1)
 }
 
-// createNotExistedTables создает таблицы в БД, если они отсутствуют
-func (p *PostgreSQL) createNotExistedTables() error {
-	var stmt string
-	// account table
-	// TODO разобраться, почему не работает плейсхолдер и приходится хардкодить значение в запросе
-	stmt = `CREATE TABLE IF NOT EXISTS account (
-		uuid UUID NOT NULL UNIQUE,
-		login VARCHAR(100) NOT NULL UNIQUE,
-		pwd_hash VARCHAR(60) NOT NULL UNIQUE,
-		state INTEGER NOT NULL DEFAULT '1',
-		PRIMARY KEY (uuid))`
-	if _, err := p.db.Exec(stmt); err != nil {
-		return err
-	}
-
-	// TODO add tables
-	slog.Debug(postgreError("only one table created in DB").Error())
-
-	return nil
-}
-
 // Close закрывает соединение с БД
 func (p *PostgreSQL) Close() {
 	if err := p.db.Close(); err != nil {
@@ -91,7 +70,7 @@ func (p *PostgreSQL) Close() {
 // GetAccountLoginData возвращает необходимые для процесса входа в систему данные пользователя (сервиса)
 func (p *PostgreSQL) GetAccountLoginData(ctx context.Context, login loginVO.Login) (dto.AccountLoginDataDTO, error) {
 	result := dto.AccountLoginDataDTO{Login: login}
-	stmt := `SELECT uuid, pwd_hash, state FROM account WHERE login = $1;`
+	stmt := `SELECT uuid, pwd_hash, state FROM accounts WHERE login = $1;`
 	row := p.db.QueryRow(stmt, login)
 	err := row.Scan(&result.UserId, &result.Hash, &result.State)
 	if err != nil {
@@ -103,7 +82,7 @@ func (p *PostgreSQL) GetAccountLoginData(ctx context.Context, login loginVO.Logi
 
 // SetAccountLoginData сохраняет в БД идентификатор пользователя (сервиса), логин, хеш пароля и состояние учетной записи
 func (p *PostgreSQL) SetAccountLoginData(ctx context.Context, data dto.AccountLoginDataDTO) error {
-	stmt := `INSERT INTO account (uuid, login, pwd_hash, state) values ($1, $2, $3, $4);`
+	stmt := `INSERT INTO accounts (uuid, login, pwd_hash, state) values ($1, $2, $3, $4);`
 	if _, err := p.db.Exec(stmt, data.UserId, data.Login, data.Hash, data.State); err != nil {
 		return err
 	}
@@ -113,7 +92,7 @@ func (p *PostgreSQL) SetAccountLoginData(ctx context.Context, data dto.AccountLo
 
 // SetAccountState устанавливает состояние учетной записи
 func (p *PostgreSQL) SetAccountState(ctx context.Context, stateDTO dto.LoginStateDTO) error {
-	stmt := `UPDATE account SET state = $1 WHERE login = $2;`
+	stmt := `UPDATE accounts SET state = $1 WHERE login = $2;`
 	exec, err := p.db.Exec(stmt, stateDTO.State, stateDTO.Login)
 	if err != nil {
 		return err
