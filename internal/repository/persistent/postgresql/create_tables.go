@@ -6,9 +6,8 @@ import (
 
 // createNotExistedTables создает таблицы в БД, если они отсутствуют
 func (p *PostgreSQL) createNotExistedTables() error {
-	// TODO добавить каскадное удаление
 	var stmt string
-	// accounts table
+
 	stmt = `CREATE TABLE IF NOT EXISTS accounts 
 		(
 			account_id SERIAL PRIMARY KEY,
@@ -21,7 +20,6 @@ func (p *PostgreSQL) createNotExistedTables() error {
 		return err
 	}
 
-	// services table
 	stmt = `CREATE TABLE IF NOT EXISTS services 
 		(
 			service_id SERIAL PRIMARY KEY,
@@ -32,43 +30,39 @@ func (p *PostgreSQL) createNotExistedTables() error {
 		return err
 	}
 
-	// instances table
 	stmt = `CREATE TABLE IF NOT EXISTS instances 
 		(
 			instance_id SERIAL PRIMARY KEY,
 			name VARCHAR(100) NOT NULL UNIQUE,
-			service_fk INTEGER NOT NULL REFERENCES services
+			service_fk INTEGER NOT NULL REFERENCES services ON DELETE CASCADE
 		)`
 	if err := p.createTable(stmt, "instances"); err != nil {
 		return err
 	}
 
-	// permissions table
 	stmt = `CREATE TABLE IF NOT EXISTS permissions
 		(
 			permission_id SERIAL PRIMARY KEY,
 			name VARCHAR(100) NOT NULL,
 			number INTEGER NOT NULL,
 			description TEXT,
-			service_fk INTEGER NOT NULL REFERENCES services
+			service_fk INTEGER NOT NULL REFERENCES services ON DELETE CASCADE
 		)`
 	if err := p.createTable(stmt, "permissions"); err != nil {
 		return err
 	}
 
-	// accounts instances permissions table
 	stmt = `CREATE TABLE IF NOT EXISTS accounts_instances_permissions
 		(
-			account_fk INTEGER NOT NULL REFERENCES accounts,
-			instance_fk INTEGER NOT NULL REFERENCES instances,
-			permission_fk INTEGER NOT NULL REFERENCES permissions,
+			account_fk INTEGER NOT NULL REFERENCES accounts ON DELETE CASCADE,
+			instance_fk INTEGER NOT NULL REFERENCES instances ON DELETE CASCADE,
+			permission_fk INTEGER NOT NULL REFERENCES permissions ON DELETE CASCADE,
 			PRIMARY KEY(account_fk, instance_fk, permission_fk)
 		)`
 	if err := p.createTable(stmt, "accounts_instances_permissions"); err != nil {
 		return err
 	}
 
-	// roles table
 	stmt = `CREATE TABLE IF NOT EXISTS roles 
 		(
 			role_id SERIAL PRIMARY KEY,
@@ -79,29 +73,26 @@ func (p *PostgreSQL) createNotExistedTables() error {
 		return err
 	}
 
-	// role permissions table
 	stmt = `CREATE TABLE IF NOT EXISTS role_permissions
 		(
-			role_fk INTEGER NOT NULL REFERENCES roles,
-			permission_fk INTEGER NOT NULL REFERENCES permissions,
+			role_fk INTEGER NOT NULL REFERENCES roles ON DELETE CASCADE,
+			permission_fk INTEGER NOT NULL REFERENCES permissions ON DELETE CASCADE,
 			PRIMARY KEY(role_fk, permission_fk)
 		)`
 	if err := p.createTable(stmt, "role_permissions"); err != nil {
 		return err
 	}
 
-	// account roles table
 	stmt = `CREATE TABLE IF NOT EXISTS account_roles
 		(
-			role_fk INTEGER NOT NULL REFERENCES roles,
-			account_fk INTEGER NOT NULL REFERENCES accounts,
+			role_fk INTEGER NOT NULL REFERENCES roles ON DELETE CASCADE,
+			account_fk INTEGER NOT NULL REFERENCES accounts ON DELETE CASCADE,
 			PRIMARY KEY(role_fk, account_fk)
 		)`
 	if err := p.createTable(stmt, "account_roles"); err != nil {
 		return err
 	}
 
-	// groups table
 	stmt = `CREATE TABLE IF NOT EXISTS groups 
 		(
 			group_id SERIAL PRIMARY KEY,
@@ -112,33 +103,30 @@ func (p *PostgreSQL) createNotExistedTables() error {
 		return err
 	}
 
-	// group roles table
 	stmt = `CREATE TABLE IF NOT EXISTS group_roles
 		(
-			role_fk INTEGER NOT NULL REFERENCES roles,
-			groups_fk INTEGER NOT NULL REFERENCES groups,
+			role_fk INTEGER NOT NULL REFERENCES roles ON DELETE CASCADE,
+			groups_fk INTEGER NOT NULL REFERENCES groups ON DELETE CASCADE,
 			PRIMARY KEY(role_fk, groups_fk)
 		)`
 	if err := p.createTable(stmt, "group_roles"); err != nil {
 		return err
 	}
 
-	// group permissions table
 	stmt = `CREATE TABLE IF NOT EXISTS group_permissions
 		(
-			permission_fk INTEGER NOT NULL REFERENCES permissions,
-			groups_fk INTEGER NOT NULL REFERENCES groups,
+			permission_fk INTEGER NOT NULL REFERENCES permissions ON DELETE CASCADE,
+			groups_fk INTEGER NOT NULL REFERENCES groups ON DELETE CASCADE,
 			PRIMARY KEY(permission_fk, groups_fk)
 		)`
 	if err := p.createTable(stmt, "group_permissions"); err != nil {
 		return err
 	}
 
-	// account groups table
 	stmt = `CREATE TABLE IF NOT EXISTS account_groups
 		(
-			account_fk INTEGER NOT NULL REFERENCES accounts,
-			groups_fk INTEGER NOT NULL REFERENCES groups,
+			account_fk INTEGER NOT NULL REFERENCES accounts ON DELETE CASCADE,
+			groups_fk INTEGER NOT NULL REFERENCES groups ON DELETE CASCADE,
 			PRIMARY KEY(account_fk, groups_fk)
 		)`
 	if err := p.createTable(stmt, "account_groups"); err != nil {
