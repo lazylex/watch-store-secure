@@ -102,3 +102,26 @@ func (p *PostgreSQL) SetAccountState(ctx context.Context, stateDTO dto.LoginStat
 	}
 	return nil
 }
+
+// AddPermission добавляет разрешение в таблицу permissions. В DTO number передавать не обязательно, он вычисляется
+// инкременом максимального значения для переданного сервиса. Нумерация для номеров разрешений начинается с нуля
+func (p *PostgreSQL) AddPermission(ctx context.Context, perm dto.PermissionDTO) error {
+	stmt := `
+	INSERT INTO permissions (name, description, service_fk, number)
+			VALUES ($1, $2, $3,	(SELECT CASE
+									WHEN  max(number) IS NULL THEN
+									    1
+									ELSE 
+										max(number) + 1 END
+					 			FROM permissions
+					 			WHERE service_fk = $3)
+					);`
+	exec, err := p.db.Exec(stmt, perm.Name, perm.Description, perm.Service)
+	if err != nil {
+		return err
+	}
+	if exec.RowsAffected() == 0 {
+		return ErrZeroRowsAffected
+	}
+	return nil
+}
