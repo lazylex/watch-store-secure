@@ -17,10 +17,8 @@ func (p *PostgreSQL) createNotExistedTables() error {
 			pwd_hash VARCHAR(60) NOT NULL,
 			state INTEGER NOT NULL DEFAULT '1'
 		)`
-	if _, err := p.db.Exec(stmt); err != nil {
+	if err := p.createTable(stmt, "accounts"); err != nil {
 		return err
-	} else {
-		slog.Info("created table", slog.String("table name", "accounts"))
 	}
 
 	// services table
@@ -30,10 +28,8 @@ func (p *PostgreSQL) createNotExistedTables() error {
 			name VARCHAR(100) NOT NULL UNIQUE, 
 			description TEXT
 		)`
-	if _, err := p.db.Exec(stmt); err != nil {
+	if err := p.createTable(stmt, "services"); err != nil {
 		return err
-	} else {
-		slog.Info("created table", slog.String("table name", "services"))
 	}
 
 	// instances table
@@ -43,10 +39,8 @@ func (p *PostgreSQL) createNotExistedTables() error {
 			name VARCHAR(100) NOT NULL UNIQUE,
 			service_fk INTEGER NOT NULL REFERENCES services
 		)`
-	if _, err := p.db.Exec(stmt); err != nil {
+	if err := p.createTable(stmt, "instances"); err != nil {
 		return err
-	} else {
-		slog.Info("created table", slog.String("table name", "instances"))
 	}
 
 	// permissions table
@@ -58,10 +52,8 @@ func (p *PostgreSQL) createNotExistedTables() error {
 			description TEXT,
 			service_fk INTEGER NOT NULL REFERENCES services
 		)`
-	if _, err := p.db.Exec(stmt); err != nil {
+	if err := p.createTable(stmt, "permissions"); err != nil {
 		return err
-	} else {
-		slog.Info("created table", slog.String("table name", "permissions"))
 	}
 
 	// accounts instances permissions table
@@ -72,10 +64,8 @@ func (p *PostgreSQL) createNotExistedTables() error {
 			permission_fk INTEGER NOT NULL REFERENCES permissions,
 			PRIMARY KEY(account_fk, instance_fk, permission_fk)
 		)`
-	if _, err := p.db.Exec(stmt); err != nil {
+	if err := p.createTable(stmt, "accounts_instances_permissions"); err != nil {
 		return err
-	} else {
-		slog.Info("created table", slog.String("table name", "accounts_instances_permissions"))
 	}
 
 	// roles table
@@ -85,10 +75,8 @@ func (p *PostgreSQL) createNotExistedTables() error {
 			name VARCHAR(100) NOT NULL,
 			description TEXT
 		)`
-	if _, err := p.db.Exec(stmt); err != nil {
+	if err := p.createTable(stmt, "roles"); err != nil {
 		return err
-	} else {
-		slog.Info("created table", slog.String("table name", "roles"))
 	}
 
 	// role permissions table
@@ -98,10 +86,8 @@ func (p *PostgreSQL) createNotExistedTables() error {
 			permission_fk INTEGER NOT NULL REFERENCES permissions,
 			PRIMARY KEY(role_fk, permission_fk)
 		)`
-	if _, err := p.db.Exec(stmt); err != nil {
+	if err := p.createTable(stmt, "role_permissions"); err != nil {
 		return err
-	} else {
-		slog.Info("created table", slog.String("table name", "role_permissions"))
 	}
 
 	// account roles table
@@ -111,10 +97,8 @@ func (p *PostgreSQL) createNotExistedTables() error {
 			account_fk INTEGER NOT NULL REFERENCES accounts,
 			PRIMARY KEY(role_fk, account_fk)
 		)`
-	if _, err := p.db.Exec(stmt); err != nil {
+	if err := p.createTable(stmt, "account_roles"); err != nil {
 		return err
-	} else {
-		slog.Info("created table", slog.String("table name", "account_roles"))
 	}
 
 	// groups table
@@ -124,10 +108,8 @@ func (p *PostgreSQL) createNotExistedTables() error {
 			name VARCHAR(100) NOT NULL,
 			description TEXT
 		)`
-	if _, err := p.db.Exec(stmt); err != nil {
+	if err := p.createTable(stmt, "groups"); err != nil {
 		return err
-	} else {
-		slog.Info("created table", slog.String("table name", "groups"))
 	}
 
 	// group roles table
@@ -137,10 +119,8 @@ func (p *PostgreSQL) createNotExistedTables() error {
 			groups_fk INTEGER NOT NULL REFERENCES groups,
 			PRIMARY KEY(role_fk, groups_fk)
 		)`
-	if _, err := p.db.Exec(stmt); err != nil {
+	if err := p.createTable(stmt, "group_roles"); err != nil {
 		return err
-	} else {
-		slog.Info("created table", slog.String("table name", "group_roles"))
 	}
 
 	// group permissions table
@@ -150,10 +130,8 @@ func (p *PostgreSQL) createNotExistedTables() error {
 			groups_fk INTEGER NOT NULL REFERENCES groups,
 			PRIMARY KEY(permission_fk, groups_fk)
 		)`
-	if _, err := p.db.Exec(stmt); err != nil {
+	if err := p.createTable(stmt, "group_permissions"); err != nil {
 		return err
-	} else {
-		slog.Info("created table", slog.String("table name", "group_permissions"))
 	}
 
 	// account groups table
@@ -163,10 +141,20 @@ func (p *PostgreSQL) createNotExistedTables() error {
 			groups_fk INTEGER NOT NULL REFERENCES groups,
 			PRIMARY KEY(account_fk, groups_fk)
 		)`
+	if err := p.createTable(stmt, "account_groups"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// createTable выполняет переданный в stmt запрос на создание таблицы и выводит в лог имя созданной таблицы в случае
+// удачи. В противном случае возвращает ошибку
+func (p *PostgreSQL) createTable(stmt, tableName string) error {
 	if _, err := p.db.Exec(stmt); err != nil {
 		return err
 	} else {
-		slog.Info("created table", slog.String("table name", "account_groups"))
+		slog.Info("created table", slog.String("table name", tableName))
 	}
 
 	return nil
