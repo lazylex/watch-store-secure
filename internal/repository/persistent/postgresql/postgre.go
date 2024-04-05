@@ -108,13 +108,16 @@ func (p *PostgreSQL) SetAccountState(ctx context.Context, stateDTO dto.LoginStat
 func (p *PostgreSQL) AddPermission(ctx context.Context, perm dto.PermissionDTO) error {
 	stmt := `
 	INSERT INTO permissions (name, description, service_fk, number)
-			VALUES ($1, $2, $3,	(SELECT CASE
+			VALUES ($1,
+			        $2,
+			        (SELECT service_id FROM services WHERE name = $3),
+			        (SELECT CASE
 									WHEN  max(number) IS NULL THEN
 									    1
 									ELSE 
 										max(number) + 1 END
 					 			FROM permissions
-					 			WHERE service_fk = $3)
+					 			WHERE service_fk = (SELECT service_id FROM services WHERE name = $3))
 					);`
 	exec, err := p.db.Exec(stmt, perm.Name, perm.Description, perm.Service)
 	if err != nil {
