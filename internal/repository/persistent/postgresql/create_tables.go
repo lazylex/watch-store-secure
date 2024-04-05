@@ -1,9 +1,5 @@
 package postgresql
 
-import (
-	"log/slog"
-)
-
 // createNotExistedTables создает таблицы в БД, если они отсутствуют
 func (p *PostgreSQL) createNotExistedTables() error {
 	var stmt string
@@ -16,7 +12,7 @@ func (p *PostgreSQL) createNotExistedTables() error {
 			pwd_hash VARCHAR(60) NOT NULL,
 			state INTEGER NOT NULL DEFAULT '1'
 		)`
-	if err := p.createTable(stmt, "accounts"); err != nil {
+	if err := p.createTable(stmt); err != nil {
 		return err
 	}
 
@@ -26,7 +22,7 @@ func (p *PostgreSQL) createNotExistedTables() error {
 			name VARCHAR(100) NOT NULL UNIQUE, 
 			description TEXT
 		)`
-	if err := p.createTable(stmt, "services"); err != nil {
+	if err := p.createTable(stmt); err != nil {
 		return err
 	}
 
@@ -36,7 +32,7 @@ func (p *PostgreSQL) createNotExistedTables() error {
 			name VARCHAR(100) NOT NULL UNIQUE,
 			service_fk INTEGER NOT NULL REFERENCES services ON DELETE CASCADE
 		)`
-	if err := p.createTable(stmt, "instances"); err != nil {
+	if err := p.createTable(stmt); err != nil {
 		return err
 	}
 
@@ -48,7 +44,7 @@ func (p *PostgreSQL) createNotExistedTables() error {
 			description TEXT,
 			service_fk INTEGER NOT NULL REFERENCES services ON DELETE CASCADE
 		)`
-	if err := p.createTable(stmt, "permissions"); err != nil {
+	if err := p.createTable(stmt); err != nil {
 		return err
 	}
 
@@ -59,7 +55,7 @@ func (p *PostgreSQL) createNotExistedTables() error {
 			permission_fk INTEGER NOT NULL REFERENCES permissions ON DELETE CASCADE,
 			PRIMARY KEY(account_fk, instance_fk, permission_fk)
 		)`
-	if err := p.createTable(stmt, "accounts_instances_permissions"); err != nil {
+	if err := p.createTable(stmt); err != nil {
 		return err
 	}
 
@@ -69,7 +65,7 @@ func (p *PostgreSQL) createNotExistedTables() error {
 			name VARCHAR(100) NOT NULL,
 			description TEXT
 		)`
-	if err := p.createTable(stmt, "roles"); err != nil {
+	if err := p.createTable(stmt); err != nil {
 		return err
 	}
 
@@ -79,7 +75,7 @@ func (p *PostgreSQL) createNotExistedTables() error {
 			permission_fk INTEGER NOT NULL REFERENCES permissions ON DELETE CASCADE,
 			PRIMARY KEY(role_fk, permission_fk)
 		)`
-	if err := p.createTable(stmt, "role_permissions"); err != nil {
+	if err := p.createTable(stmt); err != nil {
 		return err
 	}
 
@@ -89,7 +85,7 @@ func (p *PostgreSQL) createNotExistedTables() error {
 			account_fk INTEGER NOT NULL REFERENCES accounts ON DELETE CASCADE,
 			PRIMARY KEY(role_fk, account_fk)
 		)`
-	if err := p.createTable(stmt, "account_roles"); err != nil {
+	if err := p.createTable(stmt); err != nil {
 		return err
 	}
 
@@ -99,7 +95,7 @@ func (p *PostgreSQL) createNotExistedTables() error {
 			name VARCHAR(100) NOT NULL,
 			description TEXT
 		)`
-	if err := p.createTable(stmt, "groups"); err != nil {
+	if err := p.createTable(stmt); err != nil {
 		return err
 	}
 
@@ -109,7 +105,7 @@ func (p *PostgreSQL) createNotExistedTables() error {
 			groups_fk INTEGER NOT NULL REFERENCES groups ON DELETE CASCADE,
 			PRIMARY KEY(role_fk, groups_fk)
 		)`
-	if err := p.createTable(stmt, "group_roles"); err != nil {
+	if err := p.createTable(stmt); err != nil {
 		return err
 	}
 
@@ -119,7 +115,7 @@ func (p *PostgreSQL) createNotExistedTables() error {
 			groups_fk INTEGER NOT NULL REFERENCES groups ON DELETE CASCADE,
 			PRIMARY KEY(permission_fk, groups_fk)
 		)`
-	if err := p.createTable(stmt, "group_permissions"); err != nil {
+	if err := p.createTable(stmt); err != nil {
 		return err
 	}
 
@@ -129,20 +125,17 @@ func (p *PostgreSQL) createNotExistedTables() error {
 			groups_fk INTEGER NOT NULL REFERENCES groups ON DELETE CASCADE,
 			PRIMARY KEY(account_fk, groups_fk)
 		)`
-	if err := p.createTable(stmt, "account_groups"); err != nil {
+	if err := p.createTable(stmt); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// createTable выполняет переданный в stmt запрос на создание таблицы и выводит в лог имя созданной таблицы в случае
-// удачи. В противном случае возвращает ошибку
-func (p *PostgreSQL) createTable(stmt, tableName string) error {
+// createTable выполняет переданный в stmt запрос на создание таблицы
+func (p *PostgreSQL) createTable(stmt string) error {
 	if _, err := p.db.Exec(stmt); err != nil {
 		return err
-	} else {
-		slog.Info("created table", slog.String("table name", tableName))
 	}
 
 	return nil
