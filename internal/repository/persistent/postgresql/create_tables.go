@@ -36,6 +36,7 @@ func (p *PostgreSQL) createNotExistedTables() error {
 		return err
 	}
 
+	// TODO добавить ограничение на уникальность пар название/внешний ключ на сервис
 	stmt = `CREATE TABLE IF NOT EXISTS permissions
 		(
 			permission_id SERIAL PRIMARY KEY,
@@ -59,6 +60,8 @@ func (p *PostgreSQL) createNotExistedTables() error {
 		return err
 	}
 
+	// TODO добавить внешний ключ на сервис
+	// TODO добавить ограничение на уникальность пар название/внешний ключ на сервис
 	stmt = `CREATE TABLE IF NOT EXISTS roles 
 		(
 			role_id SERIAL PRIMARY KEY,
@@ -89,6 +92,8 @@ func (p *PostgreSQL) createNotExistedTables() error {
 		return err
 	}
 
+	// TODO добавить внешний ключ на сервис
+	// TODO добавить ограничение на уникальность пар название/внешний ключ на сервис
 	stmt = `CREATE TABLE IF NOT EXISTS groups 
 		(
 			group_id SERIAL PRIMARY KEY,

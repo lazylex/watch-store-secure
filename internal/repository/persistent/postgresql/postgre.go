@@ -158,3 +158,5 @@ func (p *PostgreSQL) AddService(ctx context.Context, data dto.NameWithDescriptio
 
 	return nil
 }
+
+// TODO при создании связи между ролью и разрешением проверять, что они относятся к одному и тому же сервису
