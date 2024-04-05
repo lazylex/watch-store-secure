@@ -125,3 +125,33 @@ func (p *PostgreSQL) AddPermission(ctx context.Context, perm dto.PermissionDTO) 
 	}
 	return nil
 }
+
+// AddRole добавляет роль в БД
+func (p *PostgreSQL) AddRole(ctx context.Context, data dto.NameWithDescriptionDTO) error {
+	stmt := `INSERT INTO roles (name, description) values ($1, $2);`
+	if _, err := p.db.Exec(stmt, data.Name, data.Description); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// AddGroup добавляет группу в БД
+func (p *PostgreSQL) AddGroup(ctx context.Context, data dto.NameWithDescriptionDTO) error {
+	stmt := `INSERT INTO groups (name, description) values ($1, $2);`
+	if _, err := p.db.Exec(stmt, data.Name, data.Description); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// AddService добавляет сервис в БД
+func (p *PostgreSQL) AddService(ctx context.Context, data dto.NameWithDescriptionDTO) error {
+	stmt := `INSERT INTO services (name, description) values ($1, $2);`
+	if _, err := p.db.Exec(stmt, data.Name, data.Description); err != nil {
+		return err
+	}
+
+	return nil
+}

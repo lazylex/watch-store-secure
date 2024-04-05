@@ -12,10 +12,19 @@ type LoginInterface interface {
 	SetAccountLoginData(context.Context, dto.AccountLoginDataDTO) error
 }
 
-type RBACInterface interface{}
+type ServiceInterface interface {
+	AddService(ctx context.Context, descriptionDTO dto.NameWithDescriptionDTO) error
+}
+
+type RBACInterface interface {
+	AddPermission(context.Context, dto.PermissionDTO) error
+	AddRole(ctx context.Context, descriptionDTO dto.NameWithDescriptionDTO) error
+	AddGroup(ctx context.Context, descriptionDTO dto.NameWithDescriptionDTO) error
+}
 
 type Interface interface {
 	LoginInterface
+	ServiceInterface
 	RBACInterface
 	Close()
 }
