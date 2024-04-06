@@ -159,4 +159,16 @@ func (p *PostgreSQL) AddService(ctx context.Context, data dto.NameWithDescriptio
 	return nil
 }
 
-// TODO при создании связи между ролью и разрешением проверять, что они относятся к одному и тому же сервису
+// AssignPermissionToRole назначает роли разрешение
+func (p *PostgreSQL) AssignPermissionToRole(ctx context.Context, data dto.PermissionRoleServiceNamesDTO) error {
+	stmt := `INSERT INTO 
+    			role_permissions (role_fk, permission_fk)
+				VALUES (
+                        (SELECT role_id FROM roles WHERE service_fk = (SELECT service_id FROM services WHERE name=$1) AND name=$2),
+				        (SELECT permission_id FROM permissions WHERE service_fk = (SELECT service_id FROM services WHERE name=$1) AND name=$3)
+				        );`
+	if _, err := p.db.Exec(stmt, data.Service, data.Role, data.Permission); err != nil {
+		return err
+	}
+	return nil
+}
