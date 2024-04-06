@@ -18,8 +18,8 @@ type ServiceInterface interface {
 
 type RBACInterface interface {
 	AddPermission(context.Context, dto.PermissionDTO) error
-	AddRole(ctx context.Context, descriptionDTO dto.NameWithDescriptionDTO) error
-	AddGroup(ctx context.Context, descriptionDTO dto.NameWithDescriptionDTO) error
+	AddRole(ctx context.Context, descriptionDTO dto.NameAndServiceWithDescriptionDTO) error
+	AddGroup(ctx context.Context, descriptionDTO dto.NameAndServiceWithDescriptionDTO) error
 }
 
 type Interface interface {

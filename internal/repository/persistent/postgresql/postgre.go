@@ -130,9 +130,9 @@ func (p *PostgreSQL) AddPermission(ctx context.Context, perm dto.PermissionDTO) 
 }
 
 // AddRole добавляет роль в БД
-func (p *PostgreSQL) AddRole(ctx context.Context, data dto.NameWithDescriptionDTO) error {
-	stmt := `INSERT INTO roles (name, description) values ($1, $2);`
-	if _, err := p.db.Exec(stmt, data.Name, data.Description); err != nil {
+func (p *PostgreSQL) AddRole(ctx context.Context, data dto.NameAndServiceWithDescriptionDTO) error {
+	stmt := `INSERT INTO roles (name, description, service_fk) values ($1, $2, (SELECT service_id FROM services WHERE name=$3));`
+	if _, err := p.db.Exec(stmt, data.Name, data.Description, data.Service); err != nil {
 		return err
 	}
 
@@ -140,9 +140,9 @@ func (p *PostgreSQL) AddRole(ctx context.Context, data dto.NameWithDescriptionDT
 }
 
 // AddGroup добавляет группу в БД
-func (p *PostgreSQL) AddGroup(ctx context.Context, data dto.NameWithDescriptionDTO) error {
-	stmt := `INSERT INTO groups (name, description) values ($1, $2);`
-	if _, err := p.db.Exec(stmt, data.Name, data.Description); err != nil {
+func (p *PostgreSQL) AddGroup(ctx context.Context, data dto.NameAndServiceWithDescriptionDTO) error {
+	stmt := `INSERT INTO groups (name, description, service_fk) values ($1, $2, (SELECT service_id FROM services WHERE name=$3));`
+	if _, err := p.db.Exec(stmt, data.Name, data.Description, data.Service); err != nil {
 		return err
 	}
 

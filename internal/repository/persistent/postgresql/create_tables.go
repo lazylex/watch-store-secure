@@ -36,14 +36,14 @@ func (p *PostgreSQL) createNotExistedTables() error {
 		return err
 	}
 
-	// TODO добавить ограничение на уникальность пар название/внешний ключ на сервис
 	stmt = `CREATE TABLE IF NOT EXISTS permissions
 		(
 			permission_id SERIAL PRIMARY KEY,
 			name VARCHAR(100) NOT NULL,
 			number INTEGER NOT NULL,
 			description TEXT,
-			service_fk INTEGER NOT NULL REFERENCES services ON DELETE CASCADE
+			service_fk INTEGER NOT NULL REFERENCES services ON DELETE CASCADE,
+			UNIQUE (name, service_fk)
 		)`
 	if err := p.createTable(stmt); err != nil {
 		return err
@@ -60,13 +60,13 @@ func (p *PostgreSQL) createNotExistedTables() error {
 		return err
 	}
 
-	// TODO добавить внешний ключ на сервис
-	// TODO добавить ограничение на уникальность пар название/внешний ключ на сервис
 	stmt = `CREATE TABLE IF NOT EXISTS roles 
 		(
 			role_id SERIAL PRIMARY KEY,
 			name VARCHAR(100) NOT NULL,
-			description TEXT
+			description TEXT,
+			service_fk INTEGER NOT NULL REFERENCES services ON DELETE CASCADE,
+			UNIQUE (name, service_fk)
 		)`
 	if err := p.createTable(stmt); err != nil {
 		return err
@@ -92,13 +92,13 @@ func (p *PostgreSQL) createNotExistedTables() error {
 		return err
 	}
 
-	// TODO добавить внешний ключ на сервис
-	// TODO добавить ограничение на уникальность пар название/внешний ключ на сервис
 	stmt = `CREATE TABLE IF NOT EXISTS groups 
 		(
 			group_id SERIAL PRIMARY KEY,
 			name VARCHAR(100) NOT NULL,
-			description TEXT
+			description TEXT,
+			service_fk INTEGER NOT NULL REFERENCES services ON DELETE CASCADE,
+			UNIQUE (name, service_fk)
 		)`
 	if err := p.createTable(stmt); err != nil {
 		return err
