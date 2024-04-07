@@ -176,7 +176,7 @@ func (p *PostgreSQL) AssignPermissionToRole(ctx context.Context, data dto.Permis
 // AssignRoleToGroup присоединяет роль к группе
 func (p *PostgreSQL) AssignRoleToGroup(ctx context.Context, data dto.GroupRoleServiceNamesDTO) error {
 	stmt := `INSERT INTO 
-    			group_roles (role_fk, groups_fk)
+    			group_roles (role_fk, group_fk)
 				VALUES (
                         (SELECT role_id FROM roles WHERE service_fk = (SELECT service_id FROM services WHERE name=$1) AND name=$2),
 				        (SELECT group_id FROM groups WHERE service_fk = (SELECT service_id FROM services WHERE name=$1) AND name=$3)

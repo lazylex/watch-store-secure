@@ -107,8 +107,8 @@ func (p *PostgreSQL) createNotExistedTables() error {
 	stmt = `CREATE TABLE IF NOT EXISTS group_roles
 		(
 			role_fk INTEGER NOT NULL REFERENCES roles ON DELETE CASCADE,
-			groups_fk INTEGER NOT NULL REFERENCES groups ON DELETE CASCADE,
-			PRIMARY KEY(role_fk, groups_fk)
+			group_fk INTEGER NOT NULL REFERENCES groups ON DELETE CASCADE,
+			PRIMARY KEY(role_fk, group_fk)
 		)`
 	if err := p.createTable(stmt); err != nil {
 		return err
@@ -117,8 +117,8 @@ func (p *PostgreSQL) createNotExistedTables() error {
 	stmt = `CREATE TABLE IF NOT EXISTS group_permissions
 		(
 			permission_fk INTEGER NOT NULL REFERENCES permissions ON DELETE CASCADE,
-			groups_fk INTEGER NOT NULL REFERENCES groups ON DELETE CASCADE,
-			PRIMARY KEY(permission_fk, groups_fk)
+			group_fk INTEGER NOT NULL REFERENCES groups ON DELETE CASCADE,
+			PRIMARY KEY(permission_fk, group_fk)
 		)`
 	if err := p.createTable(stmt); err != nil {
 		return err
@@ -127,8 +127,8 @@ func (p *PostgreSQL) createNotExistedTables() error {
 	stmt = `CREATE TABLE IF NOT EXISTS account_groups
 		(
 			account_fk INTEGER NOT NULL REFERENCES accounts ON DELETE CASCADE,
-			groups_fk INTEGER NOT NULL REFERENCES groups ON DELETE CASCADE,
-			PRIMARY KEY(account_fk, groups_fk)
+			group_fk INTEGER NOT NULL REFERENCES groups ON DELETE CASCADE,
+			PRIMARY KEY(account_fk, group_fk)
 		)`
 	if err := p.createTable(stmt); err != nil {
 		return err
