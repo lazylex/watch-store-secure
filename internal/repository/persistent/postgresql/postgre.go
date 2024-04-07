@@ -186,3 +186,18 @@ func (p *PostgreSQL) AssignRoleToGroup(ctx context.Context, data dto.GroupRoleSe
 	}
 	return nil
 }
+
+// AssignRoleToAccount назначает роль учетной записи
+func (p *PostgreSQL) AssignRoleToAccount(ctx context.Context, data dto.RoleServiceNamesWithUserIdDTO) error {
+	stmt := `INSERT INTO 
+    			account_roles (role_fk, account_fk)
+				VALUES (
+                        (SELECT role_id FROM roles WHERE service_fk = (SELECT service_id FROM services WHERE name=$1) AND name=$2),
+				        (SELECT account_id FROM accounts WHERE uuid = $3) 
+				        );`
+	if _, err := p.db.Exec(stmt, data.Service, data.Role, data.UserId); err != nil {
+		return err
+	}
+
+	return nil
+}
