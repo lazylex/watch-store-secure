@@ -173,7 +173,7 @@ func (p *PostgreSQL) AssignPermissionToRole(ctx context.Context, data dto.Permis
 	return nil
 }
 
-// AssignRoleToGroup добавляет роль в группу
+// AssignRoleToGroup присоединяет роль к группе
 func (p *PostgreSQL) AssignRoleToGroup(ctx context.Context, data dto.GroupRoleServiceNamesDTO) error {
 	stmt := `INSERT INTO 
     			group_roles (role_fk, groups_fk)
