@@ -172,3 +172,17 @@ func (p *PostgreSQL) AssignPermissionToRole(ctx context.Context, data dto.Permis
 	}
 	return nil
 }
+
+// AssignRoleToGroup добавляет роль в группу
+func (p *PostgreSQL) AssignRoleToGroup(ctx context.Context, data dto.GroupRoleServiceNamesDTO) error {
+	stmt := `INSERT INTO 
+    			group_roles (role_fk, groups_fk)
+				VALUES (
+                        (SELECT role_id FROM roles WHERE service_fk = (SELECT service_id FROM services WHERE name=$1) AND name=$2),
+				        (SELECT group_id FROM groups WHERE service_fk = (SELECT service_id FROM services WHERE name=$1) AND name=$3)
+				        );`
+	if _, err := p.db.Exec(stmt, data.Service, data.Role, data.Group); err != nil {
+		return err
+	}
+	return nil
+}
