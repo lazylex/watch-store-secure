@@ -181,7 +181,7 @@ func (p *PostgreSQL) AssignRoleToAccount(ctx context.Context, data dto.RoleServi
 	return p.processExecResult(p.db.Exec(stmt, data.Service, data.Role, data.UserId))
 }
 
-// AssignPermissionToGroup назначает роль группе
+// AssignPermissionToGroup назначает разрешения группе
 func (p *PostgreSQL) AssignPermissionToGroup(ctx context.Context, data dto.GroupPermissionServiceNamesDTO) error {
 	stmt := `INSERT INTO group_permissions (group_fk, permission_fk)
 			VALUES (
