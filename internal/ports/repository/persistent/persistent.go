@@ -22,7 +22,9 @@ type RBACInterface interface {
 	AddGroup(context.Context, dto.NameAndServiceWithDescriptionDTO) error
 
 	AssignRoleToGroup(context.Context, dto.GroupRoleServiceNamesDTO) error
+	AssignRoleToAccount(context.Context, dto.RoleServiceNamesWithUserIdDTO) error
 	AssignPermissionToRole(context.Context, dto.PermissionRoleServiceNamesDTO) error
+	AssignPermissionToGroup(context.Context, dto.GroupPermissionServiceNamesDTO) error
 }
 
 type Interface interface {
