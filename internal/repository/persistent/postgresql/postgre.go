@@ -95,20 +95,19 @@ func (p *PostgreSQL) SetAccountState(ctx context.Context, stateDTO dto.LoginStat
 }
 
 // AddPermission добавляет разрешение в таблицу permissions. В DTO number передавать не обязательно, он вычисляется
-// инкременом максимального значения для переданного сервиса. Нумерация для номеров разрешений начинается с нуля
+// инкрементом максимального значения для переданного сервиса. Нумерация для номеров разрешений начинается с нуля
 func (p *PostgreSQL) AddPermission(ctx context.Context, perm dto.PermissionDTO) error {
-	stmt := `
-	INSERT INTO permissions (name, description, service_fk, number)
+	stmt := `INSERT INTO permissions (name, description, service_fk, number)
 			VALUES ($1,
 			        $2,
 			        (SELECT service_id FROM services WHERE name = $3),
 			        (SELECT CASE
-									WHEN  max(number) IS NULL THEN
-									    1
-									ELSE 
-										max(number) + 1 END
-					 			FROM permissions
-					 			WHERE service_fk = (SELECT service_id FROM services WHERE name = $3))
+						WHEN  max(number) IS NULL THEN
+							1
+						ELSE 
+							max(number) + 1 END
+					FROM permissions
+					WHERE service_fk = (SELECT service_id FROM services WHERE name = $3))
 					);`
 
 	return p.processExecResult(p.db.Exec(stmt, perm.Name, perm.Description, perm.Service))
@@ -116,54 +115,68 @@ func (p *PostgreSQL) AddPermission(ctx context.Context, perm dto.PermissionDTO) 
 
 // AddRole добавляет роль в БД
 func (p *PostgreSQL) AddRole(ctx context.Context, data dto.NameAndServiceWithDescriptionDTO) error {
-	stmt := `INSERT INTO roles (name, description, service_fk) values ($1, $2, (SELECT service_id FROM services WHERE name=$3));`
+	stmt := `INSERT INTO roles (name, description, service_fk)
+			VALUES ($1, $2, (SELECT service_id FROM services WHERE name=$3));`
 	return p.processExecResult(p.db.Exec(stmt, data.Name, data.Description, data.Service))
 }
 
 // AddGroup добавляет группу в БД
 func (p *PostgreSQL) AddGroup(ctx context.Context, data dto.NameAndServiceWithDescriptionDTO) error {
-	stmt := `INSERT INTO groups (name, description, service_fk) values ($1, $2, (SELECT service_id FROM services WHERE name=$3));`
+	stmt := `INSERT INTO groups (name, description, service_fk)
+			VALUES ($1, $2, (SELECT service_id FROM services WHERE name=$3));`
 	return p.processExecResult(p.db.Exec(stmt, data.Name, data.Description, data.Service))
 }
 
 // AddService добавляет сервис в БД
 func (p *PostgreSQL) AddService(ctx context.Context, data dto.NameWithDescriptionDTO) error {
-	stmt := `INSERT INTO services (name, description) values ($1, $2);`
+	stmt := `INSERT INTO services (name, description) VALUES ($1, $2);`
 	return p.processExecResult(p.db.Exec(stmt, data.Name, data.Description))
 }
 
 // AssignPermissionToRole назначает роли разрешение
 func (p *PostgreSQL) AssignPermissionToRole(ctx context.Context, data dto.PermissionRoleServiceNamesDTO) error {
-	stmt := `INSERT INTO 
-    			role_permissions (role_fk, permission_fk)
-				VALUES (
-                        (SELECT role_id FROM roles WHERE service_fk = (SELECT service_id FROM services WHERE name=$1) AND name=$2),
-				        (SELECT permission_id FROM permissions WHERE service_fk = (SELECT service_id FROM services WHERE name=$1) AND name=$3)
-				        );`
+	stmt := `INSERT INTO role_permissions (role_fk, permission_fk)
+			VALUES (
+            	(SELECT role_id 
+				FROM roles 
+				WHERE service_fk = (SELECT service_id FROM services WHERE name=$1) AND name=$2),
+
+				(SELECT permission_id 
+				FROM permissions 
+				WHERE service_fk = (SELECT service_id FROM services WHERE name=$1) AND name=$3)
+			);`
 
 	return p.processExecResult(p.db.Exec(stmt, data.Service, data.Role, data.Permission))
 }
 
 // AssignRoleToGroup присоединяет роль к группе
 func (p *PostgreSQL) AssignRoleToGroup(ctx context.Context, data dto.GroupRoleServiceNamesDTO) error {
-	stmt := `INSERT INTO 
-    			group_roles (role_fk, group_fk)
-				VALUES (
-                        (SELECT role_id FROM roles WHERE service_fk = (SELECT service_id FROM services WHERE name=$1) AND name=$2),
-				        (SELECT group_id FROM groups WHERE service_fk = (SELECT service_id FROM services WHERE name=$1) AND name=$3)
-				        );`
+	stmt := `INSERT INTO group_roles (role_fk, group_fk)
+			VALUES (
+				(SELECT role_id 
+				FROM roles 
+				WHERE service_fk = (SELECT service_id FROM services WHERE name=$1) AND name=$2),
+
+				(SELECT group_id 
+				FROM groups 
+				WHERE service_fk = (SELECT service_id FROM services WHERE name=$1) AND name=$3)
+			);`
 
 	return p.processExecResult(p.db.Exec(stmt, data.Service, data.Role, data.Group))
 }
 
 // AssignRoleToAccount назначает роль учетной записи
 func (p *PostgreSQL) AssignRoleToAccount(ctx context.Context, data dto.RoleServiceNamesWithUserIdDTO) error {
-	stmt := `INSERT INTO 
-    			account_roles (role_fk, account_fk)
-				VALUES (
-                        (SELECT role_id FROM roles WHERE service_fk = (SELECT service_id FROM services WHERE name=$1) AND name=$2),
-				        (SELECT account_id FROM accounts WHERE uuid = $3) 
-				        );`
+	stmt := `INSERT INTO account_roles (role_fk, account_fk)
+			VALUES (
+				(SELECT role_id 
+                FROM roles 
+                WHERE service_fk = (SELECT service_id FROM services WHERE name=$1) AND name=$2),
+
+				(SELECT account_id
+				FROM accounts
+				WHERE uuid = $3) 
+			);`
 
 	return p.processExecResult(p.db.Exec(stmt, data.Service, data.Role, data.UserId))
 }
