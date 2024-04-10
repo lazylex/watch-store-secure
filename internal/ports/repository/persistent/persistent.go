@@ -26,6 +26,8 @@ type RBACInterface interface {
 	AssignGroupToAccount(context.Context, dto.GroupServiceNamesWithUserIdDTO) error
 	AssignPermissionToRole(context.Context, dto.PermissionRoleServiceNamesDTO) error
 	AssignPermissionToGroup(context.Context, dto.GroupPermissionServiceNamesDTO) error
+
+	GetPermissionsForAccount(context.Context, dto.ServiceNameWithUserIdDTO) ([]dto.PermissionWithoutServiceDTO, error)
 }
 
 type Interface interface {
