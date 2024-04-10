@@ -213,6 +213,78 @@ func (p *PostgreSQL) AssignPermissionToGroup(ctx context.Context, data dto.Group
 	return p.processExecResult(p.db.Exec(stmt, data.Service, data.Group, data.Permission))
 }
 
+// GetPermissionsForAccount возвращает название, номер и описание всех разрешений аккаунта для сервиса
+func (p *PostgreSQL) GetPermissionsForAccount(ctx context.Context, data dto.ServiceNameWithUserIdDTO) ([]dto.PermissionWithoutServiceDTO, error) {
+	stmt := `
+	WITH account_cte AS (SELECT account_id
+                     FROM accounts
+                     WHERE uuid = $1),
+     groups_cte AS (SELECT group_fk
+                    FROM account_groups
+                    WHERE account_fk = (SELECT account_id FROM account_cte)),
+     service_cte AS (SELECT service_id
+                     FROM services
+                     WHERE name = $2)
+
+	SELECT name,
+		   number,
+		   description
+	FROM permissions
+	WHERE permission_id IN
+		  (SELECT permission_fk
+		   FROM role_permissions
+		   WHERE role_fk IN
+				 (SELECT role_fk
+				  FROM group_roles
+				  WHERE group_fk IN (SELECT group_fk FROM groups_cte)
+	
+				  UNION
+	
+				  SELECT role_fk
+				  FROM account_roles
+				  WHERE account_fk = (SELECT account_id FROM account_cte))
+	
+		   UNION
+	
+		   SELECT permission_fk
+		   FROM group_permissions
+		   WHERE group_fk IN (SELECT group_fk FROM groups_cte)
+	
+		   UNION
+	
+		   SELECT permission_fk
+		   FROM accounts_instances_permissions
+		   WHERE account_fk = (SELECT account_id FROM account_cte)
+	
+			 AND instance_fk IN
+				 (SELECT instance_id
+				  FROM instances
+				  WHERE service_fk = (SELECT service_id FROM service_cte)))
+	
+	  AND service_fk = (SELECT service_id FROM service_cte)
+	ORDER BY number`
+
+	rows, err := p.db.Query(stmt, data.UserId, data.Service)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	result := make([]dto.PermissionWithoutServiceDTO, 0)
+	var number int
+	var name, description string
+
+	for rows.Next() {
+		if err = rows.Scan(&name, &number, &description); err != nil {
+			return result, err
+		}
+		result = append(result, dto.PermissionWithoutServiceDTO{Name: name, Number: number, Description: description})
+
+	}
+
+	return result, nil
+}
+
 // processExecResult возвращает ошибку ErrZeroRowsAffected, если при выполнении запроса не было затронуто ни одной
 // строки. В противном случае возвращает ошибку без изменений
 func (p *PostgreSQL) processExecResult(commandTag pgx.CommandTag, err error) error {
