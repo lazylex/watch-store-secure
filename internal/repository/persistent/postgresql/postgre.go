@@ -73,7 +73,7 @@ func (p *PostgreSQL) Close() {
 func (p *PostgreSQL) GetAccountLoginData(ctx context.Context, login loginVO.Login) (dto.AccountLoginDataDTO, error) {
 	result := dto.AccountLoginDataDTO{Login: login}
 	stmt := `SELECT uuid, pwd_hash, state FROM accounts WHERE login = $1;`
-	row := p.db.QueryRow(stmt, login)
+	row := p.db.QueryRowEx(ctx, stmt, nil, login)
 	err := row.Scan(&result.UserId, &result.Hash, &result.State)
 	if err != nil {
 		return dto.AccountLoginDataDTO{}, err
@@ -85,13 +85,13 @@ func (p *PostgreSQL) GetAccountLoginData(ctx context.Context, login loginVO.Logi
 // SetAccountLoginData сохраняет в БД идентификатор пользователя (сервиса), логин, хеш пароля и состояние учетной записи
 func (p *PostgreSQL) SetAccountLoginData(ctx context.Context, data dto.AccountLoginDataDTO) error {
 	stmt := `INSERT INTO accounts (uuid, login, pwd_hash, state) values ($1, $2, $3, $4);`
-	return p.processExecResult(p.db.Exec(stmt, data.UserId, data.Login, data.Hash, data.State))
+	return p.processExecResult(p.db.ExecEx(ctx, stmt, nil, data.UserId, data.Login, data.Hash, data.State))
 }
 
 // SetAccountState устанавливает состояние учетной записи
 func (p *PostgreSQL) SetAccountState(ctx context.Context, stateDTO dto.LoginStateDTO) error {
 	stmt := `UPDATE accounts SET state = $1 WHERE login = $2;`
-	return p.processExecResult(p.db.Exec(stmt, stateDTO.State, stateDTO.Login))
+	return p.processExecResult(p.db.ExecEx(ctx, stmt, nil, stateDTO.State, stateDTO.Login))
 }
 
 // AddPermission добавляет разрешение в таблицу permissions. В DTO number передавать не обязательно, он вычисляется
@@ -110,27 +110,27 @@ func (p *PostgreSQL) AddPermission(ctx context.Context, perm dto.PermissionDTO) 
 					WHERE service_fk = (SELECT service_id FROM services WHERE name = $3))
 					);`
 
-	return p.processExecResult(p.db.Exec(stmt, perm.Name, perm.Description, perm.Service))
+	return p.processExecResult(p.db.ExecEx(ctx, stmt, nil, perm.Name, perm.Description, perm.Service))
 }
 
 // AddRole добавляет роль в БД
 func (p *PostgreSQL) AddRole(ctx context.Context, data dto.NameAndServiceWithDescriptionDTO) error {
 	stmt := `INSERT INTO roles (name, description, service_fk)
 			VALUES ($1, $2, (SELECT service_id FROM services WHERE name=$3));`
-	return p.processExecResult(p.db.Exec(stmt, data.Name, data.Description, data.Service))
+	return p.processExecResult(p.db.ExecEx(ctx, stmt, nil, data.Name, data.Description, data.Service))
 }
 
 // AddGroup добавляет группу в БД
 func (p *PostgreSQL) AddGroup(ctx context.Context, data dto.NameAndServiceWithDescriptionDTO) error {
 	stmt := `INSERT INTO groups (name, description, service_fk)
 			VALUES ($1, $2, (SELECT service_id FROM services WHERE name=$3));`
-	return p.processExecResult(p.db.Exec(stmt, data.Name, data.Description, data.Service))
+	return p.processExecResult(p.db.ExecEx(ctx, stmt, nil, data.Name, data.Description, data.Service))
 }
 
 // AddService добавляет сервис в БД
 func (p *PostgreSQL) AddService(ctx context.Context, data dto.NameWithDescriptionDTO) error {
 	stmt := `INSERT INTO services (name, description) VALUES ($1, $2);`
-	return p.processExecResult(p.db.Exec(stmt, data.Name, data.Description))
+	return p.processExecResult(p.db.ExecEx(ctx, stmt, nil, data.Name, data.Description))
 }
 
 // AssignPermissionToRole назначает роли разрешение
@@ -146,7 +146,7 @@ func (p *PostgreSQL) AssignPermissionToRole(ctx context.Context, data dto.Permis
 				WHERE service_fk = (SELECT service_id FROM services WHERE name=$1) AND name=$3)
 			);`
 
-	return p.processExecResult(p.db.Exec(stmt, data.Service, data.Role, data.Permission))
+	return p.processExecResult(p.db.ExecEx(ctx, stmt, nil, data.Service, data.Role, data.Permission))
 }
 
 // AssignRoleToGroup присоединяет роль к группе
@@ -162,7 +162,7 @@ func (p *PostgreSQL) AssignRoleToGroup(ctx context.Context, data dto.GroupRoleSe
 				WHERE service_fk = (SELECT service_id FROM services WHERE name=$1) AND name=$3)
 			);`
 
-	return p.processExecResult(p.db.Exec(stmt, data.Service, data.Role, data.Group))
+	return p.processExecResult(p.db.ExecEx(ctx, stmt, nil, data.Service, data.Role, data.Group))
 }
 
 // AssignRoleToAccount назначает роль учетной записи
@@ -178,7 +178,7 @@ func (p *PostgreSQL) AssignRoleToAccount(ctx context.Context, data dto.RoleServi
 				WHERE uuid = $3) 
 			);`
 
-	return p.processExecResult(p.db.Exec(stmt, data.Service, data.Role, data.UserId))
+	return p.processExecResult(p.db.ExecEx(ctx, stmt, nil, data.Service, data.Role, data.UserId))
 }
 
 // AssignGroupToAccount назначает группу учетной записи
@@ -194,7 +194,7 @@ func (p *PostgreSQL) AssignGroupToAccount(ctx context.Context, data dto.GroupSer
 				WHERE uuid = $3) 
 			);`
 
-	return p.processExecResult(p.db.Exec(stmt, data.Service, data.Group, data.UserId))
+	return p.processExecResult(p.db.ExecEx(ctx, stmt, nil, data.Service, data.Group, data.UserId))
 }
 
 // AssignPermissionToGroup назначает разрешения группе
@@ -210,7 +210,7 @@ func (p *PostgreSQL) AssignPermissionToGroup(ctx context.Context, data dto.Group
 				WHERE service_fk = (SELECT service_id FROM services WHERE name=$1) AND name=$3)
 			);`
 
-	return p.processExecResult(p.db.Exec(stmt, data.Service, data.Group, data.Permission))
+	return p.processExecResult(p.db.ExecEx(ctx, stmt, nil, data.Service, data.Group, data.Permission))
 }
 
 // GetPermissionsForAccount возвращает название, номер и описание всех разрешений аккаунта для сервиса
@@ -264,7 +264,7 @@ func (p *PostgreSQL) GetPermissionsForAccount(ctx context.Context, data dto.Serv
 	  AND service_fk = (SELECT service_id FROM service_cte)
 	ORDER BY number`
 
-	rows, err := p.db.Query(stmt, data.UserId, data.Service)
+	rows, err := p.db.QueryEx(ctx, stmt, nil, data.UserId, data.Service)
 	if err != nil {
 		return nil, err
 	}
@@ -334,7 +334,7 @@ func (p *PostgreSQL) GetPermissionsNumbersForAccount(ctx context.Context, data d
 	  AND service_fk = (SELECT service_id FROM service_cte)
 	ORDER BY number`
 
-	rows, err := p.db.Query(stmt, data.UserId, data.Service)
+	rows, err := p.db.QueryEx(ctx, stmt, nil, data.UserId, data.Service)
 	if err != nil {
 		return nil, err
 	}
