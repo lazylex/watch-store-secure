@@ -7,6 +7,10 @@ import (
 	"github.com/lazylex/watch-store/secure/internal/dto"
 )
 
+type ServiceInterface interface {
+	AddService(context.Context, dto.NameWithDescriptionDTO) error
+}
+
 type LoginInterface interface {
 	SaveSession(context.Context, dto.SessionDTO) error
 	SetAccountLoginData(context.Context, dto.AccountLoginDataDTO) error
@@ -16,9 +20,23 @@ type LoginInterface interface {
 	GetAccountState(context.Context, login.Login) (account_state.State, error)
 }
 
-type RBACInterface interface{}
+type RBACInterface interface {
+	AddPermission(context.Context, dto.PermissionDTO) error
+	AddRole(context.Context, dto.NameAndServiceWithDescriptionDTO) error
+	AddGroup(context.Context, dto.NameAndServiceWithDescriptionDTO) error
+
+	AssignRoleToGroup(context.Context, dto.GroupRoleServiceNamesDTO) error
+	AssignRoleToAccount(context.Context, dto.RoleServiceNamesWithUserIdDTO) error
+	AssignGroupToAccount(context.Context, dto.GroupServiceNamesWithUserIdDTO) error
+	AssignPermissionToRole(context.Context, dto.PermissionRoleServiceNamesDTO) error
+	AssignPermissionToGroup(context.Context, dto.GroupPermissionServiceNamesDTO) error
+
+	GetPermissionsForAccount(context.Context, dto.ServiceNameWithUserIdDTO) ([]dto.PermissionWithoutServiceDTO, error)
+	GetPermissionsNumbersForAccount(context.Context, dto.ServiceNameWithUserIdDTO) ([]int, error)
+}
 
 type Interface interface {
+	ServiceInterface
 	LoginInterface
 	RBACInterface
 }
