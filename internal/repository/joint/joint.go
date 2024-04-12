@@ -119,67 +119,63 @@ func (r *Repository) GetAccountLoginData(ctx context.Context, login loginVO.Logi
 	return loginData, nil
 }
 
-func (r *Repository) AddService(context.Context, dto.NameWithDescriptionDTO) error {
-	// TODO implement
-	slog.Debug("not implemented")
-	return jointRepositoryError("AddService not implemented")
+// AddService добавляет сервис в БД
+func (r *Repository) AddService(ctx context.Context, data dto.NameWithDescriptionDTO) error {
+	return r.persistent.AddService(ctx, data)
 }
 
-func (r *Repository) AddPermission(context.Context, dto.PermissionDTO) error {
-	// TODO implement
-	slog.Debug("not implemented")
-	return jointRepositoryError("AddPermission not implemented")
+// AddPermission добавляет разрешение в БД
+func (r *Repository) AddPermission(ctx context.Context, data dto.PermissionDTO) error {
+	return r.persistent.AddPermission(ctx, data)
 }
 
-func (r *Repository) AddRole(context.Context, dto.NameAndServiceWithDescriptionDTO) error {
-	// TODO implement
-	slog.Debug("not implemented")
-	return jointRepositoryError("AddRole not implemented")
-}
-func (r *Repository) AddGroup(context.Context, dto.NameAndServiceWithDescriptionDTO) error {
-	// TODO implement
-	slog.Debug("not implemented")
-	return jointRepositoryError("AddGroup not implemented")
+// AddRole добавляет роль в БД
+func (r *Repository) AddRole(ctx context.Context, data dto.NameAndServiceWithDescriptionDTO) error {
+	return r.persistent.AddRole(ctx, data)
 }
 
-func (r *Repository) AssignRoleToGroup(context.Context, dto.GroupRoleServiceNamesDTO) error {
-	// TODO implement
-	slog.Debug("not implemented")
-	return jointRepositoryError("AssignRoleToGroup not implemented")
+// AddGroup добавляет группу в БД
+func (r *Repository) AddGroup(ctx context.Context, data dto.NameAndServiceWithDescriptionDTO) error {
+	return r.persistent.AddGroup(ctx, data)
 }
 
-func (r *Repository) AssignRoleToAccount(context.Context, dto.RoleServiceNamesWithUserIdDTO) error {
-	// TODO implement
-	slog.Debug("not implemented")
-	return jointRepositoryError("AssignRoleToAccount not implemented")
+// AssignRoleToGroup присоединяет роль к группе
+func (r *Repository) AssignRoleToGroup(ctx context.Context, data dto.GroupRoleServiceNamesDTO) error {
+	return r.persistent.AssignRoleToGroup(ctx, data)
 }
 
-func (r *Repository) AssignGroupToAccount(context.Context, dto.GroupServiceNamesWithUserIdDTO) error {
-	// TODO implement
-	slog.Debug("not implemented")
-	return jointRepositoryError("AssignGroupToAccount not implemented")
+// AssignRoleToAccount t назначает роль учетной записи
+func (r *Repository) AssignRoleToAccount(ctx context.Context, data dto.RoleServiceNamesWithUserIdDTO) error {
+	// TODO если для учетной записи сохранен кеш разрешений и роль прикреплена успешно, перечитать их
+	err := r.persistent.AssignRoleToAccount(ctx, data)
+	return err
 }
 
-func (r *Repository) AssignPermissionToRole(context.Context, dto.PermissionRoleServiceNamesDTO) error {
-	// TODO implement
-	slog.Debug("not implemented")
-	return jointRepositoryError("AssignPermissionToRole not implemented")
-}
-func (r *Repository) AssignPermissionToGroup(context.Context, dto.GroupPermissionServiceNamesDTO) error {
-	// TODO implement
-	slog.Debug("not implemented")
-	return jointRepositoryError("AssignPermissionToGroup not implemented")
+// AssignGroupToAccount назначает группу учетной записи
+func (r *Repository) AssignGroupToAccount(ctx context.Context, data dto.GroupServiceNamesWithUserIdDTO) error {
+	// TODO если для учетной записи сохранен кеш разрешений и группа прикреплена успешно, перечитать их
+	err := r.persistent.AssignGroupToAccount(ctx, data)
+	return err
 }
 
-func (r *Repository) GetPermissionsForAccount(context.Context, dto.ServiceNameWithUserIdDTO) ([]dto.PermissionWithoutServiceDTO, error) {
-	// TODO implement
-	slog.Debug("not implemented")
-	return []dto.PermissionWithoutServiceDTO{}, jointRepositoryError("GetPermissionsForAccount not implemented")
+// AssignPermissionToRole назначает роли разрешение
+func (r *Repository) AssignPermissionToRole(ctx context.Context, data dto.PermissionRoleServiceNamesDTO) error {
+	return r.persistent.AssignPermissionToRole(ctx, data)
 }
-func (r *Repository) GetPermissionsNumbersForAccount(context.Context, dto.ServiceNameWithUserIdDTO) ([]int, error) {
-	// TODO implement
-	slog.Debug("not implemented")
-	return []int{}, jointRepositoryError("GetPermissionsNumbersForAccount not implemented")
+
+// AssignPermissionToGroup назначает разрешения группе
+func (r *Repository) AssignPermissionToGroup(ctx context.Context, data dto.GroupPermissionServiceNamesDTO) error {
+	return r.persistent.AssignPermissionToGroup(ctx, data)
+}
+
+// GetPermissionsForAccount возвращает название, номер и описание всех разрешений аккаунта для сервиса
+func (r *Repository) GetPermissionsForAccount(ctx context.Context, data dto.ServiceNameWithUserIdDTO) ([]dto.PermissionWithoutServiceDTO, error) {
+	return r.persistent.GetPermissionsForAccount(ctx, data)
+}
+
+// GetPermissionsNumbersForAccount возвращает номера всех разрешений аккаунта для сервиса
+func (r *Repository) GetPermissionsNumbersForAccount(ctx context.Context, data dto.ServiceNameWithUserIdDTO) ([]int, error) {
+	return r.persistent.GetPermissionsNumbersForAccount(ctx, data)
 }
 
 // saveToMemoryLoginData сохраняет в памяти данные, необходимые для процесса входа в систему пользователя (сервиса)
@@ -188,7 +184,7 @@ func (r *Repository) saveToMemoryLoginData(ctx context.Context, data dto.Account
 	return r.memory.SetAccountState(ctx, dto.LoginStateDTO{Login: data.Login, State: data.State})
 }
 
-// makeDataCache считывает все данные (которые возможно кешировать) из постоянного хранилища в хралищие в памяти
+// makeDataCache считывает все данные (которые возможно кешировать) из постоянного хранилища в хранилище в памяти
 func makeDataCache() {
 	// TODO implement
 	slog.Debug(jointRepositoryError("makeDataCache not implemented").Error())
