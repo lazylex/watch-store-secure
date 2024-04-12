@@ -119,6 +119,69 @@ func (r *Repository) GetAccountLoginData(ctx context.Context, login loginVO.Logi
 	return loginData, nil
 }
 
+func (r *Repository) AddService(context.Context, dto.NameWithDescriptionDTO) error {
+	// TODO implement
+	slog.Debug("not implemented")
+	return jointRepositoryError("AddService not implemented")
+}
+
+func (r *Repository) AddPermission(context.Context, dto.PermissionDTO) error {
+	// TODO implement
+	slog.Debug("not implemented")
+	return jointRepositoryError("AddPermission not implemented")
+}
+
+func (r *Repository) AddRole(context.Context, dto.NameAndServiceWithDescriptionDTO) error {
+	// TODO implement
+	slog.Debug("not implemented")
+	return jointRepositoryError("AddRole not implemented")
+}
+func (r *Repository) AddGroup(context.Context, dto.NameAndServiceWithDescriptionDTO) error {
+	// TODO implement
+	slog.Debug("not implemented")
+	return jointRepositoryError("AddGroup not implemented")
+}
+
+func (r *Repository) AssignRoleToGroup(context.Context, dto.GroupRoleServiceNamesDTO) error {
+	// TODO implement
+	slog.Debug("not implemented")
+	return jointRepositoryError("AssignRoleToGroup not implemented")
+}
+
+func (r *Repository) AssignRoleToAccount(context.Context, dto.RoleServiceNamesWithUserIdDTO) error {
+	// TODO implement
+	slog.Debug("not implemented")
+	return jointRepositoryError("AssignRoleToAccount not implemented")
+}
+
+func (r *Repository) AssignGroupToAccount(context.Context, dto.GroupServiceNamesWithUserIdDTO) error {
+	// TODO implement
+	slog.Debug("not implemented")
+	return jointRepositoryError("AssignGroupToAccount not implemented")
+}
+
+func (r *Repository) AssignPermissionToRole(context.Context, dto.PermissionRoleServiceNamesDTO) error {
+	// TODO implement
+	slog.Debug("not implemented")
+	return jointRepositoryError("AssignPermissionToRole not implemented")
+}
+func (r *Repository) AssignPermissionToGroup(context.Context, dto.GroupPermissionServiceNamesDTO) error {
+	// TODO implement
+	slog.Debug("not implemented")
+	return jointRepositoryError("AssignPermissionToGroup not implemented")
+}
+
+func (r *Repository) GetPermissionsForAccount(context.Context, dto.ServiceNameWithUserIdDTO) ([]dto.PermissionWithoutServiceDTO, error) {
+	// TODO implement
+	slog.Debug("not implemented")
+	return []dto.PermissionWithoutServiceDTO{}, jointRepositoryError("GetPermissionsForAccount not implemented")
+}
+func (r *Repository) GetPermissionsNumbersForAccount(context.Context, dto.ServiceNameWithUserIdDTO) ([]int, error) {
+	// TODO implement
+	slog.Debug("not implemented")
+	return []int{}, jointRepositoryError("GetPermissionsNumbersForAccount not implemented")
+}
+
 // saveToMemoryLoginData сохраняет в памяти данные, необходимые для процесса входа в систему пользователя (сервиса)
 func (r *Repository) saveToMemoryLoginData(ctx context.Context, data dto.AccountLoginDataDTO) error {
 	r.memory.SetUserIdAndPasswordHash(ctx, dto.UserLoginAndIdWithPasswordHashDTO{UserId: data.UserId, Login: data.Login, Hash: data.Hash})

@@ -26,7 +26,7 @@ func main() {
 	inMemoryRepo := redis.MustCreate(cfg.Redis)
 	persistentRepo := postgresql.MustCreate(cfg.PersistentStorage)
 	repo := joint.New(inMemoryRepo, persistentRepo)
-	serv := service.New(metrics.Service, repo)
+	serv := service.New(metrics.Service, &repo)
 
 	if cfg.Env == config.EnvironmentDebug || cfg.Env == config.EnvironmentLocal {
 		runCodeForDebug(inMemoryRepo, persistentRepo, repo, serv)

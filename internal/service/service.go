@@ -8,14 +8,14 @@ import (
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/password"
 	"github.com/lazylex/watch-store/secure/internal/dto"
 	"github.com/lazylex/watch-store/secure/internal/ports/metrics/service"
-	"github.com/lazylex/watch-store/secure/internal/repository/joint"
+	"github.com/lazylex/watch-store/secure/internal/ports/repository/joint"
 	"golang.org/x/crypto/bcrypt"
 	"log/slog"
 )
 
 type Service struct {
 	metrics    service.MetricsInterface
-	repository joint.Repository
+	repository joint.Interface
 	salt       string
 }
 
@@ -32,7 +32,7 @@ func serviceError(text string) error {
 // TODO заменить параметры на Option (при необходимости)
 
 // New конструктор для сервиса
-func New(metrics service.MetricsInterface, repository joint.Repository) *Service {
+func New(metrics service.MetricsInterface, repository joint.Interface) *Service {
 
 	return &Service{metrics: metrics, repository: repository}
 }
