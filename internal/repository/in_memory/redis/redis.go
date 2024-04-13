@@ -129,14 +129,51 @@ func (r *Redis) SetAccountState(ctx context.Context, stateDTO dto.LoginStateDTO)
 	return r.client.Set(ctx, accountStateByLoginKey(stateDTO.Login), int(stateDTO.State), 24*time.Hour).Err()
 }
 
+// SetServicePermissionsNumbersForAccount сохраняет номера всех разрешений аккаунта для сервиса
+func (r *Redis) SetServicePermissionsNumbersForAccount(ctx context.Context, data dto.ServiceNameWithUserIdAndPermNumbersDTO) error {
+	numbers := make([]interface{}, len(data.PermissionNumbers))
+	key := servicePermissionsNumbersKey(data.Service, data.UserId)
+
+	for i, v := range data.PermissionNumbers {
+		numbers[i] = v
+	}
+
+	if err := r.client.SAdd(ctx, key, numbers...).Err(); err != nil {
+		return err
+	}
+
+	// TODO считывать ttl из конфигурации
+	return r.client.Expire(ctx, key, 24*time.Hour).Err()
+
+}
+
+// GetServicePermissionsNumbersForAccount возвращает номера всех разрешений аккаунта для сервиса
+func (r *Redis) GetServicePermissionsNumbersForAccount(ctx context.Context, data dto.ServiceNameWithUserIdDTO) ([]int, error) {
+	key := servicePermissionsNumbersKey(data.Service, data.UserId)
+
+	if values, err := r.client.SMembers(ctx, key).Result(); err != nil {
+		return nil, err
+	} else {
+		result := make([]int, 0, len(values))
+		for _, v := range values {
+			if permNumber, err := strconv.Atoi(v); err == nil {
+				result = append(result, permNumber)
+			}
+		}
+
+		// TODO считывать ttl из конфигурации
+		return result, r.client.Expire(ctx, key, 24*time.Hour).Err()
+	}
+}
+
 // sessionKey ключ для получения UUID пользователя сессии
 func sessionKey(sessionToken string) string {
 	return fmt.Sprintf("session:%s", sessionToken)
 }
 
-// permissionsKey ключ для получения списка разрешений сервиса service для пользователя (сервиса) с UUID равным id
-func permissionsKey(service string, id uuid.UUID) string {
-	return fmt.Sprintf("perm:%s:%s", service, id.String())
+// servicePermissionsNumbersKey ключ для получения списка разрешений сервиса service для пользователя (сервиса) с UUID равным id
+func servicePermissionsNumbersKey(service string, id uuid.UUID) string {
+	return fmt.Sprintf("serv_perm_numbs:%s:%s", service, id.String())
 }
 
 // userIdAndPasswordHashKey ключ для получения идентификатора пользователя и хэша его пароля по логину
