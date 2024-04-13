@@ -15,7 +15,10 @@ type LoginInterface interface {
 	GetAccountStateByLogin(context.Context, login.Login) (account_state.State, error)
 }
 
-type RBACInterface interface{}
+type RBACInterface interface {
+	SetServicePermissionsNumbersForAccount(context.Context, dto.ServiceNameWithUserIdAndPermNumbersDTO) error
+	GetServicePermissionsNumbersForAccount(context.Context, dto.ServiceNameWithUserIdDTO) ([]int, error)
+}
 
 type Interface interface {
 	LoginInterface
