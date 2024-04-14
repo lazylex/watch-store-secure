@@ -146,15 +146,25 @@ func (r *Repository) AssignRoleToGroup(ctx context.Context, data dto.GroupRoleSe
 
 // AssignRoleToAccount t назначает роль учетной записи
 func (r *Repository) AssignRoleToAccount(ctx context.Context, data dto.RoleServiceNamesWithUserIdDTO) error {
-	// TODO если для учетной записи сохранен кеш разрешений и роль прикреплена успешно, перечитать их
-	err := r.persistent.AssignRoleToAccount(ctx, data)
+	var err error
+	if err = r.persistent.AssignRoleToAccount(ctx, data); err == nil && r.memory.ExistServicePermissionsNumbersForAccount(ctx, dto.ServiceNameWithUserIdDTO{
+		UserId:  data.UserId,
+		Service: data.Service,
+	}) {
+		r.refreshAccountPermissions(ctx, dto.ServiceNameWithUserIdDTO{UserId: data.UserId, Service: data.Service})
+	}
 	return err
 }
 
 // AssignGroupToAccount назначает группу учетной записи
 func (r *Repository) AssignGroupToAccount(ctx context.Context, data dto.GroupServiceNamesWithUserIdDTO) error {
-	// TODO если для учетной записи сохранен кеш разрешений и группа прикреплена успешно, перечитать их
-	err := r.persistent.AssignGroupToAccount(ctx, data)
+	var err error
+	if err = r.persistent.AssignGroupToAccount(ctx, data); err == nil && r.memory.ExistServicePermissionsNumbersForAccount(ctx, dto.ServiceNameWithUserIdDTO{
+		UserId:  data.UserId,
+		Service: data.Service,
+	}) {
+		r.refreshAccountPermissions(ctx, dto.ServiceNameWithUserIdDTO{UserId: data.UserId, Service: data.Service})
+	}
 	return err
 }
 
@@ -182,6 +192,12 @@ func (r *Repository) GetPermissionsNumbersForAccount(ctx context.Context, data d
 func (r *Repository) saveToMemoryLoginData(ctx context.Context, data dto.AccountLoginDataDTO) error {
 	r.memory.SetUserIdAndPasswordHash(ctx, dto.UserLoginAndIdWithPasswordHashDTO{UserId: data.UserId, Login: data.Login, Hash: data.Hash})
 	return r.memory.SetAccountState(ctx, dto.LoginStateDTO{Login: data.Login, State: data.State})
+}
+
+// refreshAccountPermissions обновляет кеш разрешений
+func (r *Repository) refreshAccountPermissions(ctx context.Context, data dto.ServiceNameWithUserIdDTO) {
+	// TODO implement
+	slog.Debug("not implemented permission refresh")
 }
 
 // makeDataCache считывает все данные (которые возможно кешировать) из постоянного хранилища в хранилище в памяти

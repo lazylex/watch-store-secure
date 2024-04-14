@@ -166,6 +166,18 @@ func (r *Redis) GetServicePermissionsNumbersForAccount(ctx context.Context, data
 	}
 }
 
+// ExistServicePermissionsNumbersForAccount возвращает true, если в памяти сохранены номера разрешений сервиса для
+// аккаунта
+func (r *Redis) ExistServicePermissionsNumbersForAccount(ctx context.Context, data dto.ServiceNameWithUserIdDTO) bool {
+	key := servicePermissionsNumbersKey(data.Service, data.UserId)
+	if result, err := r.client.Exists(ctx, key).Result(); err != nil {
+		return false
+	} else if result == 0 {
+		return false
+	}
+	return true
+}
+
 // sessionKey ключ для получения UUID пользователя сессии
 func sessionKey(sessionToken string) string {
 	return fmt.Sprintf("session:%s", sessionToken)

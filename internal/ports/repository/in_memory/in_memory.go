@@ -18,6 +18,8 @@ type LoginInterface interface {
 type RBACInterface interface {
 	SetServicePermissionsNumbersForAccount(context.Context, dto.ServiceNameWithUserIdAndPermNumbersDTO) error
 	GetServicePermissionsNumbersForAccount(context.Context, dto.ServiceNameWithUserIdDTO) ([]int, error)
+
+	ExistServicePermissionsNumbersForAccount(ctx context.Context, data dto.ServiceNameWithUserIdDTO) bool
 }
 
 type Interface interface {
