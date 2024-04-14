@@ -213,8 +213,21 @@ func (p *PostgreSQL) AssignPermissionToGroup(ctx context.Context, data dto.Group
 	return p.processExecResult(p.db.ExecEx(ctx, stmt, nil, data.Service, data.Group, data.Permission))
 }
 
-// GetPermissionsForAccount возвращает название, номер и описание всех разрешений аккаунта для сервиса
-func (p *PostgreSQL) GetPermissionsForAccount(ctx context.Context, data dto.ServiceNameWithUserIdDTO) ([]dto.PermissionWithoutServiceDTO, error) {
+func (p *PostgreSQL) GetInstancePermissionsForAccount(context.Context, dto.ServiceNameWithUserIdDTO) ([]dto.PermissionWithoutServiceDTO, error) {
+	// TODO implement
+	slog.Debug("GetInstancePermissionsForAccount not implemented")
+	return nil, nil
+}
+
+func (p *PostgreSQL) GetInstancePermissionsNumbersForAccount(context.Context, dto.ServiceNameWithUserIdDTO) ([]int, error) {
+	// TODO implement
+	slog.Debug("GetInstancePermissionsNumbersForAccount not implemented")
+	return nil, nil
+}
+
+// GetServicePermissionsForAccount возвращает название, номер и описание разрешений аккаунта для сервиса (без разрешений
+// для экземпляра)
+func (p *PostgreSQL) GetServicePermissionsForAccount(ctx context.Context, data dto.ServiceNameWithUserIdDTO) ([]dto.PermissionWithoutServiceDTO, error) {
 	stmt := `
 	WITH account_cte AS (SELECT account_id
                      FROM accounts
@@ -249,17 +262,7 @@ func (p *PostgreSQL) GetPermissionsForAccount(ctx context.Context, data dto.Serv
 		   SELECT permission_fk
 		   FROM group_permissions
 		   WHERE group_fk IN (SELECT group_fk FROM groups_cte)
-	
-		   UNION
-	
-		   SELECT permission_fk
-		   FROM accounts_instances_permissions
-		   WHERE account_fk = (SELECT account_id FROM account_cte)
-	
-			 AND instance_fk IN
-				 (SELECT instance_id
-				  FROM instances
-				  WHERE service_fk = (SELECT service_id FROM service_cte)))
+		   )
 	
 	  AND service_fk = (SELECT service_id FROM service_cte)
 	ORDER BY number`
@@ -285,8 +288,9 @@ func (p *PostgreSQL) GetPermissionsForAccount(ctx context.Context, data dto.Serv
 	return result, nil
 }
 
-// GetPermissionsNumbersForAccount возвращает номера всех разрешений аккаунта для сервиса
-func (p *PostgreSQL) GetPermissionsNumbersForAccount(ctx context.Context, data dto.ServiceNameWithUserIdDTO) ([]int, error) {
+// GetServicePermissionsNumbersForAccount возвращает номера разрешений аккаунта для сервиса (без разрешений для
+// экземпляра)
+func (p *PostgreSQL) GetServicePermissionsNumbersForAccount(ctx context.Context, data dto.ServiceNameWithUserIdDTO) ([]int, error) {
 	stmt := `
 	WITH account_cte AS (SELECT account_id
                      FROM accounts
@@ -319,17 +323,7 @@ func (p *PostgreSQL) GetPermissionsNumbersForAccount(ctx context.Context, data d
 		   SELECT permission_fk
 		   FROM group_permissions
 		   WHERE group_fk IN (SELECT group_fk FROM groups_cte)
-	
-		   UNION
-	
-		   SELECT permission_fk
-		   FROM accounts_instances_permissions
-		   WHERE account_fk = (SELECT account_id FROM account_cte)
-	
-			 AND instance_fk IN
-				 (SELECT instance_id
-				  FROM instances
-				  WHERE service_fk = (SELECT service_id FROM service_cte)))
+		   )
 	
 	  AND service_fk = (SELECT service_id FROM service_cte)
 	ORDER BY number`

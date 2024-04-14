@@ -13,9 +13,27 @@ type LoginInterface interface {
 	SetAccountLoginData(context.Context, dto.AccountLoginDataDTO) error
 }
 
+type RBACInterface interface {
+	AddPermission(context.Context, dto.PermissionDTO) error
+	AddRole(context.Context, dto.NameAndServiceWithDescriptionDTO) error
+	AddGroup(context.Context, dto.NameAndServiceWithDescriptionDTO) error
+
+	AssignRoleToGroup(context.Context, dto.GroupRoleServiceNamesDTO) error
+	AssignRoleToAccount(context.Context, dto.RoleServiceNamesWithUserIdDTO) error
+	AssignGroupToAccount(context.Context, dto.GroupServiceNamesWithUserIdDTO) error
+	AssignPermissionToRole(context.Context, dto.PermissionRoleServiceNamesDTO) error
+	AssignPermissionToGroup(context.Context, dto.GroupPermissionServiceNamesDTO) error
+
+	GetInstancePermissionsForAccount(context.Context, dto.ServiceNameWithUserIdDTO) ([]dto.PermissionWithoutServiceDTO, error)
+	GetInstancePermissionsNumbersForAccount(context.Context, dto.ServiceNameWithUserIdDTO) ([]int, error)
+
+	GetServicePermissionsForAccount(context.Context, dto.ServiceNameWithUserIdDTO) ([]dto.PermissionWithoutServiceDTO, error)
+	GetServicePermissionsNumbersForAccount(context.Context, dto.ServiceNameWithUserIdDTO) ([]int, error)
+}
+
 type Interface interface {
 	LoginInterface
 	joint.ServiceInterface
-	joint.RBACInterface
+	RBACInterface
 	Close()
 }

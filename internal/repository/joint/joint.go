@@ -180,12 +180,12 @@ func (r *Repository) AssignPermissionToGroup(ctx context.Context, data dto.Group
 
 // GetPermissionsForAccount возвращает название, номер и описание всех разрешений аккаунта для сервиса
 func (r *Repository) GetPermissionsForAccount(ctx context.Context, data dto.ServiceNameWithUserIdDTO) ([]dto.PermissionWithoutServiceDTO, error) {
-	return r.persistent.GetPermissionsForAccount(ctx, data)
+	return r.persistent.GetServicePermissionsForAccount(ctx, data)
 }
 
 // GetPermissionsNumbersForAccount возвращает номера всех разрешений аккаунта для сервиса
 func (r *Repository) GetPermissionsNumbersForAccount(ctx context.Context, data dto.ServiceNameWithUserIdDTO) ([]int, error) {
-	return r.persistent.GetPermissionsNumbersForAccount(ctx, data)
+	return r.persistent.GetServicePermissionsNumbersForAccount(ctx, data)
 }
 
 // saveToMemoryLoginData сохраняет в памяти данные, необходимые для процесса входа в систему пользователя (сервиса)
