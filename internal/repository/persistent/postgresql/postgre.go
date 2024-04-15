@@ -213,22 +213,97 @@ func (p *PostgreSQL) AssignPermissionToGroup(ctx context.Context, data dto.Group
 	return p.processExecResult(p.db.ExecEx(ctx, stmt, nil, data.Service, data.Group, data.Permission))
 }
 
-func (p *PostgreSQL) GetInstancePermissionsForAccount(context.Context, dto.ServiceNameWithUserIdDTO) ([]dto.PermissionWithoutServiceDTO, error) {
-	// TODO implement
-	slog.Debug("GetInstancePermissionsForAccount not implemented")
-	return nil, nil
+// GetInstancePermissionsForAccount возвращает название, номер и описание разрешений аккаунта для экземпляра сервиса
+func (p *PostgreSQL) GetInstancePermissionsForAccount(ctx context.Context, data dto.InstanceNameWithUserIdDTO) ([]dto.PermissionWithoutServiceDTO, error) {
+	cte := `
+	WITH account_cte AS (SELECT account_id
+                     FROM accounts
+                     WHERE uuid = $1)`
+
+	stmt := cte + `
+	SELECT name,
+		   number,
+		   description
+	FROM permissions
+	WHERE permission_id IN
+		  (SELECT permission_fk
+		   FROM accounts_instances_permissions
+		   WHERE account_fk = (SELECT account_id FROM account_cte)
+	
+			 AND instance_fk IN
+				 (SELECT instance_id
+				  FROM instances
+				  WHERE name = $2))
+
+	ORDER BY number`
+
+	rows, err := p.db.QueryEx(ctx, stmt, nil, data.UserId, data.Instance)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	result := make([]dto.PermissionWithoutServiceDTO, 0)
+	var number int
+	var name, description string
+
+	for rows.Next() {
+		if err = rows.Scan(&name, &number, &description); err != nil {
+			return result, err
+		}
+		result = append(result, dto.PermissionWithoutServiceDTO{Name: name, Number: number, Description: description})
+
+	}
+
+	return result, nil
 }
 
-func (p *PostgreSQL) GetInstancePermissionsNumbersForAccount(context.Context, dto.ServiceNameWithUserIdDTO) ([]int, error) {
-	// TODO implement
-	slog.Debug("GetInstancePermissionsNumbersForAccount not implemented")
-	return nil, nil
+// GetInstancePermissionsNumbersForAccount возвращает номера разрешений аккаунта для экземпляра сервиса
+func (p *PostgreSQL) GetInstancePermissionsNumbersForAccount(ctx context.Context, data dto.InstanceNameWithUserIdDTO) ([]int, error) {
+	cte := `
+	WITH account_cte AS (SELECT account_id
+                     FROM accounts
+                     WHERE uuid = $1)`
+
+	stmt := cte + `
+	SELECT number
+	FROM permissions
+	WHERE permission_id IN
+		  (SELECT permission_fk
+		   FROM accounts_instances_permissions
+		   WHERE account_fk = (SELECT account_id FROM account_cte)
+	
+			 AND instance_fk IN
+				 (SELECT instance_id
+				  FROM instances
+				  WHERE name = $2))
+
+	ORDER BY number`
+
+	rows, err := p.db.QueryEx(ctx, stmt, nil, data.UserId, data.Instance)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	result := make([]int, 0)
+	var number int
+
+	for rows.Next() {
+		if err = rows.Scan(&number); err != nil {
+			return result, err
+		}
+		result = append(result, number)
+
+	}
+
+	return result, nil
 }
 
 // GetServicePermissionsForAccount возвращает название, номер и описание разрешений аккаунта для сервиса (без разрешений
 // для экземпляра)
 func (p *PostgreSQL) GetServicePermissionsForAccount(ctx context.Context, data dto.ServiceNameWithUserIdDTO) ([]dto.PermissionWithoutServiceDTO, error) {
-	stmt := `
+	cte := `
 	WITH account_cte AS (SELECT account_id
                      FROM accounts
                      WHERE uuid = $1),
@@ -237,8 +312,9 @@ func (p *PostgreSQL) GetServicePermissionsForAccount(ctx context.Context, data d
                     WHERE account_fk = (SELECT account_id FROM account_cte)),
      service_cte AS (SELECT service_id
                      FROM services
-                     WHERE name = $2)
+                     WHERE name = $2)`
 
+	stmt := cte + `
 	SELECT name,
 		   number,
 		   description
@@ -291,7 +367,7 @@ func (p *PostgreSQL) GetServicePermissionsForAccount(ctx context.Context, data d
 // GetServicePermissionsNumbersForAccount возвращает номера разрешений аккаунта для сервиса (без разрешений для
 // экземпляра)
 func (p *PostgreSQL) GetServicePermissionsNumbersForAccount(ctx context.Context, data dto.ServiceNameWithUserIdDTO) ([]int, error) {
-	stmt := `
+	cte := `
 	WITH account_cte AS (SELECT account_id
                      FROM accounts
                      WHERE uuid = $1),
@@ -300,8 +376,9 @@ func (p *PostgreSQL) GetServicePermissionsNumbersForAccount(ctx context.Context,
                     WHERE account_fk = (SELECT account_id FROM account_cte)),
      service_cte AS (SELECT service_id
                      FROM services
-                     WHERE name = $2)
+                     WHERE name = $2)`
 
+	stmt := cte + `
 	SELECT number
 	FROM permissions
 	WHERE permission_id IN

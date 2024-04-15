@@ -211,8 +211,8 @@ func servicePermissionsNumbersKey(service string, id uuid.UUID) string {
 }
 
 // instancePermissionsNumbersKey ключ для получения списка разрешений экземпляра для пользователя (сервиса) с UUID равным id
-func instancePermissionsNumbersKey(service string, id uuid.UUID) string {
-	return fmt.Sprintf("inst_perm_numbs:%s:%s", service, id.String())
+func instancePermissionsNumbersKey(instance string, id uuid.UUID) string {
+	return fmt.Sprintf("inst_perm_numbs:%s:%s", instance, id.String())
 }
 
 // userIdAndPasswordHashKey ключ для получения идентификатора пользователя и хэша его пароля по логину

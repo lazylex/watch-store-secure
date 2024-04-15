@@ -203,13 +203,7 @@ func (r *Repository) refreshAccountPermissions(ctx context.Context, data dto.Ser
 			PermissionNumbers: servicePerm,
 		})
 	}
-	if instancePerm, err := r.persistent.GetInstancePermissionsNumbersForAccount(ctx, data); err == nil {
-		_ = r.memory.SetInstancePermissionsNumbersForAccount(ctx, dto.ServiceNameWithUserIdAndPermNumbersDTO{
-			UserId:            data.UserId,
-			Service:           data.Service,
-			PermissionNumbers: instancePerm,
-		})
-	}
+	// TODO обновление разрешений для экземпляров
 }
 
 // makeDataCache считывает все данные (которые возможно кешировать) из постоянного хранилища в хранилище в памяти
