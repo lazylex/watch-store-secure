@@ -19,6 +19,9 @@ type RBACInterface interface {
 	SetServicePermissionsNumbersForAccount(context.Context, dto.ServiceNameWithUserIdAndPermNumbersDTO) error
 	GetServicePermissionsNumbersForAccount(context.Context, dto.ServiceNameWithUserIdDTO) ([]int, error)
 
+	SetInstancePermissionsNumbersForAccount(context.Context, dto.ServiceNameWithUserIdAndPermNumbersDTO) error
+	GetInstancePermissionsNumbersForAccount(context.Context, dto.ServiceNameWithUserIdDTO) ([]int, error)
+
 	ExistServicePermissionsNumbersForAccount(ctx context.Context, data dto.ServiceNameWithUserIdDTO) bool
 }
 

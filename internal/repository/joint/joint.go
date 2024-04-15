@@ -196,8 +196,20 @@ func (r *Repository) saveToMemoryLoginData(ctx context.Context, data dto.Account
 
 // refreshAccountPermissions обновляет кеш разрешений
 func (r *Repository) refreshAccountPermissions(ctx context.Context, data dto.ServiceNameWithUserIdDTO) {
-	// TODO implement
-	slog.Debug("not implemented permission refresh")
+	if servicePerm, err := r.persistent.GetServicePermissionsNumbersForAccount(ctx, data); err == nil {
+		_ = r.memory.SetServicePermissionsNumbersForAccount(ctx, dto.ServiceNameWithUserIdAndPermNumbersDTO{
+			UserId:            data.UserId,
+			Service:           data.Service,
+			PermissionNumbers: servicePerm,
+		})
+	}
+	if instancePerm, err := r.persistent.GetInstancePermissionsNumbersForAccount(ctx, data); err == nil {
+		_ = r.memory.SetInstancePermissionsNumbersForAccount(ctx, dto.ServiceNameWithUserIdAndPermNumbersDTO{
+			UserId:            data.UserId,
+			Service:           data.Service,
+			PermissionNumbers: instancePerm,
+		})
+	}
 }
 
 // makeDataCache считывает все данные (которые возможно кешировать) из постоянного хранилища в хранилище в памяти

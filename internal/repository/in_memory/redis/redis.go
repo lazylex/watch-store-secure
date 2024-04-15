@@ -129,12 +129,36 @@ func (r *Redis) SetAccountState(ctx context.Context, stateDTO dto.LoginStateDTO)
 	return r.client.Set(ctx, accountStateByLoginKey(stateDTO.Login), int(stateDTO.State), 24*time.Hour).Err()
 }
 
-// SetServicePermissionsNumbersForAccount сохраняет номера всех разрешений аккаунта для сервиса
+// SetServicePermissionsNumbersForAccount сохраняет номера разрешений аккаунта для сервиса
 func (r *Redis) SetServicePermissionsNumbersForAccount(ctx context.Context, data dto.ServiceNameWithUserIdAndPermNumbersDTO) error {
-	numbers := make([]interface{}, len(data.PermissionNumbers))
 	key := servicePermissionsNumbersKey(data.Service, data.UserId)
+	return r.setPermissionsNumbers(ctx, key, data.PermissionNumbers)
+}
 
-	for i, v := range data.PermissionNumbers {
+// GetServicePermissionsNumbersForAccount возвращает номера всех разрешений аккаунта для сервиса
+func (r *Redis) GetServicePermissionsNumbersForAccount(ctx context.Context, data dto.ServiceNameWithUserIdDTO) ([]int, error) {
+	key := servicePermissionsNumbersKey(data.Service, data.UserId)
+	return r.getPermissionsNumbers(ctx, key)
+}
+
+// SetInstancePermissionsNumbersForAccount сохраняет номера разрешений аккаунта для экземпляра сервиса
+func (r *Redis) SetInstancePermissionsNumbersForAccount(ctx context.Context, data dto.ServiceNameWithUserIdAndPermNumbersDTO) error {
+	key := instancePermissionsNumbersKey(data.Service, data.UserId)
+	return r.setPermissionsNumbers(ctx, key, data.PermissionNumbers)
+}
+
+// GetInstancePermissionsNumbersForAccount возвращает номера разрешений аккаунта для экземпляра сервиса
+func (r *Redis) GetInstancePermissionsNumbersForAccount(ctx context.Context, data dto.ServiceNameWithUserIdDTO) ([]int, error) {
+	key := instancePermissionsNumbersKey(data.Service, data.UserId)
+	return r.getPermissionsNumbers(ctx, key)
+}
+
+// setPermissionsNumbers сохраняет номера разрешений аккаунта по заданному ключу
+func (r *Redis) setPermissionsNumbers(ctx context.Context, key string, permissionNumbers []int) error {
+
+	numbers := make([]interface{}, len(permissionNumbers))
+
+	for i, v := range permissionNumbers {
 		numbers[i] = v
 	}
 
@@ -147,10 +171,8 @@ func (r *Redis) SetServicePermissionsNumbersForAccount(ctx context.Context, data
 
 }
 
-// GetServicePermissionsNumbersForAccount возвращает номера всех разрешений аккаунта для сервиса
-func (r *Redis) GetServicePermissionsNumbersForAccount(ctx context.Context, data dto.ServiceNameWithUserIdDTO) ([]int, error) {
-	key := servicePermissionsNumbersKey(data.Service, data.UserId)
-
+// getPermissionsNumbers возвращает номера разрешений аккаунта по заданному ключу
+func (r *Redis) getPermissionsNumbers(ctx context.Context, key string) ([]int, error) {
 	if values, err := r.client.SMembers(ctx, key).Result(); err != nil {
 		return nil, err
 	} else {
@@ -186,6 +208,11 @@ func sessionKey(sessionToken string) string {
 // servicePermissionsNumbersKey ключ для получения списка разрешений сервиса service для пользователя (сервиса) с UUID равным id
 func servicePermissionsNumbersKey(service string, id uuid.UUID) string {
 	return fmt.Sprintf("serv_perm_numbs:%s:%s", service, id.String())
+}
+
+// instancePermissionsNumbersKey ключ для получения списка разрешений экземпляра для пользователя (сервиса) с UUID равным id
+func instancePermissionsNumbersKey(service string, id uuid.UUID) string {
+	return fmt.Sprintf("inst_perm_numbs:%s:%s", service, id.String())
 }
 
 // userIdAndPasswordHashKey ключ для получения идентификатора пользователя и хэша его пароля по логину
