@@ -24,6 +24,12 @@ type Redis struct {
 const (
 	userIdField = "user_id"
 	hashField   = "hash"
+
+	prefixSession                    = "s"
+	prefixServicePermissionsNumbers  = "spn"
+	prefixInstancePermissionsNumbers = "ipn"
+	prefixUuidHash                   = "uh"
+	prefixAccountState               = "as"
 )
 
 var (
@@ -202,25 +208,25 @@ func (r *Redis) ExistServicePermissionsNumbersForAccount(ctx context.Context, da
 
 // sessionKey ключ для получения UUID пользователя сессии
 func sessionKey(sessionToken string) string {
-	return fmt.Sprintf("session:%s", sessionToken)
+	return fmt.Sprintf("%s:%s", prefixSession, sessionToken)
 }
 
 // servicePermissionsNumbersKey ключ для получения списка разрешений сервиса service для пользователя (сервиса) с UUID равным id
 func servicePermissionsNumbersKey(service string, id uuid.UUID) string {
-	return fmt.Sprintf("serv_perm_numbs:%s:%s", service, id.String())
+	return fmt.Sprintf("%s:%s:%s", prefixServicePermissionsNumbers, service, id.String())
 }
 
 // instancePermissionsNumbersKey ключ для получения списка разрешений экземпляра для пользователя (сервиса) с UUID равным id
 func instancePermissionsNumbersKey(instance string, id uuid.UUID) string {
-	return fmt.Sprintf("inst_perm_numbs:%s:%s", instance, id.String())
+	return fmt.Sprintf("%s:%s:%s", prefixInstancePermissionsNumbers, instance, id.String())
 }
 
 // userIdAndPasswordHashKey ключ для получения идентификатора пользователя и хэша его пароля по логину
 func userIdAndPasswordHashKey(login loginVO.Login) string {
-	return fmt.Sprintf("uuid:hash:%s", string(login))
+	return fmt.Sprintf("%s:%s", prefixUuidHash, string(login))
 }
 
 // accountStateByLoginKey ключ для получения состояния учетной записи по логину
 func accountStateByLoginKey(login loginVO.Login) string {
-	return fmt.Sprintf("account_state:%s", login)
+	return fmt.Sprintf("%s:%s", prefixAccountState, login)
 }
