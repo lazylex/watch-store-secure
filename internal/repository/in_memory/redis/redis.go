@@ -3,7 +3,6 @@ package redis
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/google/uuid"
 	"github.com/lazylex/watch-store/secure/internal/config"
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/account_state"
@@ -24,12 +23,6 @@ type Redis struct {
 const (
 	userIdField = "user_id"
 	hashField   = "hash"
-
-	prefixSession                    = "s"
-	prefixServicePermissionsNumbers  = "spn"
-	prefixInstancePermissionsNumbers = "ipn"
-	prefixUuidHash                   = "uh"
-	prefixAccountState               = "as"
 )
 
 var (
@@ -62,7 +55,7 @@ func MustCreate(cfg config.Redis) *Redis {
 // SaveSession сохраняет данные о времени жизни сессии и её пользователе. Переданный токен служит для создания ключа,
 // по которому хранится идентификатор пользователя (хранение осуществляется переданное в TTL количество секунд)
 func (r *Redis) SaveSession(ctx context.Context, dto dto.SessionDTO) error {
-	_, err := r.client.Set(ctx, sessionKey(dto.Token), dto.UserId, time.Duration(float64(dto.TTL))*time.Second).Result()
+	_, err := r.client.Set(ctx, keySession(dto.Token), dto.UserId, time.Duration(float64(dto.TTL))*time.Second).Result()
 	return err
 }
 
@@ -71,7 +64,7 @@ func (r *Redis) GetUserUUIDFromSession(ctx context.Context, sessionToken string)
 	var val []byte
 	var err error
 
-	if val, err = r.client.Get(ctx, sessionKey(sessionToken)).Bytes(); err != nil {
+	if val, err = r.client.Get(ctx, keySession(sessionToken)).Bytes(); err != nil {
 		return uuid.Nil, err
 	}
 
@@ -83,7 +76,7 @@ func (r *Redis) GetUserIdAndPasswordHash(ctx context.Context, login loginVO.Logi
 	var parsedUUID uuid.UUID
 	var values map[string]string
 
-	key := userIdAndPasswordHashKey(login)
+	key := keyUserIdAndPasswordHash(login)
 
 	if values, err = r.client.HGetAll(ctx, key).Result(); err != nil {
 		return dto.UserIdWithPasswordHashDTO{}, err
@@ -98,7 +91,7 @@ func (r *Redis) GetUserIdAndPasswordHash(ctx context.Context, login loginVO.Logi
 }
 
 func (r *Redis) SetUserIdAndPasswordHash(ctx context.Context, data dto.UserLoginAndIdWithPasswordHashDTO) {
-	key := userIdAndPasswordHashKey(data.Login)
+	key := keyUserIdAndPasswordHash(data.Login)
 	r.client.HSet(ctx, key, userIdField, data.UserId.String(), hashField, data.Hash)
 	// TODO определить ttl из конфигурации
 	r.client.Expire(ctx, key, 1*time.Hour)
@@ -110,7 +103,7 @@ func (r *Redis) GetAccountStateByLogin(ctx context.Context, login loginVO.Login)
 	var err error
 	var val string
 
-	key := accountStateByLoginKey(login)
+	key := keyAccountStateByLogin(login)
 
 	if val, err = r.client.Get(ctx, key).Result(); err != nil {
 		return 0, err
@@ -132,30 +125,30 @@ func (r *Redis) SetAccountState(ctx context.Context, stateDTO dto.LoginStateDTO)
 		return ErrIncorrectState
 	}
 	// TODO считывать ttl из конфигурации
-	return r.client.Set(ctx, accountStateByLoginKey(stateDTO.Login), int(stateDTO.State), 24*time.Hour).Err()
+	return r.client.Set(ctx, keyAccountStateByLogin(stateDTO.Login), int(stateDTO.State), 24*time.Hour).Err()
 }
 
 // SetServicePermissionsNumbersForAccount сохраняет номера разрешений аккаунта для сервиса
 func (r *Redis) SetServicePermissionsNumbersForAccount(ctx context.Context, data dto.ServiceNameWithUserIdAndPermNumbersDTO) error {
-	key := servicePermissionsNumbersKey(data.Service, data.UserId)
+	key := keyServicePermissionsNumbers(data.Service, data.UserId)
 	return r.setPermissionsNumbers(ctx, key, data.PermissionNumbers)
 }
 
 // GetServicePermissionsNumbersForAccount возвращает номера всех разрешений аккаунта для сервиса
 func (r *Redis) GetServicePermissionsNumbersForAccount(ctx context.Context, data dto.ServiceNameWithUserIdDTO) ([]int, error) {
-	key := servicePermissionsNumbersKey(data.Service, data.UserId)
+	key := keyServicePermissionsNumbers(data.Service, data.UserId)
 	return r.getPermissionsNumbers(ctx, key)
 }
 
 // SetInstancePermissionsNumbersForAccount сохраняет номера разрешений аккаунта для экземпляра сервиса
 func (r *Redis) SetInstancePermissionsNumbersForAccount(ctx context.Context, data dto.ServiceNameWithUserIdAndPermNumbersDTO) error {
-	key := instancePermissionsNumbersKey(data.Service, data.UserId)
+	key := keyInstancePermissionsNumbers(data.Service, data.UserId)
 	return r.setPermissionsNumbers(ctx, key, data.PermissionNumbers)
 }
 
 // GetInstancePermissionsNumbersForAccount возвращает номера разрешений аккаунта для экземпляра сервиса
 func (r *Redis) GetInstancePermissionsNumbersForAccount(ctx context.Context, data dto.ServiceNameWithUserIdDTO) ([]int, error) {
-	key := instancePermissionsNumbersKey(data.Service, data.UserId)
+	key := keyInstancePermissionsNumbers(data.Service, data.UserId)
 	return r.getPermissionsNumbers(ctx, key)
 }
 
@@ -197,36 +190,11 @@ func (r *Redis) getPermissionsNumbers(ctx context.Context, key string) ([]int, e
 // ExistServicePermissionsNumbersForAccount возвращает true, если в памяти сохранены номера разрешений сервиса для
 // аккаунта
 func (r *Redis) ExistServicePermissionsNumbersForAccount(ctx context.Context, data dto.ServiceNameWithUserIdDTO) bool {
-	key := servicePermissionsNumbersKey(data.Service, data.UserId)
+	key := keyServicePermissionsNumbers(data.Service, data.UserId)
 	if result, err := r.client.Exists(ctx, key).Result(); err != nil {
 		return false
 	} else if result == 0 {
 		return false
 	}
 	return true
-}
-
-// sessionKey ключ для получения UUID пользователя сессии
-func sessionKey(sessionToken string) string {
-	return fmt.Sprintf("%s:%s", prefixSession, sessionToken)
-}
-
-// servicePermissionsNumbersKey ключ для получения списка разрешений сервиса service для пользователя (сервиса) с UUID равным id
-func servicePermissionsNumbersKey(service string, id uuid.UUID) string {
-	return fmt.Sprintf("%s:%s:%s", prefixServicePermissionsNumbers, service, id.String())
-}
-
-// instancePermissionsNumbersKey ключ для получения списка разрешений экземпляра для пользователя (сервиса) с UUID равным id
-func instancePermissionsNumbersKey(instance string, id uuid.UUID) string {
-	return fmt.Sprintf("%s:%s:%s", prefixInstancePermissionsNumbers, instance, id.String())
-}
-
-// userIdAndPasswordHashKey ключ для получения идентификатора пользователя и хэша его пароля по логину
-func userIdAndPasswordHashKey(login loginVO.Login) string {
-	return fmt.Sprintf("%s:%s", prefixUuidHash, string(login))
-}
-
-// accountStateByLoginKey ключ для получения состояния учетной записи по логину
-func accountStateByLoginKey(login loginVO.Login) string {
-	return fmt.Sprintf("%s:%s", prefixAccountState, login)
 }
