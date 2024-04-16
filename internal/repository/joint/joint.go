@@ -202,11 +202,13 @@ func (r *Repository) getServicePermissionsNumbersForAccountFromPersistentWithSav
 	var err error
 
 	if numbers, err = r.persistent.GetServicePermissionsNumbersForAccount(ctx, data); err == nil && len(numbers) > 0 {
-		_ = r.memory.SetServicePermissionsNumbersForAccount(ctx, dto.ServiceNameWithUserIdAndPermNumbersDTO{
-			UserId:            data.UserId,
-			Service:           data.Service,
-			PermissionNumbers: numbers,
-		})
+		go func() {
+			_ = r.memory.SetServicePermissionsNumbersForAccount(ctx, dto.ServiceNameWithUserIdAndPermNumbersDTO{
+				UserId:            data.UserId,
+				Service:           data.Service,
+				PermissionNumbers: numbers,
+			})
+		}()
 	}
 
 	return numbers, err
@@ -231,11 +233,13 @@ func (r *Repository) getInstancePermissionsNumbersForAccountFromPersistentWithSa
 	var err error
 
 	if numbers, err = r.persistent.GetInstancePermissionsNumbersForAccount(ctx, data); err == nil && len(numbers) > 0 {
-		_ = r.memory.SetInstancePermissionsNumbersForAccount(ctx, dto.InstanceNameWithUserIdAndPermNumbersDTO{
-			UserId:            data.UserId,
-			Instance:          data.Instance,
-			PermissionNumbers: numbers,
-		})
+		go func() {
+			_ = r.memory.SetInstancePermissionsNumbersForAccount(ctx, dto.InstanceNameWithUserIdAndPermNumbersDTO{
+				UserId:            data.UserId,
+				Instance:          data.Instance,
+				PermissionNumbers: numbers,
+			})
+		}()
 	}
 
 	return numbers, err
