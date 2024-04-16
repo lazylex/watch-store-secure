@@ -144,7 +144,7 @@ func (r *Repository) AssignRoleToGroup(ctx context.Context, data dto.GroupRoleSe
 	return r.persistent.AssignRoleToGroup(ctx, data)
 }
 
-// AssignRoleToAccount t назначает роль учетной записи
+// AssignRoleToAccount назначает роль учетной записи
 func (r *Repository) AssignRoleToAccount(ctx context.Context, data dto.RoleServiceNamesWithUserIdDTO) error {
 	var err error
 	if err = r.persistent.AssignRoleToAccount(ctx, data); err == nil && r.memory.ExistServicePermissionsNumbersForAccount(ctx, dto.ServiceNameWithUserIdDTO{
@@ -178,14 +178,42 @@ func (r *Repository) AssignPermissionToGroup(ctx context.Context, data dto.Group
 	return r.persistent.AssignPermissionToGroup(ctx, data)
 }
 
-// GetPermissionsForAccount возвращает название, номер и описание всех разрешений аккаунта для сервиса
-func (r *Repository) GetPermissionsForAccount(ctx context.Context, data dto.ServiceNameWithUserIdDTO) ([]dto.PermissionWithoutServiceDTO, error) {
+// GetServicePermissionsForAccount возвращает название, номер и описание разрешений аккаунта для сервиса
+func (r *Repository) GetServicePermissionsForAccount(ctx context.Context, data dto.ServiceNameWithUserIdDTO) ([]dto.PermissionWithoutServiceDTO, error) {
 	return r.persistent.GetServicePermissionsForAccount(ctx, data)
 }
 
-// GetPermissionsNumbersForAccount возвращает номера всех разрешений аккаунта для сервиса
-func (r *Repository) GetPermissionsNumbersForAccount(ctx context.Context, data dto.ServiceNameWithUserIdDTO) ([]int, error) {
-	return r.persistent.GetServicePermissionsNumbersForAccount(ctx, data)
+// GetServicePermissionsNumbersForAccount возвращает номера разрешений аккаунта для сервиса
+func (r *Repository) GetServicePermissionsNumbersForAccount(ctx context.Context, data dto.ServiceNameWithUserIdDTO) ([]int, error) {
+	var numbers []int
+	var err error
+
+	if !r.memory.ExistServicePermissionsNumbersForAccount(ctx, data) {
+		numbers, err = r.getServicePermissionsNumbersForAccountFromPersistentWithSaveToMemory(ctx, data)
+	} else {
+		if numbers, err = r.memory.GetServicePermissionsNumbersForAccount(ctx, data); err != nil {
+			numbers, err = r.getServicePermissionsNumbersForAccountFromPersistentWithSaveToMemory(ctx, data)
+		}
+	}
+
+	return numbers, err
+}
+
+// getServicePermissionsNumbersForAccountFromPersistentWithSaveToMemory возвращает номера разрешений аккаунта для
+// сервиса и кеширует их в память
+func (r *Repository) getServicePermissionsNumbersForAccountFromPersistentWithSaveToMemory(ctx context.Context, data dto.ServiceNameWithUserIdDTO) ([]int, error) {
+	var serviceNumbers []int
+	var err error
+
+	if serviceNumbers, err := r.persistent.GetServicePermissionsNumbersForAccount(ctx, data); err == nil && len(serviceNumbers) > 0 {
+		_ = r.memory.SetServicePermissionsNumbersForAccount(ctx, dto.ServiceNameWithUserIdAndPermNumbersDTO{
+			UserId:            data.UserId,
+			Service:           data.Service,
+			PermissionNumbers: serviceNumbers,
+		})
+	}
+
+	return serviceNumbers, err
 }
 
 // saveToMemoryLoginData сохраняет в памяти данные, необходимые для процесса входа в систему пользователя (сервиса)
