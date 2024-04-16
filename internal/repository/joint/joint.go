@@ -188,12 +188,8 @@ func (r *Repository) GetServicePermissionsNumbersForAccount(ctx context.Context,
 	var numbers []int
 	var err error
 
-	if !r.memory.ExistServicePermissionsNumbersForAccount(ctx, data) {
+	if numbers, err = r.memory.GetServicePermissionsNumbersForAccount(ctx, data); err != nil || len(numbers) == 0 {
 		numbers, err = r.getServicePermissionsNumbersForAccountFromPersistentWithSaveToMemory(ctx, data)
-	} else {
-		if numbers, err = r.memory.GetServicePermissionsNumbersForAccount(ctx, data); err != nil {
-			numbers, err = r.getServicePermissionsNumbersForAccountFromPersistentWithSaveToMemory(ctx, data)
-		}
 	}
 
 	return numbers, err
@@ -221,12 +217,8 @@ func (r *Repository) GetInstancePermissionsNumbersForAccount(ctx context.Context
 	var numbers []int
 	var err error
 
-	if !r.memory.ExistInstancePermissionsNumbersForAccount(ctx, data) {
+	if numbers, err = r.memory.GetInstancePermissionsNumbersForAccount(ctx, data); err != nil || len(numbers) == 0 {
 		numbers, err = r.getInstancePermissionsNumbersForAccountFromPersistentWithSaveToMemory(ctx, data)
-	} else {
-		if numbers, err = r.memory.GetInstancePermissionsNumbersForAccount(ctx, data); err != nil {
-			numbers, err = r.getInstancePermissionsNumbersForAccountFromPersistentWithSaveToMemory(ctx, data)
-		}
 	}
 
 	return numbers, err
