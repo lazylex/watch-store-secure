@@ -141,14 +141,14 @@ func (r *Redis) GetServicePermissionsNumbersForAccount(ctx context.Context, data
 }
 
 // SetInstancePermissionsNumbersForAccount сохраняет номера разрешений аккаунта для экземпляра сервиса
-func (r *Redis) SetInstancePermissionsNumbersForAccount(ctx context.Context, data dto.ServiceNameWithUserIdAndPermNumbersDTO) error {
-	key := keyInstancePermissionsNumbers(data.Service, data.UserId)
+func (r *Redis) SetInstancePermissionsNumbersForAccount(ctx context.Context, data dto.InstanceNameWithUserIdAndPermNumbersDTO) error {
+	key := keyInstancePermissionsNumbers(data.Instance, data.UserId)
 	return r.setPermissionsNumbers(ctx, key, data.PermissionNumbers)
 }
 
 // GetInstancePermissionsNumbersForAccount возвращает номера разрешений аккаунта для экземпляра сервиса
-func (r *Redis) GetInstancePermissionsNumbersForAccount(ctx context.Context, data dto.ServiceNameWithUserIdDTO) ([]int, error) {
-	key := keyInstancePermissionsNumbers(data.Service, data.UserId)
+func (r *Redis) GetInstancePermissionsNumbersForAccount(ctx context.Context, data dto.InstanceNameWithUserIdDTO) ([]int, error) {
+	key := keyInstancePermissionsNumbers(data.Instance, data.UserId)
 	return r.getPermissionsNumbers(ctx, key)
 }
 
@@ -191,10 +191,23 @@ func (r *Redis) getPermissionsNumbers(ctx context.Context, key string) ([]int, e
 // аккаунта
 func (r *Redis) ExistServicePermissionsNumbersForAccount(ctx context.Context, data dto.ServiceNameWithUserIdDTO) bool {
 	key := keyServicePermissionsNumbers(data.Service, data.UserId)
+	return r.existKey(ctx, key)
+}
+
+// ExistInstancePermissionsNumbersForAccount возвращает true, если в памяти сохранены номера разрешений экземпляра для
+// аккаунта
+func (r *Redis) ExistInstancePermissionsNumbersForAccount(ctx context.Context, data dto.InstanceNameWithUserIdDTO) bool {
+	key := keyInstancePermissionsNumbers(data.Instance, data.UserId)
+	return r.existKey(ctx, key)
+}
+
+// existKey возвращает true, если по переданному ключу в памяти есть данные
+func (r *Redis) existKey(ctx context.Context, key string) bool {
 	if result, err := r.client.Exists(ctx, key).Result(); err != nil {
 		return false
 	} else if result == 0 {
 		return false
 	}
+
 	return true
 }

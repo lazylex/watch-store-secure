@@ -202,18 +202,51 @@ func (r *Repository) GetServicePermissionsNumbersForAccount(ctx context.Context,
 // getServicePermissionsNumbersForAccountFromPersistentWithSaveToMemory возвращает номера разрешений аккаунта для
 // сервиса и кеширует их в память
 func (r *Repository) getServicePermissionsNumbersForAccountFromPersistentWithSaveToMemory(ctx context.Context, data dto.ServiceNameWithUserIdDTO) ([]int, error) {
-	var serviceNumbers []int
+	var numbers []int
 	var err error
 
-	if serviceNumbers, err := r.persistent.GetServicePermissionsNumbersForAccount(ctx, data); err == nil && len(serviceNumbers) > 0 {
+	if numbers, err = r.persistent.GetServicePermissionsNumbersForAccount(ctx, data); err == nil && len(numbers) > 0 {
 		_ = r.memory.SetServicePermissionsNumbersForAccount(ctx, dto.ServiceNameWithUserIdAndPermNumbersDTO{
 			UserId:            data.UserId,
 			Service:           data.Service,
-			PermissionNumbers: serviceNumbers,
+			PermissionNumbers: numbers,
 		})
 	}
 
-	return serviceNumbers, err
+	return numbers, err
+}
+
+// GetInstancePermissionsNumbersForAccount возвращает номера разрешений аккаунта для экземпляра сервиса
+func (r *Repository) GetInstancePermissionsNumbersForAccount(ctx context.Context, data dto.InstanceNameWithUserIdDTO) ([]int, error) {
+	var numbers []int
+	var err error
+
+	if !r.memory.ExistInstancePermissionsNumbersForAccount(ctx, data) {
+		numbers, err = r.getInstancePermissionsNumbersForAccountFromPersistentWithSaveToMemory(ctx, data)
+	} else {
+		if numbers, err = r.memory.GetInstancePermissionsNumbersForAccount(ctx, data); err != nil {
+			numbers, err = r.getInstancePermissionsNumbersForAccountFromPersistentWithSaveToMemory(ctx, data)
+		}
+	}
+
+	return numbers, err
+}
+
+// getInstancePermissionsNumbersForAccountFromPersistentWithSaveToMemory возвращает номера разрешений аккаунта для
+// экземпляра сервиса и кеширует их в память
+func (r *Repository) getInstancePermissionsNumbersForAccountFromPersistentWithSaveToMemory(ctx context.Context, data dto.InstanceNameWithUserIdDTO) ([]int, error) {
+	var numbers []int
+	var err error
+
+	if numbers, err = r.persistent.GetInstancePermissionsNumbersForAccount(ctx, data); err == nil && len(numbers) > 0 {
+		_ = r.memory.SetInstancePermissionsNumbersForAccount(ctx, dto.InstanceNameWithUserIdAndPermNumbersDTO{
+			UserId:            data.UserId,
+			Instance:          data.Instance,
+			PermissionNumbers: numbers,
+		})
+	}
+
+	return numbers, err
 }
 
 // saveToMemoryLoginData сохраняет в памяти данные, необходимые для процесса входа в систему пользователя (сервиса)
