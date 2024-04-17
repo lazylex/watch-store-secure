@@ -38,5 +38,6 @@ type Interface interface {
 	LoginInterface
 	joint.ServiceInterface
 	RBACInterface
+	GetMaxConnections() int
 	Close()
 }

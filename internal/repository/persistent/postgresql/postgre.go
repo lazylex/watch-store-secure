@@ -14,7 +14,8 @@ import (
 )
 
 type PostgreSQL struct {
-	pool *pgx.ConnPool
+	pool           *pgx.ConnPool
+	maxConnections int
 }
 
 var (
@@ -47,7 +48,7 @@ func MustCreate(cfg config.PersistentStorage) *PostgreSQL {
 		slog.Info("successfully create connection poll to postgres DB")
 	}
 
-	client := &PostgreSQL{pool: pool}
+	client := &PostgreSQL{pool: pool, maxConnections: cfg.DatabaseMaxOpenConnections}
 
 	if err = client.createNotExistedTables(); err != nil {
 		exitWithError(err)
@@ -66,6 +67,10 @@ func exitWithError(err error) {
 func (p *PostgreSQL) Close() {
 	p.pool.Close()
 	slog.Info("closed postgres pool")
+}
+
+func (p *PostgreSQL) GetMaxConnections() int {
+	return p.maxConnections
 }
 
 // GetAccountLoginData возвращает необходимые для процесса входа в систему данные пользователя (сервиса)
