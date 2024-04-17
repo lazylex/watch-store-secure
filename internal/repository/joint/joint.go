@@ -280,10 +280,19 @@ func (r *Repository) makeDataCache() {
 	if err != nil {
 		slog.Error(err.Error())
 	} else {
+		c := make(chan struct{}, r.persistent.GetMaxConnections()/2)
+		defer close(c)
+
 		for _, login := range enabledAccountsLogins {
-			if _, err := r.GetAccountLoginData(ctx, login); err != nil {
-				slog.Error(err.Error())
-			}
+			c <- struct{}{}
+
+			go func(login loginVO.Login) {
+				if _, err = r.GetAccountLoginData(ctx, login); err != nil {
+					slog.Error(err.Error())
+				}
+			}(login)
+
+			<-c
 		}
 	}
 }
