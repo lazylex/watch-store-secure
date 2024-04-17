@@ -139,7 +139,7 @@ func (p *PostgreSQL) createNotExistedTables() error {
 
 // createTable выполняет переданный в stmt запрос на создание таблицы
 func (p *PostgreSQL) createTable(stmt string) error {
-	if _, err := p.db.Exec(stmt); err != nil {
+	if _, err := p.pool.Exec(stmt); err != nil {
 		return err
 	}
 

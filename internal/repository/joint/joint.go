@@ -3,12 +3,14 @@ package joint
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/account_state"
 	loginVO "github.com/lazylex/watch-store/secure/internal/domain/value_objects/login"
 	"github.com/lazylex/watch-store/secure/internal/dto"
 	"github.com/lazylex/watch-store/secure/internal/ports/repository/in_memory"
 	"github.com/lazylex/watch-store/secure/internal/ports/repository/persistent"
 	"log/slog"
+	"time"
 )
 
 type Repository struct {
@@ -22,8 +24,9 @@ func jointRepositoryError(text string) error {
 }
 
 func New(memory in_memory.Interface, persistent persistent.Interface) Repository {
-	go makeDataCache()
-	return Repository{memory: memory, persistent: persistent, stateLocker: CreateStateLocker()}
+	r := Repository{memory: memory, persistent: persistent, stateLocker: CreateStateLocker()}
+	go r.makeDataCache()
+	return r
 }
 
 // SaveSession сохраняет в памяти данные сессии
@@ -260,11 +263,27 @@ func (r *Repository) refreshAccountPermissions(ctx context.Context, data dto.Ser
 			PermissionNumbers: servicePerm,
 		})
 	}
-	// TODO обновление разрешений для экземпляров
 }
 
 // makeDataCache считывает все данные (которые возможно кешировать) из постоянного хранилища в хранилище в памяти
-func makeDataCache() {
-	// TODO implement
-	slog.Debug(jointRepositoryError("makeDataCache not implemented").Error())
+func (r *Repository) makeDataCache() {
+	slog.Debug(jointRepositoryError("data caching is not fully implemented").Error())
+	slog.Info("data caching has started")
+	start := time.Now()
+	defer func() {
+		elapsed := time.Since(start)
+		slog.Info(fmt.Sprintf("data caching is complete (time spent on caching %s)", elapsed.String()))
+	}()
+
+	ctx := context.Background()
+	enabledAccountsLogins, err := r.persistent.GetAccountsLoginsByState(ctx, account_state.Enabled)
+	if err != nil {
+		slog.Error(err.Error())
+	} else {
+		for _, login := range enabledAccountsLogins {
+			if _, err := r.GetAccountLoginData(ctx, login); err != nil {
+				slog.Error(err.Error())
+			}
+		}
+	}
 }
