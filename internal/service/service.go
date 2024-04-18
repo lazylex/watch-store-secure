@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"github.com/google/uuid"
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/account_state"
@@ -19,10 +21,15 @@ type Service struct {
 	salt       string
 }
 
+const (
+	loginTokenLength = 25
+)
+
 var (
 	ErrAuthenticationData = serviceError("incorrect login or password")
 	ErrNotEnabledAccount  = serviceError("account is not active")
 	ErrCreatePwdHash      = serviceError("error while hashing password")
+	ErrCreateToken        = serviceError("error creating token")
 )
 
 func serviceError(text string) error {
@@ -39,6 +46,8 @@ func New(metrics service.MetricsInterface, repository joint.Interface) *Service 
 
 // Login совершает логин пользователя (сервиса) по переданным в dto логину и паролю. Воввращает токен сессии и ошибку
 func (s *Service) Login(dto *dto.LoginPasswordDTO) (string, error) {
+	var token string
+
 	// TODO адаптировать ошибки приходящие из репозитория к ошибкам сервиса
 	state, err := s.repository.GetAccountState(context.Background(), dto.Login)
 	if err != nil {
@@ -54,7 +63,9 @@ func (s *Service) Login(dto *dto.LoginPasswordDTO) (string, error) {
 		return "", err
 	}
 
-	token := s.createToken()
+	if token, err = s.createToken(); err != nil {
+		return "", err
+	}
 
 	go s.login(token, userId)
 
@@ -114,11 +125,12 @@ func (s *Service) isPasswordCorrect(password password.Password, hash string) boo
 	return true
 }
 
-// createToken создает токен для идентификации аутентифицированного пользователя (сервиса)
-func (s *Service) createToken() string {
-	// TODO implement
-	// Возможно, стоит создавать JWT-токен, подпись которого известна только в данном сервисе. В токен записывать
-	// ip адрес получателя или его instance
-	slog.Debug(serviceError("createToken not implemented").Error())
-	return ""
+// createToken создает токен сессии для идентификации аутентифицированного пользователя (сервиса)
+func (s *Service) createToken() (string, error) {
+	b := make([]byte, loginTokenLength)
+	if _, err := rand.Read(b); err != nil {
+		return "", ErrCreateToken
+	}
+
+	return hex.EncodeToString(b), nil
 }
