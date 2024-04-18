@@ -27,3 +27,8 @@ redis:
   redis_user: ""
   redis_password: ""
   redis_db: 0
+ttl:
+  session_ttl: 24h
+  user_id_and_password_hash_ttl: 168h
+  account_state_ttl: 168h
+  permissions_numbers_ttl: 24h

@@ -98,8 +98,7 @@ func (s *Service) login(token string, userId uuid.UUID) {
 	ctx := context.Background()
 	go s.metrics.LoginInc()
 
-	// TODO сделать чтение TTL из конфигурации
-	if err = s.repository.SaveSession(ctx, dto.SessionDTO{Token: token, UserId: userId, TTL: 600}); err != nil {
+	if err = s.repository.SaveSession(ctx, dto.SessionDTO{Token: token, UserId: userId}); err != nil {
 		return
 	}
 }

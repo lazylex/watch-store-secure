@@ -24,6 +24,7 @@ type Config struct {
 	Secure            `yaml:"secure"`
 	Kafka             `yaml:"kafka"`
 	Prometheus        `yaml:"prometheus"`
+	TTL               `yaml:"ttl"`
 }
 
 type Secure struct {
@@ -66,6 +67,13 @@ type Redis struct {
 	RedisUser     string `yaml:"redis_user" env:"REDIS_USER"`
 	RedisPassword string `yaml:"redis_password" env:"REDIS_PWD"`
 	RedisDB       int    `yaml:"redis_db" env:"REDIS_DB"`
+}
+
+type TTL struct {
+	SessionTTL               time.Duration `yaml:"session_ttl" env:"TTL_SESSION_TTL" env-required:"true"`
+	UserIdAndPasswordHashTTL time.Duration `yaml:"user_id_and_password_hash_ttl" env:"TTL_USER_ID_AND_PASSWORD_HASH_TTL" env-required:"true"`
+	AccountStateTTL          time.Duration `yaml:"account_state_ttl" env:"TTL_ACCOUNT_STATE_TTL" env-required:"true"`
+	PermissionsNumbersTTL    time.Duration `yaml:"permissions_numbers_ttl" env:"TTL_PERMISSIONS_TTL" env-required:"true"`
 }
 
 // MustLoad возвращает конфигурацию, считанную из файла, путь к которому передан из командной строки по флагу config или
