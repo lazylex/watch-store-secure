@@ -4,4 +4,5 @@ package service
 type MetricsInterface interface {
 	AuthenticationErrorInc()
 	LoginInc()
+	LogoutInc()
 }

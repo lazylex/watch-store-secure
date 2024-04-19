@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/account_state"
 	loginVO "github.com/lazylex/watch-store/secure/internal/domain/value_objects/login"
 	"github.com/lazylex/watch-store/secure/internal/dto"
@@ -32,6 +33,11 @@ func New(memory in_memory.Interface, persistent persistent.Interface) Repository
 // SaveSession сохраняет в памяти данные сессии
 func (r *Repository) SaveSession(ctx context.Context, dto dto.SessionDTO) error {
 	return r.memory.SaveSession(ctx, dto)
+}
+
+// DeleteSession удаляет сессию
+func (r *Repository) DeleteSession(ctx context.Context, id uuid.UUID) error {
+	return r.memory.DeleteSession(ctx, id)
 }
 
 // SetAccountLoginData сохраняет в постоянном хранилище логин, хеш пароля, статус учетной записи и идентификатор

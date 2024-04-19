@@ -2,6 +2,7 @@ package in_memory
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/account_state"
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/login"
 	"github.com/lazylex/watch-store/secure/internal/dto"
@@ -9,6 +10,7 @@ import (
 
 type LoginInterface interface {
 	SaveSession(context.Context, dto.SessionDTO) error
+	DeleteSession(context.Context, uuid.UUID) error
 	SetUserIdAndPasswordHash(context.Context, dto.UserLoginAndIdWithPasswordHashDTO)
 	GetUserIdAndPasswordHash(context.Context, login.Login) (dto.UserIdWithPasswordHashDTO, error)
 	SetAccountState(ctx context.Context, stateDTO dto.LoginStateDTO) error

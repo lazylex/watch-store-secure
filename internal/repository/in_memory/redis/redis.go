@@ -63,6 +63,20 @@ func (r *Redis) SaveSession(ctx context.Context, dto dto.SessionDTO) error {
 	return err
 }
 
+// DeleteSession удаляет из памяти данные о привязке токена к UUID пользователя и привязке UUID пользователя к токену
+// сессии
+func (r *Redis) DeleteSession(ctx context.Context, id uuid.UUID) error {
+	sessionByUUID := keySessionByUUID(id.String())
+	sessionToken, err := r.client.Get(ctx, sessionByUUID).Result()
+	if err != nil {
+		return err
+	}
+	session := keySession(sessionToken)
+	r.client.Del(ctx, sessionByUUID, session)
+
+	return nil
+}
+
 // extendSessionLife продлевает жизнь данным по ключам, относящимся к сессии пользователя (сервиса)
 func (r *Redis) extendSessionLife(ctx context.Context, key string) error {
 	var mUUID string

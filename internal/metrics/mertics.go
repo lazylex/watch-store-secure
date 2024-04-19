@@ -46,12 +46,14 @@ func MustCreate(cfg *config.Prometheus) *Metrics {
 
 // registerMetrics заносит метрики в регистр и возвращает их. При неудаче возвращает ошибку
 func registerMetrics() (*Metrics, error) {
-	var (
-		err                        error
-		loginMetric, authErrMetric *prometheus.CounterVec
-	)
+	var err error
+	var loginMetric, authErrMetric, logoutMetric *prometheus.CounterVec
 
 	if loginMetric, err = createLoginTotalMetric(); err != nil {
+		return nil, err
+	}
+
+	if logoutMetric, err = createLogoutTotalMetric(); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +61,10 @@ func registerMetrics() (*Metrics, error) {
 		return nil, err
 	}
 
-	return &Metrics{Service: &Service{login: loginMetric, authenticationError: authErrMetric}}, nil
+	return &Metrics{Service: &Service{
+		login:               loginMetric,
+		authenticationError: authErrMetric,
+		logout:              logoutMetric}}, nil
 }
 
 // startHTTP запускает http сервер для связи с Prometheus на переданном в функцию порту и url. При неудаче выводит

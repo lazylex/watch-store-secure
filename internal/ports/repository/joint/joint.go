@@ -2,6 +2,7 @@ package joint
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/account_state"
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/login"
 	"github.com/lazylex/watch-store/secure/internal/dto"
@@ -13,6 +14,7 @@ type ServiceInterface interface {
 
 type LoginInterface interface {
 	SaveSession(context.Context, dto.SessionDTO) error
+	DeleteSession(context.Context, uuid.UUID) error
 	SetAccountLoginData(context.Context, dto.AccountLoginDataDTO) error
 	GetAccountLoginData(context.Context, login.Login) (dto.AccountLoginDataDTO, error)
 	GetUserIdAndPasswordHash(context.Context, login.Login) (dto.UserIdWithPasswordHashDTO, error)

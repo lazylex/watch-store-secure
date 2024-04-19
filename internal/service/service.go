@@ -30,6 +30,7 @@ var (
 	ErrNotEnabledAccount  = serviceError("account is not active")
 	ErrCreatePwdHash      = serviceError("error while hashing password")
 	ErrCreateToken        = serviceError("error creating token")
+	ErrLogout             = serviceError("error logout")
 )
 
 func serviceError(text string) error {
@@ -70,6 +71,16 @@ func (s *Service) Login(dto *dto.LoginPasswordDTO) (string, error) {
 	go s.login(token, userId)
 
 	return token, nil
+}
+
+// Logout производит выход из сеанса путём удаления данных о сессии пользователя (сервиса)
+func (s *Service) Logout(ctx context.Context, id uuid.UUID) error {
+	if s.repository.DeleteSession(ctx, id) == nil {
+		s.metrics.LogoutInc()
+		return nil
+	}
+
+	return ErrLogout
 }
 
 // CreateAccount создаёт активную учетную запись
