@@ -7,6 +7,6 @@ import (
 )
 
 type Service interface {
-	Login(context.Context, *dto.LoginPasswordDTO) (dto.SessionDTO, error)
+	Login(context.Context, *dto.LoginPasswordDTO) (string, error)
 	Logout(context.Context, uuid.UUID) error
 }
