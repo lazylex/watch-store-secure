@@ -63,6 +63,7 @@ func (r *Redis) SaveSession(ctx context.Context, dto dto.SessionDTO) error {
 	return err
 }
 
+// extendSessionLife продлевает жизнь данным по ключам, относящимся к сессии пользователя (сервиса)
 func (r *Redis) extendSessionLife(ctx context.Context, key string) error {
 	var mUUID string
 	var err error
