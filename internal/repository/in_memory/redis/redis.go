@@ -55,7 +55,27 @@ func MustCreate(cfg config.Redis, ttl config.TTL) *Redis {
 // SaveSession сохраняет данные о времени жизни сессии и её пользователе. Переданный токен служит для создания ключа,
 // по которому хранится идентификатор пользователя (хранение осуществляется переданное в TTL количество секунд)
 func (r *Redis) SaveSession(ctx context.Context, dto dto.SessionDTO) error {
-	_, err := r.client.Set(ctx, keySession(dto.Token), dto.UserId.String(), r.ttl.SessionTTL).Result()
+	pipe := r.client.Pipeline()
+	pipe.Set(ctx, keySession(dto.Token), dto.UserId.String(), r.ttl.SessionTTL)
+	pipe.Set(ctx, keySessionByUUID(dto.UserId.String()), dto.Token, r.ttl.SessionTTL)
+	_, err := pipe.Exec(ctx)
+
+	return err
+}
+
+func (r *Redis) extendSessionLife(ctx context.Context, key string) error {
+	var mUUID string
+	var err error
+
+	if mUUID, err = r.client.Get(ctx, key).Result(); err != nil {
+		return err
+	}
+
+	pipe := r.client.Pipeline()
+	pipe.Expire(ctx, key, r.ttl.SessionTTL)
+	pipe.Expire(ctx, keySessionByUUID(mUUID), r.ttl.SessionTTL)
+	_, err = pipe.Exec(ctx)
+
 	return err
 }
 
@@ -63,10 +83,11 @@ func (r *Redis) SaveSession(ctx context.Context, dto dto.SessionDTO) error {
 func (r *Redis) GetUserUUIDFromSession(ctx context.Context, sessionToken string) (uuid.UUID, error) {
 	var val []byte
 	var err error
-
-	if val, err = r.client.Get(ctx, keySession(sessionToken)).Bytes(); err != nil {
+	key := keySession(sessionToken)
+	if val, err = r.client.Get(ctx, key).Bytes(); err != nil {
 		return uuid.Nil, err
 	}
+	_ = r.extendSessionLife(ctx, key)
 
 	return uuid.FromBytes(val)
 }

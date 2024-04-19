@@ -9,6 +9,7 @@ import (
 
 const (
 	prefixSession                    = "s"
+	prefixSessionByUUID              = "si"
 	prefixServicePermissionsNumbers  = "spn"
 	prefixInstancePermissionsNumbers = "ipn"
 	prefixUuidHash                   = "uh"
@@ -18,6 +19,11 @@ const (
 // keySession ключ для получения UUID пользователя сессии
 func keySession(sessionToken string) string {
 	return fmt.Sprintf("%s:%s", prefixSession, sessionToken)
+}
+
+// keySessionByUUID ключ для получения токена сессии по UUID пользователя
+func keySessionByUUID(userID string) string {
+	return fmt.Sprintf("%s:%s", prefixSessionByUUID, userID)
 }
 
 // keyServicePermissionsNumbers ключ для получения списка разрешений сервиса service для пользователя (сервиса) с UUID равным id
