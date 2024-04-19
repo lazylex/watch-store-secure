@@ -21,16 +21,9 @@ type Config struct {
 	Redis             `yaml:"redis"`
 	HttpServer        `yaml:"http_server"`
 	PersistentStorage `yaml:"persistent_storage"`
-	Secure            `yaml:"secure"`
 	Kafka             `yaml:"kafka"`
 	Prometheus        `yaml:"prometheus"`
 	TTL               `yaml:"ttl"`
-}
-
-type Secure struct {
-	RootLogin    string `yaml:"root_login" env:"ROOT_LOGIN" env-required:"true"`
-	RootPassword string `yaml:"root_password" env:"ROOT_PWD" env-required:"true"`
-	Salt         string `yaml:"salt" env:"SALT" env-required:"true"`
 }
 
 type HttpServer struct {
