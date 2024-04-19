@@ -61,10 +61,7 @@ func registerMetrics() (*Metrics, error) {
 		return nil, err
 	}
 
-	return &Metrics{Service: &Service{
-		login:               loginMetric,
-		authenticationError: authErrMetric,
-		logout:              logoutMetric}}, nil
+	return &Metrics{&Service{loginMetric, logoutMetric, authErrMetric}}, nil
 }
 
 // startHTTP запускает http сервер для связи с Prometheus на переданном в функцию порту и url. При неудаче выводит
