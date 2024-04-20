@@ -35,8 +35,6 @@ func serviceError(text string) error {
 	return errors.New("service: " + text)
 }
 
-// TODO заменить параметры на Option (при необходимости)
-
 // New конструктор для сервиса
 func New(metrics service.MetricsInterface, repository joint.Interface, cfg config.Secure) *Service {
 	return &Service{metrics: metrics, repository: repository, secure: cfg}
