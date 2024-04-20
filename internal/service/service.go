@@ -40,11 +40,11 @@ func New(metrics service.MetricsInterface, repository joint.Interface, cfg confi
 }
 
 // Login совершает логин пользователя (сервиса) по переданным в dto логину и паролю. Возвращает токен сессии и ошибку
-func (s *Service) Login(ctx context.Context, dto *dto.LoginPasswordDTO) (string, error) {
+func (s *Service) Login(ctx context.Context, data *dto.LoginPasswordDTO) (string, error) {
 	var token string
 
 	// TODO адаптировать ошибки приходящие из репозитория к ошибкам сервиса
-	state, err := s.repository.GetAccountState(ctx, dto.Login)
+	state, err := s.repository.GetAccountState(ctx, data.Login)
 	if err != nil {
 		return "", err
 	}
@@ -52,7 +52,7 @@ func (s *Service) Login(ctx context.Context, dto *dto.LoginPasswordDTO) (string,
 		return "", ErrNotEnabledAccount
 	}
 
-	userId, errGetUsr := s.getUserId(ctx, dto)
+	userId, errGetUsr := s.getUserId(ctx, data)
 	if userId == uuid.Nil || errGetUsr != nil {
 		s.metrics.AuthenticationErrorInc()
 		return "", err
@@ -62,7 +62,11 @@ func (s *Service) Login(ctx context.Context, dto *dto.LoginPasswordDTO) (string,
 		return "", err
 	}
 
-	go s.login(ctx, token, userId)
+	if err = s.repository.SaveSession(ctx, dto.SessionDTO{Token: token, UserId: userId}); err != nil {
+		return "", err
+	}
+
+	go s.metrics.LoginInc()
 
 	return token, nil
 }
@@ -104,18 +108,6 @@ func (s *Service) createPasswordHash(pwd password.Password) (string, error) {
 	}
 
 	return string(bytes), nil
-}
-
-// login совершает логин пользователя, пароль которого прошел проверку. В функцию передается токен token, который будет
-// действителен на время действия сессии пользователя с идентификатором userId
-func (s *Service) login(ctx context.Context, token string, userId uuid.UUID) {
-	var err error
-
-	go s.metrics.LoginInc()
-
-	if err = s.repository.SaveSession(ctx, dto.SessionDTO{Token: token, UserId: userId}); err != nil {
-		return
-	}
 }
 
 // getUserId возвращает uuid пользователя (сервиса)
