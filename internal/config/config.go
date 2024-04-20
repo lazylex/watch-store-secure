@@ -24,6 +24,7 @@ type Config struct {
 	Kafka             `yaml:"kafka"`
 	Prometheus        `yaml:"prometheus"`
 	TTL               `yaml:"ttl"`
+	Secure            `yaml:"secure"`
 }
 
 type HttpServer struct {
@@ -67,6 +68,11 @@ type TTL struct {
 	UserIdAndPasswordHashTTL time.Duration `yaml:"user_id_and_password_hash_ttl" env:"TTL_USER_ID_AND_PASSWORD_HASH_TTL" env-required:"true"`
 	AccountStateTTL          time.Duration `yaml:"account_state_ttl" env:"TTL_ACCOUNT_STATE_TTL" env-required:"true"`
 	PermissionsNumbersTTL    time.Duration `yaml:"permissions_numbers_ttl" env:"TTL_PERMISSIONS_TTL" env-required:"true"`
+}
+
+type Secure struct {
+	LoginTokenLength     int `yaml:"login_token_length" env:"LOGIN_TOKEN_LENGTH" env-required:"true"`
+	PasswordCreationCost int `yaml:"password_creation_cost" env:"PASSWORD_CREATION_COST" env-required:"true"`
 }
 
 // MustLoad возвращает конфигурацию, считанную из файла, путь к которому передан из командной строки по флагу config или

@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"github.com/google/uuid"
+	"github.com/lazylex/watch-store/secure/internal/config"
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/account_state"
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/password"
 	"github.com/lazylex/watch-store/secure/internal/dto"
@@ -19,11 +20,8 @@ type Service struct {
 	metrics    service.MetricsInterface
 	repository joint.Interface
 	salt       string
+	secure     config.Secure
 }
-
-const (
-	loginTokenLength = 25
-)
 
 var (
 	ErrAuthenticationData = serviceError("incorrect login or password")
@@ -40,9 +38,8 @@ func serviceError(text string) error {
 // TODO заменить параметры на Option (при необходимости)
 
 // New конструктор для сервиса
-func New(metrics service.MetricsInterface, repository joint.Interface) *Service {
-
-	return &Service{metrics: metrics, repository: repository}
+func New(metrics service.MetricsInterface, repository joint.Interface, cfg config.Secure) *Service {
+	return &Service{metrics: metrics, repository: repository, secure: cfg}
 }
 
 // Login совершает логин пользователя (сервиса) по переданным в dto логину и паролю. Возвращает токен сессии и ошибку
@@ -85,8 +82,7 @@ func (s *Service) Logout(ctx context.Context, id uuid.UUID) error {
 
 // CreateAccount создаёт активную учетную запись
 func (s *Service) CreateAccount(ctx context.Context, loginAndPwd *dto.LoginPasswordDTO) error {
-	// TODO определять стоимость создания пароля в конфиге
-	bytes, err := bcrypt.GenerateFromPassword([]byte(loginAndPwd.Password), 14)
+	bytes, err := bcrypt.GenerateFromPassword([]byte(loginAndPwd.Password), s.secure.PasswordCreationCost)
 	if err != nil {
 		return ErrCreatePwdHash
 	}
@@ -135,7 +131,7 @@ func (s *Service) isPasswordCorrect(password password.Password, hash string) boo
 
 // createToken создает токен сессии для идентификации аутентифицированного пользователя (сервиса)
 func (s *Service) createToken() (string, error) {
-	b := make([]byte, loginTokenLength)
+	b := make([]byte, s.secure.LoginTokenLength)
 	if _, err := rand.Read(b); err != nil {
 		return "", ErrCreateToken
 	}
