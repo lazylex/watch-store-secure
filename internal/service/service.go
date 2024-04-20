@@ -13,7 +13,6 @@ import (
 	"github.com/lazylex/watch-store/secure/internal/ports/metrics/service"
 	"github.com/lazylex/watch-store/secure/internal/ports/repository/joint"
 	"golang.org/x/crypto/bcrypt"
-	"log/slog"
 )
 
 type Service struct {
@@ -79,19 +78,32 @@ func (s *Service) Logout(ctx context.Context, id uuid.UUID) error {
 }
 
 // CreateAccount создаёт активную учетную запись
-func (s *Service) CreateAccount(ctx context.Context, loginAndPwd *dto.LoginPasswordDTO) error {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(loginAndPwd.Password), s.secure.PasswordCreationCost)
-	if err != nil {
-		return ErrCreatePwdHash
+func (s *Service) CreateAccount(ctx context.Context, data *dto.LoginPasswordDTO) error {
+	var hash string
+	var err error
+
+	if hash, err = s.createPasswordHash(data.Password); err != nil {
+		return err
 	}
-	data := dto.AccountLoginDataDTO{
-		Login:  loginAndPwd.Login,
+
+	loginData := dto.AccountLoginDataDTO{
+		Login:  data.Login,
 		UserId: uuid.New(),
-		Hash:   string(bytes),
+		Hash:   hash,
 		State:  account_state.Enabled,
 	}
 
-	return s.repository.SetAccountLoginData(ctx, data)
+	return s.repository.SetAccountLoginData(ctx, loginData)
+}
+
+// createPasswordHash создаёт хэш пароля
+func (s *Service) createPasswordHash(pwd password.Password) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(pwd), s.secure.PasswordCreationCost)
+	if err != nil {
+		return "", ErrCreatePwdHash
+	}
+
+	return string(bytes), nil
 }
 
 // login совершает логин пользователя, пароль которого прошел проверку. В функцию передается токен token, который будет
@@ -121,10 +133,14 @@ func (s *Service) getUserId(ctx context.Context, dto *dto.LoginPasswordDTO) (uui
 	return userIdAndPasswordHash.UserId, nil
 }
 
-func (s *Service) isPasswordCorrect(password password.Password, hash string) bool {
-	// TODO implement
-	slog.Debug(serviceError("isPasswordCorrect not implemented").Error())
-	return true
+// isPasswordCorrect возвращает true, если пароль соответствует хэшу
+func (s *Service) isPasswordCorrect(pwd password.Password, hash string) bool {
+	passwordHash, err := s.createPasswordHash(pwd)
+	if err != nil {
+		return false
+	}
+
+	return passwordHash == hash
 }
 
 // createToken создает токен сессии для идентификации аутентифицированного пользователя (сервиса)
