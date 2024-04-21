@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/lazylex/watch-store/secure/internal/config"
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/account_state"
@@ -13,6 +14,7 @@ import (
 	"github.com/lazylex/watch-store/secure/internal/ports/metrics/service"
 	"github.com/lazylex/watch-store/secure/internal/ports/repository/joint"
 	"golang.org/x/crypto/bcrypt"
+	"log/slog"
 )
 
 type Service struct {
@@ -20,6 +22,12 @@ type Service struct {
 	repository joint.Interface
 	salt       string
 	secure     config.Secure
+}
+
+type AccountOptions struct {
+	Groups              []dto.NameAndServiceDTO
+	Roles               []dto.NameAndServiceDTO
+	InstancePermissions []dto.InstanceAndPermissionsNamesDTO
 }
 
 var (
@@ -82,7 +90,7 @@ func (s *Service) Logout(ctx context.Context, id uuid.UUID) error {
 }
 
 // CreateAccount создаёт активную учетную запись
-func (s *Service) CreateAccount(ctx context.Context, data *dto.LoginPasswordDTO) error {
+func (s *Service) CreateAccount(ctx context.Context, data *dto.LoginPasswordDTO, options AccountOptions) error {
 	var hash string
 	var err error
 
@@ -90,14 +98,81 @@ func (s *Service) CreateAccount(ctx context.Context, data *dto.LoginPasswordDTO)
 		return err
 	}
 
-	loginData := dto.AccountLoginDataDTO{
-		Login:  data.Login,
-		UserId: uuid.New(),
-		Hash:   hash,
-		State:  account_state.Enabled,
+	userId := uuid.New()
+
+	loginData := dto.AccountLoginDataDTO{Login: data.Login, UserId: userId, Hash: hash, State: account_state.Enabled}
+
+	if err = s.repository.SetAccountLoginData(ctx, loginData); err != nil {
+		return err
 	}
 
-	return s.repository.SetAccountLoginData(ctx, loginData)
+	errAssignGroupToAccount := make(chan int)
+	defer close(errAssignGroupToAccount)
+	errAssignRoleToAccount := make(chan int)
+	defer close(errAssignRoleToAccount)
+	errAssignInstancePermToAccount := make(chan int)
+	defer close(errAssignInstancePermToAccount)
+
+	go s.assignGroupToAccount(ctx, options, userId, errAssignGroupToAccount)
+	go s.assignRoleToAccount(ctx, options, userId, errAssignRoleToAccount)
+	go s.assignInstancePermissionsToAccount(ctx, options, userId, errAssignInstancePermToAccount)
+
+	if options.InstancePermissions != nil && len(options.InstancePermissions) > 0 {
+		// TODO добавить привязку разрешений для конкретных экземпляров сервисов
+	}
+
+	errGroupCount := <-errAssignGroupToAccount
+	errRoleCount := <-errAssignRoleToAccount
+	errInstanceCount := <-errAssignInstancePermToAccount
+	if errRoleCount == 0 && errGroupCount == 0 && errInstanceCount == 0 {
+		return nil
+	}
+
+	return serviceError(fmt.Sprintf("couldn’t create %d roles; %d groups; %d instance assignments;", errRoleCount, errGroupCount, errInstanceCount))
+}
+
+// assignGroupToAccount привязывает группы к учетной записи
+func (s *Service) assignGroupToAccount(ctx context.Context, options AccountOptions, userId uuid.UUID, c chan int) {
+	var errCount int
+	if options.Groups != nil && len(options.Groups) > 0 {
+		for _, group := range options.Groups {
+			if err := s.repository.AssignGroupToAccount(ctx, dto.GroupServiceNamesWithUserIdDTO{
+				UserId:  userId,
+				Group:   group.Name,
+				Service: group.Service,
+			}); err != nil {
+				errCount++
+			}
+		}
+	}
+	c <- errCount
+}
+
+// assignRoleToAccount привязывает роли к учетной записи
+func (s *Service) assignRoleToAccount(ctx context.Context, options AccountOptions, userId uuid.UUID, c chan int) {
+	var errCount int
+	if options.Roles != nil && len(options.Roles) > 0 {
+		for _, role := range options.Roles {
+			if err := s.repository.AssignRoleToAccount(ctx, dto.RoleServiceNamesWithUserIdDTO{
+				UserId:  userId,
+				Role:    role.Name,
+				Service: role.Service,
+			}); err != nil {
+				errCount++
+			}
+		}
+	}
+	c <- errCount
+}
+
+// assignInstancePermissionsToAccount привязывает разрешения учетной записи к конкретному экземпляру
+func (s *Service) assignInstancePermissionsToAccount(ctx context.Context, options AccountOptions, userId uuid.UUID, c chan int) {
+	var errCount int
+	// TODO implement
+	slog.Debug("assignInstancePermissionsToAccount not implemented")
+	if options.InstancePermissions != nil && len(options.InstancePermissions) > 0 {
+	}
+	c <- errCount
 }
 
 // createPasswordHash создаёт хэш пароля
