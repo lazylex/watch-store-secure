@@ -201,6 +201,26 @@ func (p *PostgreSQL) AssignGroupToAccount(ctx context.Context, data dto.GroupSer
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Service, data.Group, data.UserId))
 }
 
+// AssignInstancePermissionToAccount прикрепляет разрешение конкретного экземпляра сервиса к учетной записи
+func (p *PostgreSQL) AssignInstancePermissionToAccount(ctx context.Context, data dto.InstanceAndPermissionNamesWithUserIdDTO) error {
+	cte := `WITH instance_cte AS (SELECT instance_id, service_fk
+                      FROM instances
+                      WHERE name = $1)`
+	stmt := cte + `
+		INSERT
+		INTO accounts_instances_permissions (account_fk, instance_fk, permission_fk)
+		VALUES ((SELECT account_id
+				 FROM accounts
+				 WHERE uuid = $2),
+				(SELECT instance_id FROM instance_cte),
+				(SELECT permission_id
+				 FROM permissions
+				 WHERE name = $3
+				   AND service_fk IN (SELECT service_fk FROM instance_cte)));`
+
+	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Instance, data.UserId, data.Permission))
+}
+
 // AssignPermissionToGroup назначает разрешения группе
 func (p *PostgreSQL) AssignPermissionToGroup(ctx context.Context, data dto.GroupPermissionServiceNamesDTO) error {
 	stmt := `INSERT INTO group_permissions (group_fk, permission_fk)

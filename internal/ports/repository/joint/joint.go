@@ -29,9 +29,11 @@ type RBACInterface interface {
 	AddRole(context.Context, dto.NameAndServiceWithDescriptionDTO) error
 	AddGroup(context.Context, dto.NameAndServiceWithDescriptionDTO) error
 
-	AssignRoleToGroup(context.Context, dto.GroupRoleServiceNamesDTO) error
 	AssignRoleToAccount(context.Context, dto.RoleServiceNamesWithUserIdDTO) error
 	AssignGroupToAccount(context.Context, dto.GroupServiceNamesWithUserIdDTO) error
+	AssignInstancePermissionToAccount(context.Context, dto.InstanceAndPermissionNamesWithUserIdDTO) error
+
+	AssignRoleToGroup(context.Context, dto.GroupRoleServiceNamesDTO) error
 	AssignPermissionToRole(context.Context, dto.PermissionRoleServiceNamesDTO) error
 	AssignPermissionToGroup(context.Context, dto.GroupPermissionServiceNamesDTO) error
 

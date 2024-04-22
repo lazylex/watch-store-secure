@@ -177,6 +177,12 @@ func (r *Repository) AssignGroupToAccount(ctx context.Context, data dto.GroupSer
 	return err
 }
 
+// AssignInstancePermissionToAccount прикрепляет разрешение конкретного экземпляра сервиса к учетной записи
+func (r *Repository) AssignInstancePermissionToAccount(ctx context.Context, data dto.InstanceAndPermissionNamesWithUserIdDTO) error {
+	// TODO если учетная запись имеет активную сессию, то добавить разрешение в память
+	return r.persistent.AssignInstancePermissionToAccount(ctx, data)
+}
+
 // AssignPermissionToRole назначает роли разрешение
 func (r *Repository) AssignPermissionToRole(ctx context.Context, data dto.PermissionRoleServiceNamesDTO) error {
 	return r.persistent.AssignPermissionToRole(ctx, data)

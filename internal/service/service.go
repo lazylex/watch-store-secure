@@ -14,7 +14,6 @@ import (
 	"github.com/lazylex/watch-store/secure/internal/ports/metrics/service"
 	"github.com/lazylex/watch-store/secure/internal/ports/repository/joint"
 	"golang.org/x/crypto/bcrypt"
-	"log/slog"
 )
 
 type Service struct {
@@ -117,10 +116,6 @@ func (s *Service) CreateAccount(ctx context.Context, data *dto.LoginPasswordDTO,
 	go s.assignRoleToAccount(ctx, options, userId, errAssignRoleToAccount)
 	go s.assignInstancePermissionsToAccount(ctx, options, userId, errAssignInstancePermToAccount)
 
-	if options.InstancePermissions != nil && len(options.InstancePermissions) > 0 {
-		// TODO добавить привязку разрешений для конкретных экземпляров сервисов
-	}
-
 	errGroupCount := <-errAssignGroupToAccount
 	errRoleCount := <-errAssignRoleToAccount
 	errInstanceCount := <-errAssignInstancePermToAccount
@@ -168,9 +163,16 @@ func (s *Service) assignRoleToAccount(ctx context.Context, options AccountOption
 // assignInstancePermissionsToAccount привязывает разрешения учетной записи к конкретному экземпляру
 func (s *Service) assignInstancePermissionsToAccount(ctx context.Context, options AccountOptions, userId uuid.UUID, c chan int) {
 	var errCount int
-	// TODO implement
-	slog.Debug("assignInstancePermissionsToAccount not implemented")
 	if options.InstancePermissions != nil && len(options.InstancePermissions) > 0 {
+		for _, inst := range options.InstancePermissions {
+			if err := s.repository.AssignInstancePermissionToAccount(ctx, dto.InstanceAndPermissionNamesWithUserIdDTO{
+				UserId:     userId,
+				Instance:   inst.Instance,
+				Permission: inst.Permission,
+			}); err != nil {
+				errCount++
+			}
+		}
 	}
 	c <- errCount
 }
