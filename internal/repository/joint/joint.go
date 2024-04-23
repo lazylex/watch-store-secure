@@ -134,7 +134,7 @@ func (r *Repository) AddService(ctx context.Context, data dto.NameWithDescriptio
 }
 
 // AddPermission добавляет разрешение в БД
-func (r *Repository) AddPermission(ctx context.Context, data dto.PermissionDTO) error {
+func (r *Repository) AddPermission(ctx context.Context, data dto.PermissionWithoutNumberDTO) error {
 	return r.persistent.AddPermission(ctx, data)
 }
 

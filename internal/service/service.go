@@ -221,3 +221,18 @@ func (s *Service) createToken() (string, error) {
 
 	return hex.EncodeToString(b), nil
 }
+
+// CreatePermission создает разрешение
+func (s *Service) CreatePermission(ctx context.Context, data dto.PermissionWithoutNumberDTO) error {
+	return s.repository.AddPermission(ctx, data)
+}
+
+// CreateRole создает роль
+func (s *Service) CreateRole(ctx context.Context, data dto.NameAndServiceWithDescriptionDTO) error {
+	return s.repository.AddRole(ctx, data)
+}
+
+// CreateGroup создает группу
+func (s *Service) CreateGroup(ctx context.Context, data dto.NameAndServiceWithDescriptionDTO) error {
+	return s.repository.AddGroup(ctx, data)
+}

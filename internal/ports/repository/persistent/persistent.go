@@ -17,7 +17,7 @@ type LoginInterface interface {
 }
 
 type RBACInterface interface {
-	AddPermission(context.Context, dto.PermissionDTO) error
+	AddPermission(context.Context, dto.PermissionWithoutNumberDTO) error
 	AddRole(context.Context, dto.NameAndServiceWithDescriptionDTO) error
 	AddGroup(context.Context, dto.NameAndServiceWithDescriptionDTO) error
 
