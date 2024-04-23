@@ -98,8 +98,8 @@ func (p *PostgreSQL) SetAccountState(ctx context.Context, stateDTO dto.LoginStat
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, stateDTO.State, stateDTO.Login))
 }
 
-// AddPermission добавляет разрешение в таблицу permissions
-func (p *PostgreSQL) AddPermission(ctx context.Context, perm dto.PermissionWithoutNumberDTO) error {
+// CreatePermission добавляет разрешение в таблицу permissions
+func (p *PostgreSQL) CreatePermission(ctx context.Context, perm dto.PermissionWithoutNumberDTO) error {
 	stmt := `INSERT INTO permissions (name, description, service_fk, number)
 			VALUES ($1,
 			        $2,
@@ -116,22 +116,22 @@ func (p *PostgreSQL) AddPermission(ctx context.Context, perm dto.PermissionWitho
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, perm.Name, perm.Description, perm.Service))
 }
 
-// AddRole добавляет роль в БД
-func (p *PostgreSQL) AddRole(ctx context.Context, data dto.NameAndServiceWithDescriptionDTO) error {
+// CreateRole добавляет роль в БД
+func (p *PostgreSQL) CreateRole(ctx context.Context, data dto.NameAndServiceWithDescriptionDTO) error {
 	stmt := `INSERT INTO roles (name, description, service_fk)
 			VALUES ($1, $2, (SELECT service_id FROM services WHERE name=$3));`
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Name, data.Description, data.Service))
 }
 
-// AddGroup добавляет группу в БД
-func (p *PostgreSQL) AddGroup(ctx context.Context, data dto.NameAndServiceWithDescriptionDTO) error {
+// CreateGroup добавляет группу в БД
+func (p *PostgreSQL) CreateGroup(ctx context.Context, data dto.NameAndServiceWithDescriptionDTO) error {
 	stmt := `INSERT INTO groups (name, description, service_fk)
 			VALUES ($1, $2, (SELECT service_id FROM services WHERE name=$3));`
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Name, data.Description, data.Service))
 }
 
-// AddService добавляет сервис в БД
-func (p *PostgreSQL) AddService(ctx context.Context, data dto.NameWithDescriptionDTO) error {
+// CreateService добавляет сервис в БД
+func (p *PostgreSQL) CreateService(ctx context.Context, data dto.NameWithDescriptionDTO) error {
 	stmt := `INSERT INTO services (name, description) VALUES ($1, $2);`
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Name, data.Description))
 }

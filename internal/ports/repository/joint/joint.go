@@ -9,7 +9,7 @@ import (
 )
 
 type ServiceInterface interface {
-	AddService(context.Context, dto.NameWithDescriptionDTO) error
+	CreateService(context.Context, dto.NameWithDescriptionDTO) error
 }
 
 type LoginInterface interface {
@@ -25,9 +25,9 @@ type LoginInterface interface {
 // TODO добавить удаление разрешений, ролей и групп
 
 type RBACInterface interface {
-	AddPermission(context.Context, dto.PermissionWithoutNumberDTO) error
-	AddRole(context.Context, dto.NameAndServiceWithDescriptionDTO) error
-	AddGroup(context.Context, dto.NameAndServiceWithDescriptionDTO) error
+	CreatePermission(context.Context, dto.PermissionWithoutNumberDTO) error
+	CreateRole(context.Context, dto.NameAndServiceWithDescriptionDTO) error
+	CreateGroup(context.Context, dto.NameAndServiceWithDescriptionDTO) error
 
 	AssignRoleToAccount(context.Context, dto.RoleServiceNamesWithUserIdDTO) error
 	AssignGroupToAccount(context.Context, dto.GroupServiceNamesWithUserIdDTO) error

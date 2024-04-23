@@ -224,15 +224,15 @@ func (s *Service) createToken() (string, error) {
 
 // CreatePermission создает разрешение
 func (s *Service) CreatePermission(ctx context.Context, data dto.PermissionWithoutNumberDTO) error {
-	return s.repository.AddPermission(ctx, data)
+	return s.repository.CreatePermission(ctx, data)
 }
 
 // CreateRole создает роль
 func (s *Service) CreateRole(ctx context.Context, data dto.NameAndServiceWithDescriptionDTO) error {
-	return s.repository.AddRole(ctx, data)
+	return s.repository.CreateRole(ctx, data)
 }
 
 // CreateGroup создает группу
 func (s *Service) CreateGroup(ctx context.Context, data dto.NameAndServiceWithDescriptionDTO) error {
-	return s.repository.AddGroup(ctx, data)
+	return s.repository.CreateGroup(ctx, data)
 }

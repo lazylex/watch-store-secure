@@ -128,24 +128,24 @@ func (r *Repository) GetAccountLoginData(ctx context.Context, login loginVO.Logi
 	return loginData, nil
 }
 
-// AddService добавляет сервис в БД
-func (r *Repository) AddService(ctx context.Context, data dto.NameWithDescriptionDTO) error {
-	return r.persistent.AddService(ctx, data)
+// CreateService добавляет сервис в БД
+func (r *Repository) CreateService(ctx context.Context, data dto.NameWithDescriptionDTO) error {
+	return r.persistent.CreateService(ctx, data)
 }
 
-// AddPermission добавляет разрешение в БД
-func (r *Repository) AddPermission(ctx context.Context, data dto.PermissionWithoutNumberDTO) error {
-	return r.persistent.AddPermission(ctx, data)
+// CreatePermission добавляет разрешение в БД
+func (r *Repository) CreatePermission(ctx context.Context, data dto.PermissionWithoutNumberDTO) error {
+	return r.persistent.CreatePermission(ctx, data)
 }
 
-// AddRole добавляет роль в БД
-func (r *Repository) AddRole(ctx context.Context, data dto.NameAndServiceWithDescriptionDTO) error {
-	return r.persistent.AddRole(ctx, data)
+// CreateRole добавляет роль в БД
+func (r *Repository) CreateRole(ctx context.Context, data dto.NameAndServiceWithDescriptionDTO) error {
+	return r.persistent.CreateRole(ctx, data)
 }
 
-// AddGroup добавляет группу в БД
-func (r *Repository) AddGroup(ctx context.Context, data dto.NameAndServiceWithDescriptionDTO) error {
-	return r.persistent.AddGroup(ctx, data)
+// CreateGroup добавляет группу в БД
+func (r *Repository) CreateGroup(ctx context.Context, data dto.NameAndServiceWithDescriptionDTO) error {
+	return r.persistent.CreateGroup(ctx, data)
 }
 
 // AssignRoleToGroup присоединяет роль к группе
