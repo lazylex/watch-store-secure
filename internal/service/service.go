@@ -89,12 +89,12 @@ func (s *Service) Logout(ctx context.Context, id uuid.UUID) error {
 }
 
 // CreateAccount создаёт активную учетную запись
-func (s *Service) CreateAccount(ctx context.Context, data *dto.LoginPasswordDTO, options AccountOptions) error {
+func (s *Service) CreateAccount(ctx context.Context, data *dto.LoginPasswordDTO, options AccountOptions) (uuid.UUID, error) {
 	var hash string
 	var err error
 
 	if hash, err = s.createPasswordHash(data.Password); err != nil {
-		return err
+		return uuid.Nil, err
 	}
 
 	userId := uuid.New()
@@ -102,7 +102,7 @@ func (s *Service) CreateAccount(ctx context.Context, data *dto.LoginPasswordDTO,
 	loginData := dto.AccountLoginDataDTO{Login: data.Login, UserId: userId, Hash: hash, State: account_state.Enabled}
 
 	if err = s.repository.SetAccountLoginData(ctx, loginData); err != nil {
-		return err
+		return uuid.Nil, err
 	}
 
 	errAssignGroupToAccount := make(chan int)
@@ -120,10 +120,10 @@ func (s *Service) CreateAccount(ctx context.Context, data *dto.LoginPasswordDTO,
 	errRoleCount := <-errAssignRoleToAccount
 	errInstanceCount := <-errAssignInstancePermToAccount
 	if errRoleCount == 0 && errGroupCount == 0 && errInstanceCount == 0 {
-		return nil
+		return userId, nil
 	}
 
-	return serviceError(fmt.Sprintf("couldn’t create %d roles; %d groups; %d instance assignments;", errRoleCount, errGroupCount, errInstanceCount))
+	return uuid.Nil, serviceError(fmt.Sprintf("couldn’t create %d roles; %d groups; %d instance assignments;", errRoleCount, errGroupCount, errInstanceCount))
 }
 
 // assignGroupToAccount привязывает группы к учетной записи
