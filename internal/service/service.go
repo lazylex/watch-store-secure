@@ -236,3 +236,33 @@ func (s *Service) CreateRole(ctx context.Context, data dto.NameAndServiceWithDes
 func (s *Service) CreateGroup(ctx context.Context, data dto.NameAndServiceWithDescriptionDTO) error {
 	return s.repository.CreateGroup(ctx, data)
 }
+
+// AssignRoleToAccount прикрепляет роль к учетной записи
+func (s *Service) AssignRoleToAccount(ctx context.Context, data dto.RoleServiceNamesWithUserIdDTO) error {
+	return s.repository.AssignRoleToAccount(ctx, data)
+}
+
+// AssignGroupToAccount прикрепляет учетную запись к группе
+func (s *Service) AssignGroupToAccount(ctx context.Context, data dto.GroupServiceNamesWithUserIdDTO) error {
+	return s.repository.AssignGroupToAccount(ctx, data)
+}
+
+// AssignInstancePermissionToAccount прикрепляет к учетной записи разрешения для конкретного экземпляра сервиса
+func (s *Service) AssignInstancePermissionToAccount(ctx context.Context, data dto.InstanceAndPermissionNamesWithUserIdDTO) error {
+	return s.repository.AssignInstancePermissionToAccount(ctx, data)
+}
+
+// AssignRoleToGroup прикрепляет роль к группе
+func (s *Service) AssignRoleToGroup(ctx context.Context, data dto.GroupRoleServiceNamesDTO) error {
+	return s.repository.AssignRoleToGroup(ctx, data)
+}
+
+// AssignPermissionToRole прикрепляет разрешение к роли
+func (s *Service) AssignPermissionToRole(ctx context.Context, data dto.PermissionRoleServiceNamesDTO) error {
+	return s.repository.AssignPermissionToRole(ctx, data)
+}
+
+// AssignPermissionToGroup прикрепляет разрешение к группе
+func (s *Service) AssignPermissionToGroup(ctx context.Context, data dto.GroupPermissionServiceNamesDTO) error {
+	return s.repository.AssignPermissionToGroup(ctx, data)
+}
