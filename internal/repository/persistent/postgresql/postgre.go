@@ -2,12 +2,12 @@ package postgresql
 
 import (
 	"context"
-	"errors"
 	"github.com/jackc/pgx"
 	"github.com/lazylex/watch-store/secure/internal/config"
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/account_state"
 	loginVO "github.com/lazylex/watch-store/secure/internal/domain/value_objects/login"
 	"github.com/lazylex/watch-store/secure/internal/dto"
+	"github.com/lazylex/watch-store/secure/internal/lexerr"
 	"log/slog"
 	"os"
 	"strings"
@@ -16,16 +16,6 @@ import (
 type PostgreSQL struct {
 	pool           *pgx.ConnPool
 	maxConnections int
-}
-
-var (
-	ErrZeroRowsAffected  = postgreError("zero rows affected")
-	ErrDuplicateKeyValue = postgreError("duplicate key value violates unique constraint")
-)
-
-// postgreError возвращает ошибку с префиксом данного пакета
-func postgreError(text string) error {
-	return errors.New("postgresql: " + text)
 }
 
 // MustCreate возвращает структуру для взаимодействия с базой данных в СУБД PostgreSQL. В случае ошибки завершает
@@ -59,7 +49,7 @@ func MustCreate(cfg config.PersistentStorage) *PostgreSQL {
 
 // exitWithError выводит ошибку в лог и завершает приложение
 func exitWithError(err error) {
-	slog.Error(postgreError(err.Error()).Error())
+	slog.Error(adaptErr(err).Error())
 	os.Exit(1)
 }
 
@@ -80,7 +70,7 @@ func (p *PostgreSQL) GetAccountLoginData(ctx context.Context, login loginVO.Logi
 	row := p.pool.QueryRowEx(ctx, stmt, nil, login)
 	err := row.Scan(&result.UserId, &result.Hash, &result.State)
 	if err != nil {
-		return dto.AccountLoginDataDTO{}, err
+		return dto.AccountLoginDataDTO{}, adaptErr(err)
 	}
 
 	return result, nil
@@ -262,7 +252,7 @@ func (p *PostgreSQL) GetInstancePermissionsForAccount(ctx context.Context, data 
 
 	rows, err := p.pool.QueryEx(ctx, stmt, nil, data.UserId, data.Instance)
 	if err != nil {
-		return nil, err
+		return nil, adaptErr(err)
 	}
 	defer rows.Close()
 
@@ -272,7 +262,7 @@ func (p *PostgreSQL) GetInstancePermissionsForAccount(ctx context.Context, data 
 
 	for rows.Next() {
 		if err = rows.Scan(&name, &number, &description); err != nil {
-			return result, err
+			return result, adaptErr(err)
 		}
 		result = append(result, dto.PermissionWithoutServiceDTO{Name: name, Number: number, Description: description})
 
@@ -305,7 +295,7 @@ func (p *PostgreSQL) GetInstancePermissionsNumbersForAccount(ctx context.Context
 
 	rows, err := p.pool.QueryEx(ctx, stmt, nil, data.UserId, data.Instance)
 	if err != nil {
-		return nil, err
+		return nil, adaptErr(err)
 	}
 	defer rows.Close()
 
@@ -314,7 +304,7 @@ func (p *PostgreSQL) GetInstancePermissionsNumbersForAccount(ctx context.Context
 
 	for rows.Next() {
 		if err = rows.Scan(&number); err != nil {
-			return result, err
+			return result, adaptErr(err)
 		}
 		result = append(result, number)
 
@@ -368,7 +358,7 @@ func (p *PostgreSQL) GetServicePermissionsForAccount(ctx context.Context, data d
 
 	rows, err := p.pool.QueryEx(ctx, stmt, nil, data.UserId, data.Service)
 	if err != nil {
-		return nil, err
+		return nil, adaptErr(err)
 	}
 	defer rows.Close()
 
@@ -378,7 +368,7 @@ func (p *PostgreSQL) GetServicePermissionsForAccount(ctx context.Context, data d
 
 	for rows.Next() {
 		if err = rows.Scan(&name, &number, &description); err != nil {
-			return result, err
+			return result, adaptErr(err)
 		}
 		result = append(result, dto.PermissionWithoutServiceDTO{Name: name, Number: number, Description: description})
 
@@ -430,7 +420,7 @@ func (p *PostgreSQL) GetServicePermissionsNumbersForAccount(ctx context.Context,
 
 	rows, err := p.pool.QueryEx(ctx, stmt, nil, data.UserId, data.Service)
 	if err != nil {
-		return nil, err
+		return nil, adaptErr(err)
 	}
 	defer rows.Close()
 
@@ -439,7 +429,7 @@ func (p *PostgreSQL) GetServicePermissionsNumbersForAccount(ctx context.Context,
 
 	for rows.Next() {
 		if err = rows.Scan(&number); err != nil {
-			return result, err
+			return result, adaptErr(err)
 		}
 		result = append(result, number)
 
@@ -454,7 +444,7 @@ func (p *PostgreSQL) GetAccountsLoginsByState(ctx context.Context, state account
 	rows, err := p.pool.QueryEx(ctx, stmt, nil, state)
 
 	if err != nil {
-		return nil, err
+		return nil, adaptErr(err)
 	}
 	defer rows.Close()
 
@@ -464,8 +454,7 @@ func (p *PostgreSQL) GetAccountsLoginsByState(ctx context.Context, state account
 
 	for rows.Next() {
 		if err = rows.Scan(&accLogin); err != nil {
-			slog.Error(err.Error())
-			return result, err
+			return result, adaptErr(err)
 		}
 		result = append(result, accLogin)
 
@@ -475,15 +464,37 @@ func (p *PostgreSQL) GetAccountsLoginsByState(ctx context.Context, state account
 }
 
 // processExecResult возвращает ошибку ErrZeroRowsAffected, если при выполнении запроса не было затронуто ни одной
-// строки. В противном случае возвращает ошибку без изменений
+// строки. В противном случае возвращает ошибку, адаптированную под структуру ошибки lexerr.Persistent
 func (p *PostgreSQL) processExecResult(commandTag pgx.CommandTag, err error) error {
+	origin := lexerr.GetFrame(2).Function
+	origin = origin[strings.LastIndex(origin, ".")+1:]
 	if err != nil && strings.HasPrefix(err.Error(), "ERROR: duplicate key value violates unique constraint") {
-		return ErrDuplicateKeyValue
+		return lexerr.ErrDuplicateKeyValue.WithOrigin(origin)
 	}
 
 	if commandTag.RowsAffected() == 0 {
-		return ErrZeroRowsAffected
+		return lexerr.ErrZeroRowsAffected
 	}
 
-	return err
+	return adaptErrSkipFrames(err, 3)
+}
+
+// adaptErr переводит пришедшую ошибку к структурированной ошибке lexerr.Persistent
+func adaptErr(err error) error {
+	return adaptErrSkipFrames(err, 2)
+}
+
+// adaptErrSkipFrames переводит пришедшую ошибку к структурированной ошибке lexerr.Persistent с учетом последовательности
+// вызова функций
+func adaptErrSkipFrames(err error, skip int) error {
+	if err == nil {
+		return nil
+	}
+	origin := lexerr.GetFrame(skip).Function
+	origin = origin[strings.LastIndex(origin, ".")+1:]
+	if strings.HasPrefix(err.Error(), "ERROR: duplicate key value violates unique constraint") {
+		return lexerr.ErrDuplicateKeyValue.WithOrigin(origin)
+	}
+
+	return lexerr.FullPersistentError("", origin, err)
 }

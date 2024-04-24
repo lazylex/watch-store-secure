@@ -63,7 +63,7 @@ func createAuthenticationErrorTotalMetric() (*prometheus.CounterVec, error) {
 	authErrors := prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name:      "authentication_error_total",
 		Namespace: NAMESPACE,
-		Help:      "Count of authentication lexor",
+		Help:      "Count of authentication errors",
 	}, []string{})
 	if err = prometheus.Register(authErrors); err != nil {
 		return nil, err
