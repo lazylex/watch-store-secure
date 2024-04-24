@@ -6,7 +6,7 @@ import (
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/account_state"
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/login"
 	"github.com/lazylex/watch-store/secure/internal/dto"
-	"github.com/lazylex/watch-store/secure/internal/ports/service"
+	"github.com/lazylex/watch-store/secure/internal/ports/common"
 )
 
 type ServiceInterface interface {
@@ -26,9 +26,9 @@ type LoginInterface interface {
 // TODO добавить удаление разрешений, ролей и групп
 
 type RBACInterface interface {
-	service.RBACCreateInterface
-	service.RBACAssignToAccountInterface
-	service.RBACAssignInterface
+	common.RBACCreateInterface
+	common.RBACAssignToAccountInterface
+	common.RBACAssignInterface
 
 	GetServicePermissionsForAccount(context.Context, dto.ServiceNameWithUserIdDTO) ([]dto.PermissionWithoutServiceDTO, error)
 	GetServicePermissionsNumbersForAccount(context.Context, dto.ServiceNameWithUserIdDTO) ([]int, error)
