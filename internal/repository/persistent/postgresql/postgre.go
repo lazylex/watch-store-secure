@@ -251,10 +251,11 @@ func (p *PostgreSQL) GetInstancePermissionsForAccount(ctx context.Context, data 
 	ORDER BY number`
 
 	rows, err := p.pool.QueryEx(ctx, stmt, nil, data.UserId, data.Instance)
+	defer rows.Close()
+
 	if err != nil {
 		return nil, adaptErr(err)
 	}
-	defer rows.Close()
 
 	result := make([]dto.PermissionWithoutServiceDTO, 0)
 	var number int
@@ -294,10 +295,10 @@ func (p *PostgreSQL) GetInstancePermissionsNumbersForAccount(ctx context.Context
 	ORDER BY number`
 
 	rows, err := p.pool.QueryEx(ctx, stmt, nil, data.UserId, data.Instance)
+	defer rows.Close()
 	if err != nil {
 		return nil, adaptErr(err)
 	}
-	defer rows.Close()
 
 	result := make([]int, 0)
 	var number int
@@ -357,10 +358,11 @@ func (p *PostgreSQL) GetServicePermissionsForAccount(ctx context.Context, data d
 	ORDER BY number`
 
 	rows, err := p.pool.QueryEx(ctx, stmt, nil, data.UserId, data.Service)
+	defer rows.Close()
+
 	if err != nil {
 		return nil, adaptErr(err)
 	}
-	defer rows.Close()
 
 	result := make([]dto.PermissionWithoutServiceDTO, 0)
 	var number int
@@ -419,10 +421,11 @@ func (p *PostgreSQL) GetServicePermissionsNumbersForAccount(ctx context.Context,
 	ORDER BY number`
 
 	rows, err := p.pool.QueryEx(ctx, stmt, nil, data.UserId, data.Service)
+	defer rows.Close()
+
 	if err != nil {
 		return nil, adaptErr(err)
 	}
-	defer rows.Close()
 
 	result := make([]int, 0)
 	var number int
@@ -442,11 +445,11 @@ func (p *PostgreSQL) GetServicePermissionsNumbersForAccount(ctx context.Context,
 func (p *PostgreSQL) GetAccountsLoginsByState(ctx context.Context, state account_state.State) ([]loginVO.Login, error) {
 	stmt := `SELECT login FROM accounts WHERE state = $1`
 	rows, err := p.pool.QueryEx(ctx, stmt, nil, state)
+	defer rows.Close()
 
 	if err != nil {
 		return nil, adaptErr(err)
 	}
-	defer rows.Close()
 
 	result := make([]loginVO.Login, 0)
 
