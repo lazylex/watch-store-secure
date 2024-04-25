@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+const originPlace = "redis → "
+
 // adaptErr переводит пришедшую ошибку к структурированной ошибке InMemory
 func adaptErr(err error) error {
 	return adaptErrSkipFrames(err, 2)
@@ -18,14 +20,15 @@ func adaptErrSkipFrames(err error, skip int) error {
 		return nil
 	}
 	origin := errors.GetFrame(skip).Function
-	origin = "redis → " + origin[strings.LastIndex(origin, ".")+1:]
+	origin = originPlace + origin[strings.LastIndex(origin, ".")+1:]
 
 	return in_memory.FullInMemoryError("", origin, err)
 }
 
+// withOrigin добавляет место генерации ошибки
 func withOrigin(err *in_memory.InMemory) error {
 	origin := errors.GetFrame(1).Function
-	origin = "redis → " + origin[strings.LastIndex(origin, ".")+1:]
+	origin = originPlace + origin[strings.LastIndex(origin, ".")+1:]
 
 	return err.WithOrigin(origin)
 }
