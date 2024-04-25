@@ -5,6 +5,7 @@ const persistentType = "persistent repo"
 var (
 	ErrDuplicateKeyValue = NewPersistentError("duplicate key value violates unique constraint violation")
 	ErrZeroRowsAffected  = NewPersistentError("zero rows affected")
+	ErrNoRowsInResultSet = NewPersistentError("no rows in result set")
 )
 
 type Persistent struct {

@@ -38,6 +38,9 @@ func adaptErrSkipFrames(err error, skip int) error {
 	if strings.HasPrefix(err.Error(), "ERROR: duplicate key value violates unique constraint") {
 		return lexerr.ErrDuplicateKeyValue.WithOrigin(origin)
 	}
+	if strings.HasPrefix(err.Error(), "no rows in result set") {
+		return lexerr.ErrNoRowsInResultSet.WithOrigin(origin)
+	}
 
 	return lexerr.FullPersistentError("", origin, err)
 }
