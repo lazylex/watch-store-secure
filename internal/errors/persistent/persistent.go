@@ -1,4 +1,6 @@
-package lexerr
+package persistent
+
+import "github.com/lazylex/watch-store/secure/internal/errors"
 
 const persistentType = "persistent repo"
 
@@ -9,7 +11,7 @@ var (
 )
 
 type Persistent struct {
-	BaseError
+	errors.BaseError
 }
 
 // FullPersistentError возвращает полностью заполненную структуру Persistent
