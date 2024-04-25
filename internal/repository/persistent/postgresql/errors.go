@@ -34,7 +34,7 @@ func adaptErrSkipFrames(err error, skip int) error {
 		return nil
 	}
 	origin := lexerr.GetFrame(skip).Function
-	origin = origin[strings.LastIndex(origin, ".")+1:]
+	origin = "postgresql → " + origin[strings.LastIndex(origin, ".")+1:]
 	if strings.HasPrefix(err.Error(), "ERROR: duplicate key value violates unique constraint") {
 		return lexerr.ErrDuplicateKeyValue.WithOrigin(origin)
 	}
