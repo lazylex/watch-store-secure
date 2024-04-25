@@ -7,7 +7,6 @@ import (
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/account_state"
 	loginVO "github.com/lazylex/watch-store/secure/internal/domain/value_objects/login"
 	"github.com/lazylex/watch-store/secure/internal/dto"
-	"github.com/lazylex/watch-store/secure/internal/errors/in_memory"
 	"github.com/redis/go-redis/v9"
 	"log/slog"
 	"os"
@@ -137,7 +136,7 @@ func (r *Redis) GetAccountStateByLogin(ctx context.Context, login loginVO.Login)
 	}
 
 	if numericVal, err = strconv.Atoi(val); err != nil {
-		return 0, withOrigin(in_memory.ErrNotNumericValue)
+		return 0, ErrNotNumericValue()
 	}
 
 	defer r.client.Expire(ctx, key, r.ttl.AccountStateTTL)
@@ -148,7 +147,7 @@ func (r *Redis) GetAccountStateByLogin(ctx context.Context, login loginVO.Login)
 // SetAccountState сохраняет состояние аккаунта с переданным логином
 func (r *Redis) SetAccountState(ctx context.Context, stateDTO dto.LoginStateDTO) error {
 	if !account_state.IsStateCorrect(stateDTO.State) {
-		return withOrigin(in_memory.ErrIncorrectState)
+		return ErrIncorrectState()
 	}
 
 	return adaptErr(r.client.Set(ctx, keyAccountStateByLogin(stateDTO.Login), int(stateDTO.State), r.ttl.AccountStateTTL).Err())
