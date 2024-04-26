@@ -11,32 +11,17 @@ var (
 	ErrDataTypeConversion = NewJointError("data type conversion failed")
 )
 
-type Joint struct {
-	errors.BaseError
+// FullJointError возвращает полностью заполненную структуру с типом JointType
+func FullJointError(message, origin string, initialError error) *errors.BaseError {
+	return &errors.BaseError{
+		Type:         jointType,
+		Message:      message,
+		Origin:       origin,
+		InitialError: initialError,
+	}
 }
 
-// FullJointError возвращает полностью заполненную структуру Joint
-func FullJointError(message, origin string, initialError error) *Joint {
-	p := &Joint{}
-	p.Type = jointType
-	p.Message = message
-	p.Origin = origin
-	p.InitialError = initialError
-
-	return p
-}
-
-// NewJointError возвращает структуру ошибки Joint с переданным в качестве аргумента сообщением
-func NewJointError(message string) *Joint {
-	p := &Joint{}
-	p.Type = jointType
-	p.Message = message
-
-	return p
-}
-
-// WithOrigin добавляет в структуру место появления ошибки
-func (p *Joint) WithOrigin(origin string) *Joint {
-	p.Origin = origin
-	return p
+// NewJointError возвращает структуру ошибки с типом JointType и переданным в качестве аргумента сообщением
+func NewJointError(message string) *errors.BaseError {
+	return &errors.BaseError{Type: jointType, Message: message}
 }

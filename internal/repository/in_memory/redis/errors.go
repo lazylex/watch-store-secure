@@ -26,7 +26,7 @@ func adaptErrSkipFrames(err error, skip int) error {
 }
 
 // withOrigin добавляет место генерации ошибки
-func withOrigin(err *in_memory.InMemory) error {
+func withOrigin(err *errors.BaseError) error {
 	origin := errors.GetFrame(2).Function
 	origin = originPlace + origin[strings.LastIndex(origin, ".")+1:]
 

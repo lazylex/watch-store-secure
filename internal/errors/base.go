@@ -59,3 +59,9 @@ func GetFrame(skipFrames int) runtime.Frame {
 
 	return frame
 }
+
+// WithOrigin сохраняет в структуре место появления ошибки
+func (b *BaseError) WithOrigin(origin string) *BaseError {
+	b.Origin = origin
+	return b
+}

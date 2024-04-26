@@ -10,32 +10,17 @@ var (
 	ErrNoRowsInResultSet = NewPersistentError("no rows in result set")
 )
 
-type Persistent struct {
-	errors.BaseError
+// FullPersistentError возвращает полностью заполненную структуру с типом PersistentType
+func FullPersistentError(message, origin string, initialError error) *errors.BaseError {
+	return &errors.BaseError{
+		Type:         persistentType,
+		Message:      message,
+		Origin:       origin,
+		InitialError: initialError,
+	}
 }
 
-// FullPersistentError возвращает полностью заполненную структуру Persistent
-func FullPersistentError(message, origin string, initialError error) *Persistent {
-	p := &Persistent{}
-	p.Type = persistentType
-	p.Message = message
-	p.Origin = origin
-	p.InitialError = initialError
-
-	return p
-}
-
-// NewPersistentError возвращает структуру ошибки Persistent с переданным в качестве аргумента сообщением
-func NewPersistentError(message string) *Persistent {
-	p := &Persistent{}
-	p.Type = persistentType
-	p.Message = message
-
-	return p
-}
-
-// WithOrigin добавляет в структуру место появления ошибки
-func (p *Persistent) WithOrigin(origin string) *Persistent {
-	p.Origin = origin
-	return p
+// NewPersistentError возвращает структуру ошибки с типом PersistentType и переданным в качестве аргумента сообщением
+func NewPersistentError(message string) *errors.BaseError {
+	return &errors.BaseError{Type: persistentType, Message: message}
 }

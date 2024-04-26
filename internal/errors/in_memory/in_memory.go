@@ -8,32 +8,17 @@ var (
 	ErrNotNumericValue = NewInMemoryError("not numeric value")
 )
 
-type InMemory struct {
-	errors.BaseError
+// FullInMemoryError возвращает полностью заполненную структуру с типом InMemoryType
+func FullInMemoryError(message, origin string, initialError error) *errors.BaseError {
+	return &errors.BaseError{
+		Type:         inMemoryType,
+		Message:      message,
+		Origin:       origin,
+		InitialError: initialError,
+	}
 }
 
-// FullInMemoryError возвращает полностью заполненную структуру InMemory
-func FullInMemoryError(message, origin string, initialError error) *InMemory {
-	m := &InMemory{}
-	m.Type = inMemoryType
-	m.Message = message
-	m.Origin = origin
-	m.InitialError = initialError
-
-	return m
-}
-
-// NewInMemoryError возвращает структуру ошибки InMemory с переданным в качестве аргумента сообщением
-func NewInMemoryError(message string) *InMemory {
-	m := &InMemory{}
-	m.Type = inMemoryType
-	m.Message = message
-
-	return m
-}
-
-// WithOrigin добавляет в структуру место появления ошибки
-func (m *InMemory) WithOrigin(origin string) *InMemory {
-	m.Origin = origin
-	return m
+// NewInMemoryError возвращает структуру ошибки с типом InMemoryType и переданным в качестве аргумента сообщением
+func NewInMemoryError(message string) *errors.BaseError {
+	return &errors.BaseError{Type: inMemoryType, Message: message}
 }

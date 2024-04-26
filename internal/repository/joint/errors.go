@@ -24,15 +24,7 @@ func adaptErrSkipFrames(err interface{}, skip int) error {
 
 	var origin, message string
 
-	switch err.(type) {
-	case *in_memory.InMemory:
-		be := err.(*in_memory.InMemory)
-		if len(be.Origin) > 0 {
-			origin = be.Origin
-		}
-		message = be.Message
-	case *persistent.Persistent:
-		be := err.(*persistent.Persistent)
+	if be, ok := err.(*errors.BaseError); ok {
 		if len(be.Origin) > 0 {
 			origin = be.Origin
 		}
