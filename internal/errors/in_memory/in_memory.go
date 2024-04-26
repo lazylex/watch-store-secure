@@ -6,7 +6,6 @@ const inMemoryType = "in memory repo"
 
 var (
 	ErrNotNumericValue = NewInMemoryError("not numeric value")
-	ErrIncorrectState  = NewInMemoryError("incorrect state")
 )
 
 type InMemory struct {

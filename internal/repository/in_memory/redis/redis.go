@@ -146,10 +146,6 @@ func (r *Redis) GetAccountStateByLogin(ctx context.Context, login loginVO.Login)
 
 // SetAccountState сохраняет состояние аккаунта с переданным логином
 func (r *Redis) SetAccountState(ctx context.Context, stateDTO dto.LoginStateDTO) error {
-	if !account_state.IsStateCorrect(stateDTO.State) {
-		return ErrIncorrectState()
-	}
-
 	return adaptErr(r.client.Set(ctx, keyAccountStateByLogin(stateDTO.Login), int(stateDTO.State), r.ttl.AccountStateTTL).Err())
 }
 

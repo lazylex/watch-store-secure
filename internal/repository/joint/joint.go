@@ -94,7 +94,7 @@ func (r *Repository) GetAccountState(ctx context.Context, login loginVO.Login) (
 
 	r.stateLocker.WantRead(login)
 
-	if state, err = r.memory.GetAccountStateByLogin(ctx, login); err == nil && account_state.IsStateCorrect(state) {
+	if state, err = r.memory.GetAccountStateByLogin(ctx, login); err == nil {
 		return state, adaptErr(err)
 	}
 
@@ -115,7 +115,7 @@ func (r *Repository) GetAccountLoginData(ctx context.Context, login loginVO.Logi
 	state, errState = r.memory.GetAccountStateByLogin(ctx, login)
 	idAndHash, errHash = r.memory.GetUserIdAndPasswordHash(ctx, login)
 
-	if errState == nil && errHash == nil && account_state.IsStateCorrect(state) {
+	if errState == nil && errHash == nil {
 		return dto.AccountLoginDataDTO{Login: login, UserId: idAndHash.UserId, Hash: idAndHash.Hash, State: state}, nil
 	}
 

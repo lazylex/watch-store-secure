@@ -37,8 +37,3 @@ func withOrigin(err *in_memory.InMemory) error {
 func ErrNotNumericValue() error {
 	return withOrigin(in_memory.ErrNotNumericValue)
 }
-
-// ErrIncorrectState возвращает ошибку in_memory.ErrNotNumericValue с местом генерации ошибки
-func ErrIncorrectState() error {
-	return withOrigin(in_memory.ErrIncorrectState)
-}
