@@ -2,7 +2,6 @@ package joint
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/account_state"
@@ -18,10 +17,6 @@ type Repository struct {
 	stateLocker StateLocker
 	memory      in_memory.Interface
 	persistent  persistent.Interface
-}
-
-func jointRepositoryError(text string) error {
-	return errors.New("joint repo: " + text)
 }
 
 func New(memory in_memory.Interface, persistent persistent.Interface) Repository {
@@ -280,7 +275,7 @@ func (r *Repository) refreshAccountPermissions(ctx context.Context, data dto.Ser
 
 // makeDataCache считывает все данные (которые возможно кешировать) из постоянного хранилища в хранилище в памяти
 func (r *Repository) makeDataCache() {
-	slog.Debug(jointRepositoryError("data caching is not fully implemented").Error())
+	slog.Debug(adaptErr(fmt.Errorf("data caching is not fully implemented")).Error())
 	slog.Info("data caching has started")
 	start := time.Now()
 	defer func() {
