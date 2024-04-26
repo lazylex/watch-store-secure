@@ -32,12 +32,12 @@ func New(memory in_memory.Interface, persistent persistent.Interface) Repository
 
 // SaveSession сохраняет в памяти данные сессии
 func (r *Repository) SaveSession(ctx context.Context, dto dto.SessionDTO) error {
-	return r.memory.SaveSession(ctx, dto)
+	return adaptErr(r.memory.SaveSession(ctx, dto))
 }
 
 // DeleteSession удаляет сессию
 func (r *Repository) DeleteSession(ctx context.Context, id uuid.UUID) error {
-	return r.memory.DeleteSession(ctx, id)
+	return adaptErr(r.memory.DeleteSession(ctx, id))
 }
 
 // SetAccountLoginData сохраняет в постоянном хранилище логин, хеш пароля, статус учетной записи и идентификатор
@@ -46,11 +46,11 @@ func (r *Repository) SetAccountLoginData(ctx context.Context, data dto.AccountLo
 	var err error
 
 	if err = r.persistent.SetAccountLoginData(ctx, data); err != nil {
-		return err
+		return adaptErr(err)
 	}
 
 	if err = r.memory.SetAccountState(ctx, dto.LoginStateDTO{Login: data.Login, State: data.State}); err != nil {
-		return err
+		return adaptErr(err)
 	}
 
 	r.memory.SetUserIdAndPasswordHash(ctx,
@@ -62,11 +62,11 @@ func (r *Repository) SetAccountLoginData(ctx context.Context, data dto.AccountLo
 func (r *Repository) GetUserIdAndPasswordHash(ctx context.Context, login loginVO.Login) (dto.UserIdWithPasswordHashDTO, error) {
 	idAndHash, err := r.memory.GetUserIdAndPasswordHash(ctx, login)
 	if err == nil && idAndHash != (dto.UserIdWithPasswordHashDTO{}) {
-		return idAndHash, err
+		return idAndHash, adaptErr(err)
 	}
 	data, errGetData := r.persistent.GetAccountLoginData(ctx, login)
 	if errGetData != nil {
-		return dto.UserIdWithPasswordHashDTO{}, errGetData
+		return dto.UserIdWithPasswordHashDTO{}, adaptErr(errGetData)
 	}
 
 	_ = r.saveToMemoryLoginData(ctx, data)
@@ -80,10 +80,10 @@ func (r *Repository) SetAccountState(ctx context.Context, stateDTO dto.LoginStat
 	r.stateLocker.Lock(stateDTO.Login)
 
 	if err := r.persistent.SetAccountState(ctx, stateDTO); err != nil {
-		return err
+		return adaptErr(err)
 	}
 
-	return r.memory.SetAccountState(ctx, stateDTO)
+	return adaptErr(r.memory.SetAccountState(ctx, stateDTO))
 }
 
 // GetAccountState получает состояние учетной записи пользователя (сервиса)
@@ -95,11 +95,11 @@ func (r *Repository) GetAccountState(ctx context.Context, login loginVO.Login) (
 	r.stateLocker.WantRead(login)
 
 	if state, err = r.memory.GetAccountStateByLogin(ctx, login); err == nil && account_state.IsStateCorrect(state) {
-		return state, err
+		return state, adaptErr(err)
 	}
 
 	if data, err = r.GetAccountLoginData(ctx, login); err != nil {
-		return 0, err
+		return 0, adaptErr(err)
 	}
 
 	return data.State, nil
@@ -120,7 +120,7 @@ func (r *Repository) GetAccountLoginData(ctx context.Context, login loginVO.Logi
 	}
 
 	if loginData, err = r.persistent.GetAccountLoginData(ctx, login); err != nil {
-		return dto.AccountLoginDataDTO{}, err
+		return dto.AccountLoginDataDTO{}, adaptErr(err)
 	}
 
 	_ = r.saveToMemoryLoginData(ctx, loginData)
@@ -130,27 +130,27 @@ func (r *Repository) GetAccountLoginData(ctx context.Context, login loginVO.Logi
 
 // CreateService добавляет сервис в БД
 func (r *Repository) CreateService(ctx context.Context, data dto.NameWithDescriptionDTO) error {
-	return r.persistent.CreateService(ctx, data)
+	return adaptErr(r.persistent.CreateService(ctx, data))
 }
 
 // CreatePermission добавляет разрешение в БД
 func (r *Repository) CreatePermission(ctx context.Context, data dto.PermissionWithoutNumberDTO) error {
-	return r.persistent.CreatePermission(ctx, data)
+	return adaptErr(r.persistent.CreatePermission(ctx, data))
 }
 
 // CreateRole добавляет роль в БД
 func (r *Repository) CreateRole(ctx context.Context, data dto.NameAndServiceWithDescriptionDTO) error {
-	return r.persistent.CreateRole(ctx, data)
+	return adaptErr(r.persistent.CreateRole(ctx, data))
 }
 
 // CreateGroup добавляет группу в БД
 func (r *Repository) CreateGroup(ctx context.Context, data dto.NameAndServiceWithDescriptionDTO) error {
-	return r.persistent.CreateGroup(ctx, data)
+	return adaptErr(r.persistent.CreateGroup(ctx, data))
 }
 
 // AssignRoleToGroup присоединяет роль к группе
 func (r *Repository) AssignRoleToGroup(ctx context.Context, data dto.GroupRoleServiceNamesDTO) error {
-	return r.persistent.AssignRoleToGroup(ctx, data)
+	return adaptErr(r.persistent.AssignRoleToGroup(ctx, data))
 }
 
 // AssignRoleToAccount назначает роль учетной записи
@@ -162,7 +162,7 @@ func (r *Repository) AssignRoleToAccount(ctx context.Context, data dto.RoleServi
 	}) {
 		r.refreshAccountPermissions(ctx, dto.ServiceNameWithUserIdDTO{UserId: data.UserId, Service: data.Service})
 	}
-	return err
+	return adaptErr(err)
 }
 
 // AssignGroupToAccount назначает группу учетной записи
@@ -174,28 +174,29 @@ func (r *Repository) AssignGroupToAccount(ctx context.Context, data dto.GroupSer
 	}) {
 		r.refreshAccountPermissions(ctx, dto.ServiceNameWithUserIdDTO{UserId: data.UserId, Service: data.Service})
 	}
-	return err
+	return adaptErr(err)
 }
 
 // AssignInstancePermissionToAccount прикрепляет разрешение конкретного экземпляра сервиса к учетной записи
 func (r *Repository) AssignInstancePermissionToAccount(ctx context.Context, data dto.InstanceAndPermissionNamesWithUserIdDTO) error {
 	// TODO если учетная запись имеет активную сессию, то добавить разрешение в память
-	return r.persistent.AssignInstancePermissionToAccount(ctx, data)
+	return adaptErr(r.persistent.AssignInstancePermissionToAccount(ctx, data))
 }
 
 // AssignPermissionToRole назначает роли разрешение
 func (r *Repository) AssignPermissionToRole(ctx context.Context, data dto.PermissionRoleServiceNamesDTO) error {
-	return r.persistent.AssignPermissionToRole(ctx, data)
+	return adaptErr(r.persistent.AssignPermissionToRole(ctx, data))
 }
 
 // AssignPermissionToGroup назначает разрешения группе
 func (r *Repository) AssignPermissionToGroup(ctx context.Context, data dto.GroupPermissionServiceNamesDTO) error {
-	return r.persistent.AssignPermissionToGroup(ctx, data)
+	return adaptErr(r.persistent.AssignPermissionToGroup(ctx, data))
 }
 
 // GetServicePermissionsForAccount возвращает название, номер и описание разрешений аккаунта для сервиса
 func (r *Repository) GetServicePermissionsForAccount(ctx context.Context, data dto.ServiceNameWithUserIdDTO) ([]dto.PermissionWithoutServiceDTO, error) {
-	return r.persistent.GetServicePermissionsForAccount(ctx, data)
+	permissions, err := r.persistent.GetServicePermissionsForAccount(ctx, data)
+	return permissions, adaptErr(err)
 }
 
 // GetServicePermissionsNumbersForAccount возвращает номера разрешений аккаунта для сервиса
@@ -207,7 +208,7 @@ func (r *Repository) GetServicePermissionsNumbersForAccount(ctx context.Context,
 		numbers, err = r.getServicePermissionsNumbersForAccountFromPersistentWithSaveToMemory(ctx, data)
 	}
 
-	return numbers, err
+	return numbers, adaptErr(err)
 }
 
 // getServicePermissionsNumbersForAccountFromPersistentWithSaveToMemory возвращает номера разрешений аккаунта для
@@ -226,7 +227,7 @@ func (r *Repository) getServicePermissionsNumbersForAccountFromPersistentWithSav
 		}()
 	}
 
-	return numbers, err
+	return numbers, adaptErr(err)
 }
 
 // GetInstancePermissionsNumbersForAccount возвращает номера разрешений аккаунта для экземпляра сервиса
@@ -238,7 +239,7 @@ func (r *Repository) GetInstancePermissionsNumbersForAccount(ctx context.Context
 		numbers, err = r.getInstancePermissionsNumbersForAccountFromPersistentWithSaveToMemory(ctx, data)
 	}
 
-	return numbers, err
+	return numbers, adaptErr(err)
 }
 
 // getInstancePermissionsNumbersForAccountFromPersistentWithSaveToMemory возвращает номера разрешений аккаунта для
@@ -257,13 +258,13 @@ func (r *Repository) getInstancePermissionsNumbersForAccountFromPersistentWithSa
 		}()
 	}
 
-	return numbers, err
+	return numbers, adaptErr(err)
 }
 
 // saveToMemoryLoginData сохраняет в памяти данные, необходимые для процесса входа в систему пользователя (сервиса)
 func (r *Repository) saveToMemoryLoginData(ctx context.Context, data dto.AccountLoginDataDTO) error {
 	r.memory.SetUserIdAndPasswordHash(ctx, dto.UserLoginAndIdWithPasswordHashDTO{UserId: data.UserId, Login: data.Login, Hash: data.Hash})
-	return r.memory.SetAccountState(ctx, dto.LoginStateDTO{Login: data.Login, State: data.State})
+	return adaptErr(r.memory.SetAccountState(ctx, dto.LoginStateDTO{Login: data.Login, State: data.State}))
 }
 
 // refreshAccountPermissions обновляет кеш разрешений
