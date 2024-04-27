@@ -34,6 +34,8 @@ type RBACInterface interface {
 
 	GetServicePermissionsForAccount(context.Context, dto.ServiceNameWithUserIdDTO) ([]dto.PermissionWithoutServiceDTO, error)
 	GetServicePermissionsNumbersForAccount(context.Context, dto.ServiceNameWithUserIdDTO) ([]int, error)
+
+	GetPermissionNumber(context.Context, string, string) (int, error)
 }
 
 type Interface interface {

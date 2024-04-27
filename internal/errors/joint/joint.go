@@ -9,6 +9,7 @@ var (
 	ErrDataNotSaved       = NewJointError("data not saved")
 	ErrEmptyResult        = NewJointError("empty result")
 	ErrDataTypeConversion = NewJointError("data type conversion failed")
+	ErrCacheSavedData     = NewJointError("can't save data to cache")
 )
 
 // FullJointError возвращает полностью заполненную структуру с типом JointType

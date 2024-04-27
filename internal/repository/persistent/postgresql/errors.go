@@ -19,7 +19,7 @@ func (p *PostgreSQL) processExecResult(commandTag pgx.CommandTag, err error) err
 	}
 
 	if commandTag.RowsAffected() == 0 {
-		return persistent.ErrZeroRowsAffected
+		return persistent.ErrZeroRowsAffected.WithOrigin(origin)
 	}
 
 	return adaptErrSkipFrames(err, 3)

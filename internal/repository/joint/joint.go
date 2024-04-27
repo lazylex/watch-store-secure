@@ -7,6 +7,7 @@ import (
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/account_state"
 	loginVO "github.com/lazylex/watch-store/secure/internal/domain/value_objects/login"
 	"github.com/lazylex/watch-store/secure/internal/dto"
+	"github.com/lazylex/watch-store/secure/internal/errors/joint"
 	"github.com/lazylex/watch-store/secure/internal/ports/repository/in_memory"
 	"github.com/lazylex/watch-store/secure/internal/ports/repository/persistent"
 	"log/slog"
@@ -174,8 +175,26 @@ func (r *Repository) AssignGroupToAccount(ctx context.Context, data dto.GroupSer
 
 // AssignInstancePermissionToAccount прикрепляет разрешение конкретного экземпляра сервиса к учетной записи
 func (r *Repository) AssignInstancePermissionToAccount(ctx context.Context, data dto.InstanceAndPermissionNamesWithUserIdDTO) error {
-	// TODO если учетная запись имеет активную сессию, то добавить разрешение в память
-	return adaptErr(r.persistent.AssignInstancePermissionToAccount(ctx, data))
+	var err error
+	var number int
+
+	if err = r.persistent.AssignInstancePermissionToAccount(ctx, data); err != nil {
+		return adaptErr(err)
+	}
+
+	if number, err = r.persistent.GetPermissionNumber(ctx, data.Permission, data.Instance); err != nil {
+		return adaptErr(joint.ErrCacheSavedData)
+	}
+
+	if err = r.memory.SetInstancePermissionsNumbersForAccount(ctx, dto.InstanceNameWithUserIdAndPermNumbersDTO{
+		UserId:            data.UserId,
+		Instance:          data.Instance,
+		PermissionNumbers: []int{number},
+	}); err != nil {
+		return adaptErr(joint.ErrCacheSavedData)
+	}
+
+	return nil
 }
 
 // AssignPermissionToRole назначает роли разрешение

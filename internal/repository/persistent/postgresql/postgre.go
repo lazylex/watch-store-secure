@@ -439,6 +439,18 @@ func (p *PostgreSQL) GetServicePermissionsNumbersForAccount(ctx context.Context,
 	return result, nil
 }
 
+// GetPermissionNumber возвращает номер разрешения для заданного экземпляра сервиса
+func (p *PostgreSQL) GetPermissionNumber(ctx context.Context, name, instance string) (int, error) {
+	var number int
+	stmt := `SELECT number FROM permissions WHERE name=$1 AND service_fk=(SELECT service_fk FROM instances WHERE name=$2)`
+	row := p.pool.QueryRowEx(ctx, stmt, nil, name, instance)
+	if err := row.Scan(&number); err != nil {
+		return 0, adaptErr(err)
+	}
+
+	return number, nil
+}
+
 // GetAccountsLoginsByState возвращает список логинов пользователей с переданным функции состоянием
 func (p *PostgreSQL) GetAccountsLoginsByState(ctx context.Context, state account_state.State) ([]loginVO.Login, error) {
 	stmt := `SELECT login FROM accounts WHERE state = $1`
