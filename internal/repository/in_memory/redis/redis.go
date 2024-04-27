@@ -63,6 +63,26 @@ func (r *Redis) DeleteSession(ctx context.Context, id uuid.UUID) error {
 	return adaptErr(r.client.Del(ctx, sessionByUUID, session).Err())
 }
 
+// IsSessionActiveByUUID возвращает true, если существует сессия для пользователя (сервиса) с переданным идентификатором
+func (r *Redis) IsSessionActiveByUUID(ctx context.Context, userId uuid.UUID) bool {
+	key := keySessionByUUID(userId.String())
+	if result, err := r.client.Exists(ctx, key).Result(); err != nil {
+		return false
+	} else {
+		return result == 1
+	}
+}
+
+// IsSessionActiveByToken возвращает true, если существует сессия для пользователя (сервиса) с переданным токеном сессии
+func (r *Redis) IsSessionActiveByToken(ctx context.Context, token string) bool {
+	key := keySession(token)
+	if result, err := r.client.Exists(ctx, key).Result(); err != nil {
+		return false
+	} else {
+		return result == 1
+	}
+}
+
 // extendSessionLife продлевает жизнь данным по ключам, относящимся к сессии пользователя (сервиса)
 func (r *Redis) extendSessionLife(ctx context.Context, key string) error {
 	var mUUID string

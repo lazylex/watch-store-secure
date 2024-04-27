@@ -10,6 +10,8 @@ import (
 
 type LoginInterface interface {
 	SaveSession(context.Context, dto.SessionDTO) error
+	IsSessionActiveByUUID(context.Context, uuid.UUID) bool
+	IsSessionActiveByToken(context.Context, string) bool
 	DeleteSession(context.Context, uuid.UUID) error
 	SetUserIdAndPasswordHash(context.Context, dto.UserLoginAndIdWithPasswordHashDTO)
 	GetUserIdAndPasswordHash(context.Context, login.Login) (dto.UserIdWithPasswordHashDTO, error)
