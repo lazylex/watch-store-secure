@@ -4,13 +4,13 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/lazylex/watch-store/secure/internal/config"
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/account_state"
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/password"
 	"github.com/lazylex/watch-store/secure/internal/dto"
+	se "github.com/lazylex/watch-store/secure/internal/errors/service"
 	"github.com/lazylex/watch-store/secure/internal/ports/metrics/service"
 	"github.com/lazylex/watch-store/secure/internal/ports/repository/joint"
 	"golang.org/x/crypto/bcrypt"
@@ -29,18 +29,6 @@ type AccountOptions struct {
 	InstancePermissions []dto.InstanceAndPermissionsNamesDTO
 }
 
-var (
-	ErrAuthenticationData = serviceError("incorrect login or password")
-	ErrNotEnabledAccount  = serviceError("account is not active")
-	ErrCreatePwdHash      = serviceError("error while hashing password")
-	ErrCreateToken        = serviceError("error creating token")
-	ErrLogout             = serviceError("error logout")
-)
-
-func serviceError(text string) error {
-	return errors.New("service: " + text)
-}
-
 // New конструктор для сервиса
 func New(metrics service.MetricsInterface, repository joint.Interface, cfg config.Secure) *Service {
 	return &Service{metrics: metrics, repository: repository, secure: cfg}
@@ -50,27 +38,26 @@ func New(metrics service.MetricsInterface, repository joint.Interface, cfg confi
 func (s *Service) Login(ctx context.Context, data *dto.LoginPasswordDTO) (string, error) {
 	var token string
 
-	// TODO адаптировать ошибки приходящие из репозитория к ошибкам сервиса
 	state, err := s.repository.GetAccountState(ctx, data.Login)
 	if err != nil {
-		return "", err
+		return "", adaptErr(err)
 	}
 	if state != account_state.Enabled {
-		return "", ErrNotEnabledAccount
+		return "", ErrNotEnabledAccount()
 	}
 
 	userId, errGetUsr := s.getUserId(ctx, data)
 	if userId == uuid.Nil || errGetUsr != nil {
 		s.metrics.AuthenticationErrorInc()
-		return "", err
+		return "", adaptErr(err)
 	}
 
 	if token, err = s.createToken(); err != nil {
-		return "", err
+		return "", adaptErr(err)
 	}
 
 	if err = s.repository.SaveSession(ctx, dto.SessionDTO{Token: token, UserId: userId}); err != nil {
-		return "", err
+		return "", adaptErr(err)
 	}
 
 	go s.metrics.LoginInc()
@@ -85,7 +72,7 @@ func (s *Service) Logout(ctx context.Context, id uuid.UUID) error {
 		return nil
 	}
 
-	return ErrLogout
+	return ErrLogout()
 }
 
 // CreateAccount создаёт активную учетную запись
@@ -94,7 +81,7 @@ func (s *Service) CreateAccount(ctx context.Context, data *dto.LoginPasswordDTO,
 	var err error
 
 	if hash, err = s.createPasswordHash(data.Password); err != nil {
-		return uuid.Nil, err
+		return uuid.Nil, adaptErr(err)
 	}
 
 	userId := uuid.New()
@@ -102,7 +89,7 @@ func (s *Service) CreateAccount(ctx context.Context, data *dto.LoginPasswordDTO,
 	loginData := dto.AccountLoginDataDTO{Login: data.Login, UserId: userId, Hash: hash, State: account_state.Enabled}
 
 	if err = s.repository.SetAccountLoginData(ctx, loginData); err != nil {
-		return uuid.Nil, err
+		return uuid.Nil, adaptErr(err)
 	}
 
 	errAssignGroupToAccount := make(chan int)
@@ -123,7 +110,9 @@ func (s *Service) CreateAccount(ctx context.Context, data *dto.LoginPasswordDTO,
 		return userId, nil
 	}
 
-	return uuid.Nil, serviceError(fmt.Sprintf("couldn’t create %d roles; %d groups; %d instance assignments;", errRoleCount, errGroupCount, errInstanceCount))
+	return uuid.Nil,
+		adaptErr(se.NewServiceError(fmt.Sprintf("couldn’t create %d roles; %d groups; %d instance assignments;",
+			errRoleCount, errGroupCount, errInstanceCount)))
 }
 
 // assignGroupToAccount привязывает группы к учетной записи
@@ -181,7 +170,7 @@ func (s *Service) assignInstancePermissionsToAccount(ctx context.Context, option
 func (s *Service) createPasswordHash(pwd password.Password) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(pwd), s.secure.PasswordCreationCost)
 	if err != nil {
-		return "", ErrCreatePwdHash
+		return "", se.ErrCreatePwdHash
 	}
 
 	return string(bytes), nil
@@ -189,14 +178,13 @@ func (s *Service) createPasswordHash(pwd password.Password) (string, error) {
 
 // getUserId возвращает uuid пользователя (сервиса)
 func (s *Service) getUserId(ctx context.Context, dto *dto.LoginPasswordDTO) (uuid.UUID, error) {
-	// TODO адаптировать ошибки приходящие из репозитория к ошибкам сервиса
 	userIdAndPasswordHash, err := s.repository.GetUserIdAndPasswordHash(ctx, dto.Login)
 	if err != nil {
-		return uuid.Nil, err
+		return uuid.Nil, adaptErr(err)
 	}
 
 	if !s.isPasswordCorrect(dto.Password, userIdAndPasswordHash.Hash) {
-		return uuid.Nil, ErrAuthenticationData
+		return uuid.Nil, se.ErrAuthenticationData
 	}
 
 	return userIdAndPasswordHash.UserId, nil
@@ -216,7 +204,7 @@ func (s *Service) isPasswordCorrect(pwd password.Password, hash string) bool {
 func (s *Service) createToken() (string, error) {
 	b := make([]byte, s.secure.LoginTokenLength)
 	if _, err := rand.Read(b); err != nil {
-		return "", ErrCreateToken
+		return "", se.ErrCreateToken
 	}
 
 	return hex.EncodeToString(b), nil
@@ -224,45 +212,45 @@ func (s *Service) createToken() (string, error) {
 
 // CreatePermission создает разрешение
 func (s *Service) CreatePermission(ctx context.Context, data dto.PermissionWithoutNumberDTO) error {
-	return s.repository.CreatePermission(ctx, data)
+	return adaptErr(s.repository.CreatePermission(ctx, data))
 }
 
 // CreateRole создает роль
 func (s *Service) CreateRole(ctx context.Context, data dto.NameAndServiceWithDescriptionDTO) error {
-	return s.repository.CreateRole(ctx, data)
+	return adaptErr(s.repository.CreateRole(ctx, data))
 }
 
 // CreateGroup создает группу
 func (s *Service) CreateGroup(ctx context.Context, data dto.NameAndServiceWithDescriptionDTO) error {
-	return s.repository.CreateGroup(ctx, data)
+	return adaptErr(s.repository.CreateGroup(ctx, data))
 }
 
 // AssignRoleToAccount прикрепляет роль к учетной записи
 func (s *Service) AssignRoleToAccount(ctx context.Context, data dto.RoleServiceNamesWithUserIdDTO) error {
-	return s.repository.AssignRoleToAccount(ctx, data)
+	return adaptErr(s.repository.AssignRoleToAccount(ctx, data))
 }
 
 // AssignGroupToAccount прикрепляет учетную запись к группе
 func (s *Service) AssignGroupToAccount(ctx context.Context, data dto.GroupServiceNamesWithUserIdDTO) error {
-	return s.repository.AssignGroupToAccount(ctx, data)
+	return adaptErr(s.repository.AssignGroupToAccount(ctx, data))
 }
 
 // AssignInstancePermissionToAccount прикрепляет к учетной записи разрешения для конкретного экземпляра сервиса
 func (s *Service) AssignInstancePermissionToAccount(ctx context.Context, data dto.InstanceAndPermissionNamesWithUserIdDTO) error {
-	return s.repository.AssignInstancePermissionToAccount(ctx, data)
+	return adaptErr(s.repository.AssignInstancePermissionToAccount(ctx, data))
 }
 
 // AssignRoleToGroup прикрепляет роль к группе
 func (s *Service) AssignRoleToGroup(ctx context.Context, data dto.GroupRoleServiceNamesDTO) error {
-	return s.repository.AssignRoleToGroup(ctx, data)
+	return adaptErr(s.repository.AssignRoleToGroup(ctx, data))
 }
 
 // AssignPermissionToRole прикрепляет разрешение к роли
 func (s *Service) AssignPermissionToRole(ctx context.Context, data dto.PermissionRoleServiceNamesDTO) error {
-	return s.repository.AssignPermissionToRole(ctx, data)
+	return adaptErr(s.repository.AssignPermissionToRole(ctx, data))
 }
 
 // AssignPermissionToGroup прикрепляет разрешение к группе
 func (s *Service) AssignPermissionToGroup(ctx context.Context, data dto.GroupPermissionServiceNamesDTO) error {
-	return s.repository.AssignPermissionToGroup(ctx, data)
+	return adaptErr(s.repository.AssignPermissionToGroup(ctx, data))
 }
