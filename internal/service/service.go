@@ -19,7 +19,6 @@ import (
 type Service struct {
 	metrics    service.MetricsInterface
 	repository joint.Interface
-	salt       string
 	secure     config.Secure
 }
 
