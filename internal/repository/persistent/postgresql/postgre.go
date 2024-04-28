@@ -31,7 +31,8 @@ func MustCreate(cfg config.PersistentStorage) *PostgreSQL {
 	})
 
 	if err != nil {
-		exitWithError(err)
+		slog.Error(adaptErr(err).Error())
+		os.Exit(1)
 	} else {
 		slog.Info("successfully create connection poll to postgres DB")
 	}
@@ -39,16 +40,11 @@ func MustCreate(cfg config.PersistentStorage) *PostgreSQL {
 	client := &PostgreSQL{pool: pool, maxConnections: cfg.DatabaseMaxOpenConnections}
 
 	if err = client.createNotExistedTables(); err != nil {
-		exitWithError(err)
+		slog.Error(adaptErr(err).Error())
+		os.Exit(1)
 	}
 
 	return client
-}
-
-// exitWithError выводит ошибку в лог и завершает приложение
-func exitWithError(err error) {
-	slog.Error(adaptErr(err).Error())
-	os.Exit(1)
 }
 
 // Close закрывает пул соединений с БД
