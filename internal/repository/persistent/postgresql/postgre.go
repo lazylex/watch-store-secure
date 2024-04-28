@@ -14,18 +14,25 @@ import (
 type PostgreSQL struct {
 	pool           *pgx.ConnPool
 	maxConnections int
+	schema         string
 }
 
 // MustCreate возвращает структуру для взаимодействия с базой данных в СУБД PostgreSQL. В случае ошибки завершает
 // работу всего приложения
 func MustCreate(cfg config.PersistentStorage) *PostgreSQL {
+	schema := "public"
+	if len(cfg.DatabaseSchema) > 0 {
+		schema = cfg.DatabaseSchema
+	}
+
 	pool, err := pgx.NewConnPool(pgx.ConnPoolConfig{
 		ConnConfig: pgx.ConnConfig{
-			Host:     cfg.DatabaseAddress,
-			Port:     uint16(cfg.DatabasePort),
-			Database: cfg.DatabaseName,
-			User:     cfg.DatabaseLogin,
-			Password: cfg.DatabasePassword,
+			Host:          cfg.DatabaseAddress,
+			Port:          uint16(cfg.DatabasePort),
+			Database:      cfg.DatabaseName,
+			User:          cfg.DatabaseLogin,
+			Password:      cfg.DatabasePassword,
+			RuntimeParams: map[string]string{"search_path": schema},
 		},
 		MaxConnections: cfg.DatabaseMaxOpenConnections,
 	})
@@ -37,9 +44,9 @@ func MustCreate(cfg config.PersistentStorage) *PostgreSQL {
 		slog.Info("successfully create connection poll to postgres DB")
 	}
 
-	client := &PostgreSQL{pool: pool, maxConnections: cfg.DatabaseMaxOpenConnections}
+	client := &PostgreSQL{pool: pool, maxConnections: cfg.DatabaseMaxOpenConnections, schema: schema}
 
-	if err = client.createNotExistedTables(); err != nil {
+	if err = client.createNotExistedSchemaAndTables(); err != nil {
 		slog.Error(adaptErr(err).Error())
 		os.Exit(1)
 	}

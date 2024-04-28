@@ -1,8 +1,17 @@
 package postgresql
 
-// createNotExistedTables создает таблицы в БД, если они отсутствуют
-func (p *PostgreSQL) createNotExistedTables() error {
+import "log/slog"
+
+// createNotExistedSchemaAndTables создает схему и таблицы в БД, если они отсутствуют
+func (p *PostgreSQL) createNotExistedSchemaAndTables() error {
 	var stmt string
+	if len(p.schema) > 0 && p.schema != "public" {
+		slog.Debug(p.schema)
+		stmt = `CREATE SCHEMA IF NOT EXISTS test;`
+		if _, err := p.pool.Exec(stmt); err != nil {
+			return err
+		}
+	}
 
 	stmt = `CREATE TABLE IF NOT EXISTS accounts 
 		(
