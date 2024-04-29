@@ -1,13 +1,12 @@
 package postgresql
 
-import "log/slog"
+import "fmt"
 
 // createNotExistedSchemaAndTables создает схему и таблицы в БД, если они отсутствуют
 func (p *PostgreSQL) createNotExistedSchemaAndTables() error {
 	var stmt string
 	if len(p.schema) > 0 && p.schema != "public" {
-		slog.Debug(p.schema)
-		stmt = `CREATE SCHEMA IF NOT EXISTS test;`
+		stmt = fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %s;", p.schema)
 		if _, err := p.pool.Exec(stmt); err != nil {
 			return err
 		}
