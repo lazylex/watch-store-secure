@@ -224,6 +224,11 @@ func (s *Service) CreateGroup(ctx context.Context, data dto.NameAndServiceWithDe
 	return adaptErr(s.repository.CreateGroup(ctx, data))
 }
 
+// RegisterInstance регистрирует название экземпляра сервиса
+func (s *Service) RegisterInstance(ctx context.Context, data *dto.NameAndServiceDTO) error {
+	return adaptErr(s.repository.CreateInstance(ctx, *data))
+}
+
 // AssignRoleToAccount прикрепляет роль к учетной записи
 func (s *Service) AssignRoleToAccount(ctx context.Context, data dto.RoleServiceNamesWithUserIdDTO) error {
 	return adaptErr(s.repository.AssignRoleToAccount(ctx, data))

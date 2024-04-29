@@ -13,6 +13,8 @@ type Service interface {
 	Logout(context.Context, uuid.UUID) error
 	CreateAccount(context.Context, *dto.LoginPasswordDTO, service.AccountOptions) (uuid.UUID, error)
 
+	RegisterInstance(context.Context, *dto.NameAndServiceDTO) error
+
 	common.RBACCreateInterface
 	common.RBACAssignToAccountInterface
 	common.RBACAssignInterface

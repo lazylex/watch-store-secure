@@ -144,6 +144,11 @@ func (r *Repository) CreateGroup(ctx context.Context, data dto.NameAndServiceWit
 	return adaptErr(r.persistent.CreateGroup(ctx, data))
 }
 
+// CreateInstance добавляет в БД название экземпляра сервиса
+func (r *Repository) CreateInstance(ctx context.Context, data dto.NameAndServiceDTO) error {
+	return adaptErr(r.persistent.CreateInstance(ctx, data))
+}
+
 // AssignRoleToGroup присоединяет роль к группе
 func (r *Repository) AssignRoleToGroup(ctx context.Context, data dto.GroupRoleServiceNamesDTO) error {
 	return adaptErr(r.persistent.AssignRoleToGroup(ctx, data))

@@ -127,6 +127,14 @@ func (p *PostgreSQL) CreateService(ctx context.Context, data dto.NameWithDescrip
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Name, data.Description))
 }
 
+// CreateInstance добавляет в БД название экземпляра сервиса
+func (p *PostgreSQL) CreateInstance(ctx context.Context, data dto.NameAndServiceDTO) error {
+	stmt := `INSERT INTO instances (name, service_fk)
+			VALUES ($1,
+			        (SELECT service_id FROM services WHERE name=$2));`
+	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Name, data.Service))
+}
+
 // AssignPermissionToRole назначает роли разрешение
 func (p *PostgreSQL) AssignPermissionToRole(ctx context.Context, data dto.PermissionRoleServiceNamesDTO) error {
 	stmt := `INSERT INTO role_permissions (role_fk, permission_fk)

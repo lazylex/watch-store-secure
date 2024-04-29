@@ -42,6 +42,7 @@ type Interface interface {
 	LoginInterface
 	joint.ServiceInterface
 	RBACInterface
+	CreateInstance(context.Context, dto.NameAndServiceDTO) error
 	GetMaxConnections() int
 	Close()
 }

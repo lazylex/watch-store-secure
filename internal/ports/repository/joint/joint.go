@@ -11,6 +11,7 @@ import (
 
 type ServiceInterface interface {
 	CreateService(context.Context, dto.NameWithDescriptionDTO) error
+	CreateInstance(context.Context, dto.NameAndServiceDTO) error
 }
 
 type LoginInterface interface {
