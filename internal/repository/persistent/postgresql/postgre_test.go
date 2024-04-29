@@ -205,8 +205,6 @@ func TestPostgreSQL_BigTest(t *testing.T) {
 		t.Fatal()
 	}
 
-	// TODO добавить perm3 к экземпляру сервиса service1 и попробовать его считать
-
 	if p.AssignGroupToAccount(ctx, dto.GroupServiceNamesWithUserIdDTO{
 		UserId:  userId,
 		Group:   "group1",
@@ -230,6 +228,75 @@ func TestPostgreSQL_BigTest(t *testing.T) {
 		UserId:   userId,
 		Instance: "instance1",
 	}); len(perm) > 0 || err != nil {
+		t.Fatal()
+	}
+
+	if p.CreateInstance(ctx, dto.NameAndServiceDTO{
+		Name:    "instance1",
+		Service: "service1",
+	}) != nil {
+		t.Fatal()
+	}
+
+	if p.AssignInstancePermissionToAccount(ctx, dto.InstanceAndPermissionNamesWithUserIdDTO{
+		UserId:     userId,
+		Instance:   "instance1",
+		Permission: "perm3",
+	}) != nil {
+		t.Fatal()
+	}
+
+	if perm, err := p.GetInstancePermissionsForAccount(ctx, dto.InstanceNameWithUserIdDTO{
+		UserId:   userId,
+		Instance: "instance1",
+	}); len(perm) != 1 || err != nil {
+		t.Fatal()
+	}
+
+	if numbers, err := p.GetInstancePermissionsNumbersForAccount(ctx, dto.InstanceNameWithUserIdDTO{
+		UserId:   userId,
+		Instance: "instance1",
+	}); err != nil || len(numbers) != 1 || numbers[0] != 3 {
+		t.Fatal()
+	}
+
+	if numbers, err := p.GetServicePermissionsNumbersForAccount(ctx, dto.ServiceNameWithUserIdDTO{
+		UserId:  userId,
+		Service: "service1",
+	}); err != nil || len(numbers) != 2 {
+		t.Fatal()
+	}
+
+	if p.SetAccountState(ctx, dto.LoginStateDTO{Login: "test_user", State: account_state.Disabled}) != nil {
+		t.Fatal()
+	}
+
+	if logins, err := p.GetAccountsLoginsByState(ctx, account_state.Enabled); err != nil || len(logins) != 0 {
+		t.Fatal()
+	}
+
+	if logins, err := p.GetAccountsLoginsByState(ctx, account_state.Disabled); err != nil || len(logins) != 1 || logins[0] != "test_user" {
+		t.Fatal()
+	}
+
+	if p.GetMaxConnections() != p.maxConnections {
+		slog.Error("Вообще бесполезная проверка, но так покрытие тестами полнее")
+		t.Fatal()
+	}
+
+	if number, err := p.GetPermissionNumber(ctx, "perm3", "instance1"); err != nil || number != 3 {
+		t.Fatal()
+	}
+
+	if p.CreateRole(ctx, dto.NameAndServiceWithDescriptionDTO{Name: "role2", Description: "r2", Service: "service1"}) != nil {
+		t.Fatal()
+	}
+
+	if p.AssignRoleToAccount(ctx, dto.RoleServiceNamesWithUserIdDTO{
+		UserId:  userId,
+		Role:    "role2",
+		Service: "service1",
+	}) != nil {
 		t.Fatal()
 	}
 }
