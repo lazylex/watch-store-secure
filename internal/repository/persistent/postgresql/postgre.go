@@ -2,14 +2,19 @@ package postgresql
 
 import (
 	"context"
+	"fmt"
 	"github.com/jackc/pgx"
 	"github.com/lazylex/watch-store/secure/internal/config"
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/account_state"
 	loginVO "github.com/lazylex/watch-store/secure/internal/domain/value_objects/login"
 	"github.com/lazylex/watch-store/secure/internal/dto"
 	"log/slog"
+	"math/rand"
 	"os"
+	"strings"
 )
+
+const testSchemaPrefix = "test_schema_"
 
 type PostgreSQL struct {
 	pool           *pgx.ConnPool
@@ -54,10 +59,33 @@ func MustCreate(cfg config.PersistentStorage) *PostgreSQL {
 	return client
 }
 
+// MustCreateForTest возвращает структуру для взаимодействия с тестовой базой данных в СУБД PostgreSQL. Переданная в
+// конфигурации схема игнорируется и меняется на сгенерированную случайным образом (префикс из константы
+// testSchemaPrefix и случайное целое число). В остальном идентично функции MustCreate
+func MustCreateForTest(cfg config.PersistentStorage) *PostgreSQL {
+	cfg.DatabaseSchema = fmt.Sprintf("%s%d", testSchemaPrefix, rand.Int())
+	return MustCreate(cfg)
+}
+
 // Close закрывает пул соединений с БД
 func (p *PostgreSQL) Close() {
 	p.pool.Close()
 	slog.Info("closed postgres pool")
+}
+
+// DropCurrentTestSchema удаляет текущую схему со всеми данными, если она предназначалась для тестов. Это определяется
+// по суффиксу схемы, который должен быть test_schema_ для тестовых схем
+func (p *PostgreSQL) DropCurrentTestSchema() {
+	if !strings.HasPrefix(p.schema, testSchemaPrefix) {
+		slog.Warn(fmt.Sprintf("can't dropping current schema. It's not start with %s prefix", testSchemaPrefix))
+		return
+	}
+
+	if _, err := p.pool.Exec(fmt.Sprintf("DROP SCHEMA %s CASCADE", p.schema)); err == nil {
+		p.Close()
+	} else {
+		slog.Error(adaptErr(err).Error())
+	}
 }
 
 func (p *PostgreSQL) GetMaxConnections() int {
