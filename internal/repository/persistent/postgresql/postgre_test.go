@@ -3,14 +3,12 @@ package postgresql
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/google/uuid"
 	"github.com/lazylex/watch-store/secure/internal/config"
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/account_state"
 	"github.com/lazylex/watch-store/secure/internal/dto"
 	"github.com/lazylex/watch-store/secure/internal/errors/persistent"
 	"log/slog"
-	"math/rand"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -20,11 +18,6 @@ import (
 const configFilename = "local.yaml"
 
 var baseConfig config.PersistentStorage
-
-// dropSchema удаляет использованную схему из БД
-func dropSchema(base *PostgreSQL, schema string) {
-	_, _ = base.pool.Exec(`DROP SCHEMA IF EXISTS ` + schema + ` CASCADE;`)
-}
 
 // getConfig возвращает конфигурацию для подключения к БД. Файл с конфигурацией должен лежать в каталоге config.
 // Название файла конфигурации указано в константе configFilename в этом тестовом файле
@@ -50,20 +43,19 @@ func getConfig() config.PersistentStorage {
 		cfg = baseConfig
 	}
 
-	cfg.DatabaseSchema = fmt.Sprintf("test_schema_%d", rand.Int())
-
 	return cfg
 }
 
 // getPostgreSQL возвращает ссылку на готовую для работы с БД структуру PostgreSQL
 func getPostgreSQL() *PostgreSQL {
 	cfg := getConfig()
-	return MustCreate(cfg)
+	return MustCreateForTest(cfg)
 }
 
 func TestPostgreSQL_SetAndGetAccountLoginData(t *testing.T) {
 	var err error
 	p := getPostgreSQL()
+	defer p.DropCurrentTestSchema()
 	ctx := context.Background()
 
 	data := dto.AccountLoginDataDTO{
@@ -82,15 +74,12 @@ func TestPostgreSQL_SetAndGetAccountLoginData(t *testing.T) {
 	if errGet != nil || data != dataFromDB {
 		t.Fail()
 	}
-
-	dropSchema(p, p.schema)
-	p.Close()
 }
 
 func TestPostgreSQL_ErrGetAccountLoginData(t *testing.T) {
 	p := getPostgreSQL()
-	defer dropSchema(p, p.schema)
-	defer p.Close()
+	defer p.DropCurrentTestSchema()
+
 	if _, err := p.GetAccountLoginData(context.Background(), "non-existent user"); !errors.Is(err, persistent.ErrNoRowsInResultSet) {
 		t.Fail()
 	}
@@ -114,8 +103,7 @@ func TestPostgreSQL_ErrCreateConnection(t *testing.T) {
 
 func TestPostgreSQL_CreateService(t *testing.T) {
 	p := getPostgreSQL()
-	defer dropSchema(p, p.schema)
-	defer p.Close()
+	defer p.DropCurrentTestSchema()
 	data := dto.NameWithDescriptionDTO{
 		Name:        "test_service",
 		Description: "just test service",
@@ -127,8 +115,7 @@ func TestPostgreSQL_CreateService(t *testing.T) {
 
 func TestPostgreSQL_ErrCreateDuplicateService(t *testing.T) {
 	p := getPostgreSQL()
-	defer dropSchema(p, p.schema)
-	defer p.Close()
+	defer p.DropCurrentTestSchema()
 	data := dto.NameWithDescriptionDTO{
 		Name:        "test_service",
 		Description: "just test service",
@@ -143,8 +130,7 @@ func TestPostgreSQL_ErrCreateDuplicateService(t *testing.T) {
 
 func TestPostgreSQL_BigTest(t *testing.T) {
 	p := getPostgreSQL()
-	defer dropSchema(p, p.schema)
-	defer p.Close()
+	defer p.DropCurrentTestSchema()
 	ctx := context.Background()
 
 	if p.CreateService(ctx, dto.NameWithDescriptionDTO{Name: "service1", Description: "description 1"}) != nil {
