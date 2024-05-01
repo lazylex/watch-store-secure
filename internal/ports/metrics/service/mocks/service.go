@@ -56,3 +56,15 @@ func (mr *MockMetricsInterfaceMockRecorder) LoginInc() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoginInc", reflect.TypeOf((*MockMetricsInterface)(nil).LoginInc))
 }
+
+// LogoutInc mocks base method.
+func (m *MockMetricsInterface) LogoutInc() {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "LogoutInc")
+}
+
+// LogoutInc indicates an expected call of LogoutInc.
+func (mr *MockMetricsInterfaceMockRecorder) LogoutInc() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LogoutInc", reflect.TypeOf((*MockMetricsInterface)(nil).LogoutInc))
+}
