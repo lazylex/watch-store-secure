@@ -8,6 +8,7 @@ import (
 	"github.com/lazylex/watch-store/secure/internal/service"
 )
 
+//go:generate mockgen -source=service.go -destination=mocks/service.go
 type Service interface {
 	Login(context.Context, *dto.LoginPasswordDTO) (string, error)
 	Logout(context.Context, uuid.UUID) error

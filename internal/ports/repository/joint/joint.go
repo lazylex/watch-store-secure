@@ -37,6 +37,7 @@ type RBACInterface interface {
 	GetInstancePermissionsNumbersForAccount(context.Context, dto.InstanceNameWithUserIdDTO) ([]int, error)
 }
 
+//go:generate mockgen -source=joint.go -destination=mocks/joint.go
 type Interface interface {
 	ServiceInterface
 	LoginInterface
