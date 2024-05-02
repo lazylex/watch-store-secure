@@ -10,6 +10,7 @@ var (
 	ErrCreatePwdHash      = NewServiceError("error while hashing password")
 	ErrCreateToken        = NewServiceError("error creating token")
 	ErrLogout             = NewServiceError("error logout")
+	ErrAlreadyExist       = NewServiceError("already exist")
 )
 
 // FullServiceError возвращает полностью заполненную структуру с типом JointType

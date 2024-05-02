@@ -229,6 +229,10 @@ func (s *Service) RegisterInstance(ctx context.Context, data *dto.NameAndService
 	return adaptErr(s.repository.CreateInstance(ctx, *data))
 }
 
+func (s *Service) RegisterService(ctx context.Context, data *dto.NameWithDescriptionDTO) error {
+	return adaptErr(s.repository.CreateService(ctx, *data))
+}
+
 // AssignRoleToAccount прикрепляет роль к учетной записи
 func (s *Service) AssignRoleToAccount(ctx context.Context, data dto.RoleServiceNamesWithUserIdDTO) error {
 	return adaptErr(s.repository.AssignRoleToAccount(ctx, data))

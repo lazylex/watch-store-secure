@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/lazylex/watch-store/secure/internal/errors"
+	"github.com/lazylex/watch-store/secure/internal/errors/joint"
 	"github.com/lazylex/watch-store/secure/internal/errors/service"
 	"strings"
 )
@@ -16,6 +17,8 @@ func adaptErr(err error) error {
 // adaptErrSkipFrames переводит пришедшую ошибку к структурированной ошибке с учетом последовательности
 // вызова функций
 func adaptErrSkipFrames(err error, skip int) error {
+	var message string
+
 	if err == nil {
 		return nil
 	}
@@ -24,6 +27,13 @@ func adaptErrSkipFrames(err error, skip int) error {
 	origin = originPlace + origin[strings.LastIndex(origin, ".")+1:]
 
 	if be, ok := err.(*errors.BaseError); ok {
+		message = be.Message
+
+		switch {
+		case message == joint.ErrDuplicateData.Message:
+			return service.ErrAlreadyExist.WithOrigin(be.Origin)
+		}
+
 		if be.Type == service.ErrServiceType {
 			return service.FullServiceError(be.Message, origin, be.InitialError)
 		} else {

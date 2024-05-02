@@ -15,6 +15,7 @@ type Service interface {
 	CreateAccount(context.Context, *dto.LoginPasswordDTO, service.AccountOptions) (uuid.UUID, error)
 
 	RegisterInstance(context.Context, *dto.NameAndServiceDTO) error
+	RegisterService(context.Context, *dto.NameWithDescriptionDTO) error
 
 	common.RBACCreateInterface
 	common.RBACAssignToAccountInterface
