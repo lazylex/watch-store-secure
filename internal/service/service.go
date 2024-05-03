@@ -55,7 +55,7 @@ func (s *Service) Login(ctx context.Context, data *dto.LoginPasswordDTO) (string
 		return "", adaptErr(err)
 	}
 
-	if err = s.repository.SaveSession(ctx, dto.SessionDTO{Token: token, UserId: userId}); err != nil {
+	if err = s.repository.SaveSession(ctx, &dto.SessionDTO{Token: token, UserId: userId}); err != nil {
 		return "", adaptErr(err)
 	}
 
@@ -87,7 +87,7 @@ func (s *Service) CreateAccount(ctx context.Context, data *dto.LoginPasswordDTO,
 
 	loginData := dto.AccountLoginDataDTO{Login: data.Login, UserId: userId, Hash: hash, State: account_state.Enabled}
 
-	if err = s.repository.SetAccountLoginData(ctx, loginData); err != nil {
+	if err = s.repository.SetAccountLoginData(ctx, &loginData); err != nil {
 		return uuid.Nil, adaptErr(err)
 	}
 
@@ -119,7 +119,7 @@ func (s *Service) assignGroupToAccount(ctx context.Context, options AccountOptio
 	var errCount int
 	if options.Groups != nil && len(options.Groups) > 0 {
 		for _, group := range options.Groups {
-			if err := s.repository.AssignGroupToAccount(ctx, dto.GroupServiceNamesWithUserIdDTO{
+			if err := s.repository.AssignGroupToAccount(ctx, &dto.GroupServiceNamesWithUserIdDTO{
 				UserId:  userId,
 				Group:   group.Name,
 				Service: group.Service,
@@ -136,7 +136,7 @@ func (s *Service) assignRoleToAccount(ctx context.Context, options AccountOption
 	var errCount int
 	if options.Roles != nil && len(options.Roles) > 0 {
 		for _, role := range options.Roles {
-			if err := s.repository.AssignRoleToAccount(ctx, dto.RoleServiceNamesWithUserIdDTO{
+			if err := s.repository.AssignRoleToAccount(ctx, &dto.RoleServiceNamesWithUserIdDTO{
 				UserId:  userId,
 				Role:    role.Name,
 				Service: role.Service,
@@ -153,7 +153,7 @@ func (s *Service) assignInstancePermissionsToAccount(ctx context.Context, option
 	var errCount int
 	if options.InstancePermissions != nil && len(options.InstancePermissions) > 0 {
 		for _, inst := range options.InstancePermissions {
-			if err := s.repository.AssignInstancePermissionToAccount(ctx, dto.InstanceAndPermissionNamesWithUserIdDTO{
+			if err := s.repository.AssignInstancePermissionToAccount(ctx, &dto.InstanceAndPermissionNamesWithUserIdDTO{
 				UserId:     userId,
 				Instance:   inst.Instance,
 				Permission: inst.Permission,
@@ -210,55 +210,55 @@ func (s *Service) createToken() (string, error) {
 }
 
 // CreatePermission создает разрешение
-func (s *Service) CreatePermission(ctx context.Context, data dto.PermissionWithoutNumberDTO) error {
+func (s *Service) CreatePermission(ctx context.Context, data *dto.PermissionWithoutNumberDTO) error {
 	return adaptErr(s.repository.CreatePermission(ctx, data))
 }
 
 // CreateRole создает роль
-func (s *Service) CreateRole(ctx context.Context, data dto.NameAndServiceWithDescriptionDTO) error {
+func (s *Service) CreateRole(ctx context.Context, data *dto.NameAndServiceWithDescriptionDTO) error {
 	return adaptErr(s.repository.CreateRole(ctx, data))
 }
 
 // CreateGroup создает группу
-func (s *Service) CreateGroup(ctx context.Context, data dto.NameAndServiceWithDescriptionDTO) error {
+func (s *Service) CreateGroup(ctx context.Context, data *dto.NameAndServiceWithDescriptionDTO) error {
 	return adaptErr(s.repository.CreateGroup(ctx, data))
 }
 
 // RegisterInstance регистрирует название экземпляра сервиса
 func (s *Service) RegisterInstance(ctx context.Context, data *dto.NameAndServiceDTO) error {
-	return adaptErr(s.repository.CreateInstance(ctx, *data))
+	return adaptErr(s.repository.CreateInstance(ctx, data))
 }
 
 func (s *Service) RegisterService(ctx context.Context, data *dto.NameWithDescriptionDTO) error {
-	return adaptErr(s.repository.CreateService(ctx, *data))
+	return adaptErr(s.repository.CreateService(ctx, data))
 }
 
 // AssignRoleToAccount прикрепляет роль к учетной записи
-func (s *Service) AssignRoleToAccount(ctx context.Context, data dto.RoleServiceNamesWithUserIdDTO) error {
+func (s *Service) AssignRoleToAccount(ctx context.Context, data *dto.RoleServiceNamesWithUserIdDTO) error {
 	return adaptErr(s.repository.AssignRoleToAccount(ctx, data))
 }
 
 // AssignGroupToAccount прикрепляет учетную запись к группе
-func (s *Service) AssignGroupToAccount(ctx context.Context, data dto.GroupServiceNamesWithUserIdDTO) error {
+func (s *Service) AssignGroupToAccount(ctx context.Context, data *dto.GroupServiceNamesWithUserIdDTO) error {
 	return adaptErr(s.repository.AssignGroupToAccount(ctx, data))
 }
 
 // AssignInstancePermissionToAccount прикрепляет к учетной записи разрешения для конкретного экземпляра сервиса
-func (s *Service) AssignInstancePermissionToAccount(ctx context.Context, data dto.InstanceAndPermissionNamesWithUserIdDTO) error {
+func (s *Service) AssignInstancePermissionToAccount(ctx context.Context, data *dto.InstanceAndPermissionNamesWithUserIdDTO) error {
 	return adaptErr(s.repository.AssignInstancePermissionToAccount(ctx, data))
 }
 
 // AssignRoleToGroup прикрепляет роль к группе
-func (s *Service) AssignRoleToGroup(ctx context.Context, data dto.GroupRoleServiceNamesDTO) error {
+func (s *Service) AssignRoleToGroup(ctx context.Context, data *dto.GroupRoleServiceNamesDTO) error {
 	return adaptErr(s.repository.AssignRoleToGroup(ctx, data))
 }
 
 // AssignPermissionToRole прикрепляет разрешение к роли
-func (s *Service) AssignPermissionToRole(ctx context.Context, data dto.PermissionRoleServiceNamesDTO) error {
+func (s *Service) AssignPermissionToRole(ctx context.Context, data *dto.PermissionRoleServiceNamesDTO) error {
 	return adaptErr(s.repository.AssignPermissionToRole(ctx, data))
 }
 
 // AssignPermissionToGroup прикрепляет разрешение к группе
-func (s *Service) AssignPermissionToGroup(ctx context.Context, data dto.GroupPermissionServiceNamesDTO) error {
+func (s *Service) AssignPermissionToGroup(ctx context.Context, data *dto.GroupPermissionServiceNamesDTO) error {
 	return adaptErr(s.repository.AssignPermissionToGroup(ctx, data))
 }

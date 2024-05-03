@@ -38,7 +38,7 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // AssignGroupToAccount mocks base method.
-func (m *MockService) AssignGroupToAccount(arg0 context.Context, arg1 dto.GroupServiceNamesWithUserIdDTO) error {
+func (m *MockService) AssignGroupToAccount(arg0 context.Context, arg1 *dto.GroupServiceNamesWithUserIdDTO) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AssignGroupToAccount", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -52,7 +52,7 @@ func (mr *MockServiceMockRecorder) AssignGroupToAccount(arg0, arg1 interface{}) 
 }
 
 // AssignInstancePermissionToAccount mocks base method.
-func (m *MockService) AssignInstancePermissionToAccount(arg0 context.Context, arg1 dto.InstanceAndPermissionNamesWithUserIdDTO) error {
+func (m *MockService) AssignInstancePermissionToAccount(arg0 context.Context, arg1 *dto.InstanceAndPermissionNamesWithUserIdDTO) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AssignInstancePermissionToAccount", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -66,7 +66,7 @@ func (mr *MockServiceMockRecorder) AssignInstancePermissionToAccount(arg0, arg1 
 }
 
 // AssignPermissionToGroup mocks base method.
-func (m *MockService) AssignPermissionToGroup(arg0 context.Context, arg1 dto.GroupPermissionServiceNamesDTO) error {
+func (m *MockService) AssignPermissionToGroup(arg0 context.Context, arg1 *dto.GroupPermissionServiceNamesDTO) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AssignPermissionToGroup", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -80,7 +80,7 @@ func (mr *MockServiceMockRecorder) AssignPermissionToGroup(arg0, arg1 interface{
 }
 
 // AssignPermissionToRole mocks base method.
-func (m *MockService) AssignPermissionToRole(arg0 context.Context, arg1 dto.PermissionRoleServiceNamesDTO) error {
+func (m *MockService) AssignPermissionToRole(arg0 context.Context, arg1 *dto.PermissionRoleServiceNamesDTO) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AssignPermissionToRole", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -94,7 +94,7 @@ func (mr *MockServiceMockRecorder) AssignPermissionToRole(arg0, arg1 interface{}
 }
 
 // AssignRoleToAccount mocks base method.
-func (m *MockService) AssignRoleToAccount(arg0 context.Context, arg1 dto.RoleServiceNamesWithUserIdDTO) error {
+func (m *MockService) AssignRoleToAccount(arg0 context.Context, arg1 *dto.RoleServiceNamesWithUserIdDTO) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AssignRoleToAccount", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -108,7 +108,7 @@ func (mr *MockServiceMockRecorder) AssignRoleToAccount(arg0, arg1 interface{}) *
 }
 
 // AssignRoleToGroup mocks base method.
-func (m *MockService) AssignRoleToGroup(arg0 context.Context, arg1 dto.GroupRoleServiceNamesDTO) error {
+func (m *MockService) AssignRoleToGroup(arg0 context.Context, arg1 *dto.GroupRoleServiceNamesDTO) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AssignRoleToGroup", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -137,7 +137,7 @@ func (mr *MockServiceMockRecorder) CreateAccount(arg0, arg1, arg2 interface{}) *
 }
 
 // CreateGroup mocks base method.
-func (m *MockService) CreateGroup(arg0 context.Context, arg1 dto.NameAndServiceWithDescriptionDTO) error {
+func (m *MockService) CreateGroup(arg0 context.Context, arg1 *dto.NameAndServiceWithDescriptionDTO) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateGroup", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -151,7 +151,7 @@ func (mr *MockServiceMockRecorder) CreateGroup(arg0, arg1 interface{}) *gomock.C
 }
 
 // CreatePermission mocks base method.
-func (m *MockService) CreatePermission(arg0 context.Context, arg1 dto.PermissionWithoutNumberDTO) error {
+func (m *MockService) CreatePermission(arg0 context.Context, arg1 *dto.PermissionWithoutNumberDTO) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreatePermission", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -165,7 +165,7 @@ func (mr *MockServiceMockRecorder) CreatePermission(arg0, arg1 interface{}) *gom
 }
 
 // CreateRole mocks base method.
-func (m *MockService) CreateRole(arg0 context.Context, arg1 dto.NameAndServiceWithDescriptionDTO) error {
+func (m *MockService) CreateRole(arg0 context.Context, arg1 *dto.NameAndServiceWithDescriptionDTO) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateRole", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -219,4 +219,18 @@ func (m *MockService) RegisterInstance(arg0 context.Context, arg1 *dto.NameAndSe
 func (mr *MockServiceMockRecorder) RegisterInstance(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterInstance", reflect.TypeOf((*MockService)(nil).RegisterInstance), arg0, arg1)
+}
+
+// RegisterService mocks base method.
+func (m *MockService) RegisterService(arg0 context.Context, arg1 *dto.NameWithDescriptionDTO) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RegisterService", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RegisterService indicates an expected call of RegisterService.
+func (mr *MockServiceMockRecorder) RegisterService(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterService", reflect.TypeOf((*MockService)(nil).RegisterService), arg0, arg1)
 }
