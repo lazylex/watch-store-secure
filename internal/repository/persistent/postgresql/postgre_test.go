@@ -65,7 +65,7 @@ func TestPostgreSQL_SetAndGetAccountLoginData(t *testing.T) {
 		State:  account_state.Enabled,
 	}
 
-	err = p.SetAccountLoginData(ctx, data)
+	err = p.SetAccountLoginData(ctx, &data)
 	if err != nil {
 		t.Fatal()
 	}
@@ -108,7 +108,7 @@ func TestPostgreSQL_CreateService(t *testing.T) {
 		Name:        "test_service",
 		Description: "just test service",
 	}
-	if p.CreateService(context.Background(), data) != nil {
+	if p.CreateService(context.Background(), &data) != nil {
 		t.Fail()
 	}
 }
@@ -120,10 +120,10 @@ func TestPostgreSQL_ErrCreateDuplicateService(t *testing.T) {
 		Name:        "test_service",
 		Description: "just test service",
 	}
-	if p.CreateService(context.Background(), data) != nil {
+	if p.CreateService(context.Background(), &data) != nil {
 		t.Fatal()
 	}
-	if !errors.Is(p.CreateService(context.Background(), data), persistent.ErrDuplicateKeyValue) {
+	if !errors.Is(p.CreateService(context.Background(), &data), persistent.ErrDuplicateKeyValue) {
 		t.Fail()
 	}
 }
@@ -133,32 +133,32 @@ func TestPostgreSQL_BigTest(t *testing.T) {
 	defer p.DropCurrentTestSchema()
 	ctx := context.Background()
 
-	if p.CreateService(ctx, dto.NameWithDescriptionDTO{Name: "service1", Description: "description 1"}) != nil {
+	if p.CreateService(ctx, &dto.NameWithDescriptionDTO{Name: "service1", Description: "description 1"}) != nil {
 		t.Fatal()
 	}
 
-	if p.CreateGroup(ctx, dto.NameAndServiceWithDescriptionDTO{Name: "group1", Description: "group1 description", Service: "service1"}) != nil {
+	if p.CreateGroup(ctx, &dto.NameAndServiceWithDescriptionDTO{Name: "group1", Description: "group1 description", Service: "service1"}) != nil {
 		t.Fatal()
 	}
 
-	if p.CreateRole(ctx, dto.NameAndServiceWithDescriptionDTO{Name: "role1", Description: "r1", Service: "service1"}) != nil {
+	if p.CreateRole(ctx, &dto.NameAndServiceWithDescriptionDTO{Name: "role1", Description: "r1", Service: "service1"}) != nil {
 		t.Fatal()
 	}
 
-	if p.CreatePermission(ctx, dto.PermissionWithoutNumberDTO{Name: "perm1", Description: "p1", Service: "service1"}) != nil {
+	if p.CreatePermission(ctx, &dto.PermissionWithoutNumberDTO{Name: "perm1", Description: "p1", Service: "service1"}) != nil {
 		t.Fatal()
 	}
 
-	if p.CreatePermission(ctx, dto.PermissionWithoutNumberDTO{Name: "perm2", Description: "p2", Service: "service1"}) != nil {
+	if p.CreatePermission(ctx, &dto.PermissionWithoutNumberDTO{Name: "perm2", Description: "p2", Service: "service1"}) != nil {
 		t.Fatal()
 	}
 
-	if p.CreatePermission(ctx, dto.PermissionWithoutNumberDTO{Name: "perm3", Description: "p3", Service: "service1"}) != nil {
+	if p.CreatePermission(ctx, &dto.PermissionWithoutNumberDTO{Name: "perm3", Description: "p3", Service: "service1"}) != nil {
 		t.Fatal()
 	}
 
 	userId := uuid.New()
-	if p.SetAccountLoginData(ctx, dto.AccountLoginDataDTO{
+	if p.SetAccountLoginData(ctx, &dto.AccountLoginDataDTO{
 		Login:  "test_user",
 		UserId: userId,
 		Hash:   "$2a$14$qXnQ8n9U0FItXkto3Sf8XuvZny48y4iZLTluWZtZszTrc7REdzUAy",
@@ -167,7 +167,7 @@ func TestPostgreSQL_BigTest(t *testing.T) {
 		t.Fatal()
 	}
 
-	if p.AssignPermissionToGroup(ctx, dto.GroupPermissionServiceNamesDTO{
+	if p.AssignPermissionToGroup(ctx, &dto.GroupPermissionServiceNamesDTO{
 		Group:      "group1",
 		Permission: "perm1",
 		Service:    "service1",
@@ -175,7 +175,7 @@ func TestPostgreSQL_BigTest(t *testing.T) {
 		t.Fatal()
 	}
 
-	if p.AssignPermissionToRole(ctx, dto.PermissionRoleServiceNamesDTO{
+	if p.AssignPermissionToRole(ctx, &dto.PermissionRoleServiceNamesDTO{
 		Permission: "perm2",
 		Role:       "role1",
 		Service:    "service1",
@@ -183,7 +183,7 @@ func TestPostgreSQL_BigTest(t *testing.T) {
 		t.Fatal()
 	}
 
-	if p.AssignRoleToGroup(ctx, dto.GroupRoleServiceNamesDTO{
+	if p.AssignRoleToGroup(ctx, &dto.GroupRoleServiceNamesDTO{
 		Group:   "group1",
 		Role:    "role1",
 		Service: "service1",
@@ -191,7 +191,7 @@ func TestPostgreSQL_BigTest(t *testing.T) {
 		t.Fatal()
 	}
 
-	if p.AssignGroupToAccount(ctx, dto.GroupServiceNamesWithUserIdDTO{
+	if p.AssignGroupToAccount(ctx, &dto.GroupServiceNamesWithUserIdDTO{
 		UserId:  userId,
 		Group:   "group1",
 		Service: "service1",
@@ -199,7 +199,7 @@ func TestPostgreSQL_BigTest(t *testing.T) {
 		t.Fatal()
 	}
 
-	if permissions, err := p.GetServicePermissionsForAccount(ctx, dto.ServiceNameWithUserIdDTO{
+	if permissions, err := p.GetServicePermissionsForAccount(ctx, &dto.ServiceNameWithUserIdDTO{
 		UserId:  userId,
 		Service: "service1",
 	}); err != nil {
@@ -210,21 +210,21 @@ func TestPostgreSQL_BigTest(t *testing.T) {
 		}
 	}
 
-	if perm, err := p.GetInstancePermissionsForAccount(ctx, dto.InstanceNameWithUserIdDTO{
+	if perm, err := p.GetInstancePermissionsForAccount(ctx, &dto.InstanceNameWithUserIdDTO{
 		UserId:   userId,
 		Instance: "instance1",
 	}); len(perm) > 0 || err != nil {
 		t.Fatal()
 	}
 
-	if p.CreateInstance(ctx, dto.NameAndServiceDTO{
+	if p.CreateInstance(ctx, &dto.NameAndServiceDTO{
 		Name:    "instance1",
 		Service: "service1",
 	}) != nil {
 		t.Fatal()
 	}
 
-	if p.AssignInstancePermissionToAccount(ctx, dto.InstanceAndPermissionNamesWithUserIdDTO{
+	if p.AssignInstancePermissionToAccount(ctx, &dto.InstanceAndPermissionNamesWithUserIdDTO{
 		UserId:     userId,
 		Instance:   "instance1",
 		Permission: "perm3",
@@ -232,28 +232,28 @@ func TestPostgreSQL_BigTest(t *testing.T) {
 		t.Fatal()
 	}
 
-	if perm, err := p.GetInstancePermissionsForAccount(ctx, dto.InstanceNameWithUserIdDTO{
+	if perm, err := p.GetInstancePermissionsForAccount(ctx, &dto.InstanceNameWithUserIdDTO{
 		UserId:   userId,
 		Instance: "instance1",
 	}); len(perm) != 1 || err != nil {
 		t.Fatal()
 	}
 
-	if numbers, err := p.GetInstancePermissionsNumbersForAccount(ctx, dto.InstanceNameWithUserIdDTO{
+	if numbers, err := p.GetInstancePermissionsNumbersForAccount(ctx, &dto.InstanceNameWithUserIdDTO{
 		UserId:   userId,
 		Instance: "instance1",
 	}); err != nil || len(numbers) != 1 || numbers[0] != 3 {
 		t.Fatal()
 	}
 
-	if numbers, err := p.GetServicePermissionsNumbersForAccount(ctx, dto.ServiceNameWithUserIdDTO{
+	if numbers, err := p.GetServicePermissionsNumbersForAccount(ctx, &dto.ServiceNameWithUserIdDTO{
 		UserId:  userId,
 		Service: "service1",
 	}); err != nil || len(numbers) != 2 {
 		t.Fatal()
 	}
 
-	if p.SetAccountState(ctx, dto.LoginStateDTO{Login: "test_user", State: account_state.Disabled}) != nil {
+	if p.SetAccountState(ctx, &dto.LoginStateDTO{Login: "test_user", State: account_state.Disabled}) != nil {
 		t.Fatal()
 	}
 
@@ -274,11 +274,11 @@ func TestPostgreSQL_BigTest(t *testing.T) {
 		t.Fatal()
 	}
 
-	if p.CreateRole(ctx, dto.NameAndServiceWithDescriptionDTO{Name: "role2", Description: "r2", Service: "service1"}) != nil {
+	if p.CreateRole(ctx, &dto.NameAndServiceWithDescriptionDTO{Name: "role2", Description: "r2", Service: "service1"}) != nil {
 		t.Fatal()
 	}
 
-	if p.AssignRoleToAccount(ctx, dto.RoleServiceNamesWithUserIdDTO{
+	if p.AssignRoleToAccount(ctx, &dto.RoleServiceNamesWithUserIdDTO{
 		UserId:  userId,
 		Role:    "role2",
 		Service: "service1",
