@@ -93,32 +93,32 @@ func (p *PostgreSQL) GetMaxConnections() int {
 }
 
 // GetAccountLoginData возвращает необходимые для процесса входа в систему данные пользователя (сервиса)
-func (p *PostgreSQL) GetAccountLoginData(ctx context.Context, login loginVO.Login) (dto.AccountLoginDataDTO, error) {
-	result := dto.AccountLoginDataDTO{Login: login}
+func (p *PostgreSQL) GetAccountLoginData(ctx context.Context, login loginVO.Login) (dto.UserIdLoginHashState, error) {
+	result := dto.UserIdLoginHashState{Login: login}
 	stmt := `SELECT uuid, pwd_hash, state FROM accounts WHERE login = $1;`
 	row := p.pool.QueryRowEx(ctx, stmt, nil, login)
 	err := row.Scan(&result.UserId, &result.Hash, &result.State)
 	if err != nil {
-		return dto.AccountLoginDataDTO{}, adaptErr(err)
+		return dto.UserIdLoginHashState{}, adaptErr(err)
 	}
 
 	return result, nil
 }
 
 // SetAccountLoginData сохраняет в БД идентификатор пользователя (сервиса), логин, хеш пароля и состояние учетной записи
-func (p *PostgreSQL) SetAccountLoginData(ctx context.Context, data *dto.AccountLoginDataDTO) error {
+func (p *PostgreSQL) SetAccountLoginData(ctx context.Context, data *dto.UserIdLoginHashState) error {
 	stmt := `INSERT INTO accounts (uuid, login, pwd_hash, state) values ($1, $2, $3, $4);`
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.UserId, data.Login, data.Hash, data.State))
 }
 
 // SetAccountState устанавливает состояние учетной записи
-func (p *PostgreSQL) SetAccountState(ctx context.Context, data *dto.LoginStateDTO) error {
+func (p *PostgreSQL) SetAccountState(ctx context.Context, data *dto.LoginState) error {
 	stmt := `UPDATE accounts SET state = $1 WHERE login = $2;`
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.State, data.Login))
 }
 
 // CreatePermission добавляет разрешение в таблицу permissions
-func (p *PostgreSQL) CreatePermission(ctx context.Context, data *dto.PermissionWithoutNumberDTO) error {
+func (p *PostgreSQL) CreatePermission(ctx context.Context, data *dto.NameServiceDescription) error {
 	stmt := `INSERT INTO permissions (name, description, service_fk, number)
 			VALUES ($1,
 			        $2,
@@ -136,27 +136,27 @@ func (p *PostgreSQL) CreatePermission(ctx context.Context, data *dto.PermissionW
 }
 
 // CreateRole добавляет роль в БД
-func (p *PostgreSQL) CreateRole(ctx context.Context, data *dto.NameAndServiceWithDescriptionDTO) error {
+func (p *PostgreSQL) CreateRole(ctx context.Context, data *dto.NameServiceDescription) error {
 	stmt := `INSERT INTO roles (name, description, service_fk)
 			VALUES ($1, $2, (SELECT service_id FROM services WHERE name=$3));`
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Name, data.Description, data.Service))
 }
 
 // CreateGroup добавляет группу в БД
-func (p *PostgreSQL) CreateGroup(ctx context.Context, data *dto.NameAndServiceWithDescriptionDTO) error {
+func (p *PostgreSQL) CreateGroup(ctx context.Context, data *dto.NameServiceDescription) error {
 	stmt := `INSERT INTO groups (name, description, service_fk)
 			VALUES ($1, $2, (SELECT service_id FROM services WHERE name=$3));`
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Name, data.Description, data.Service))
 }
 
 // CreateService добавляет сервис в БД
-func (p *PostgreSQL) CreateService(ctx context.Context, data *dto.NameWithDescriptionDTO) error {
+func (p *PostgreSQL) CreateService(ctx context.Context, data *dto.NameDescription) error {
 	stmt := `INSERT INTO services (name, description) VALUES ($1, $2);`
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Name, data.Description))
 }
 
 // CreateInstance добавляет в БД название экземпляра сервиса
-func (p *PostgreSQL) CreateInstance(ctx context.Context, data *dto.NameAndServiceDTO) error {
+func (p *PostgreSQL) CreateInstance(ctx context.Context, data *dto.NameService) error {
 	stmt := `INSERT INTO instances (name, service_fk)
 			VALUES ($1,
 			        (SELECT service_id FROM services WHERE name=$2));`
@@ -164,7 +164,7 @@ func (p *PostgreSQL) CreateInstance(ctx context.Context, data *dto.NameAndServic
 }
 
 // AssignPermissionToRole назначает роли разрешение
-func (p *PostgreSQL) AssignPermissionToRole(ctx context.Context, data *dto.PermissionRoleServiceNamesDTO) error {
+func (p *PostgreSQL) AssignPermissionToRole(ctx context.Context, data *dto.PermissionRoleService) error {
 	stmt := `INSERT INTO role_permissions (role_fk, permission_fk)
 			VALUES (
             	(SELECT role_id 
@@ -180,7 +180,7 @@ func (p *PostgreSQL) AssignPermissionToRole(ctx context.Context, data *dto.Permi
 }
 
 // AssignRoleToGroup присоединяет роль к группе
-func (p *PostgreSQL) AssignRoleToGroup(ctx context.Context, data *dto.GroupRoleServiceNamesDTO) error {
+func (p *PostgreSQL) AssignRoleToGroup(ctx context.Context, data *dto.GroupRoleService) error {
 	stmt := `INSERT INTO group_roles (role_fk, group_fk)
 			VALUES (
 				(SELECT role_id 
@@ -196,7 +196,7 @@ func (p *PostgreSQL) AssignRoleToGroup(ctx context.Context, data *dto.GroupRoleS
 }
 
 // AssignRoleToAccount назначает роль учетной записи
-func (p *PostgreSQL) AssignRoleToAccount(ctx context.Context, data *dto.RoleServiceNamesWithUserIdDTO) error {
+func (p *PostgreSQL) AssignRoleToAccount(ctx context.Context, data *dto.UserIdRoleService) error {
 	stmt := `INSERT INTO account_roles (role_fk, account_fk)
 			VALUES (
 				(SELECT role_id 
@@ -212,7 +212,7 @@ func (p *PostgreSQL) AssignRoleToAccount(ctx context.Context, data *dto.RoleServ
 }
 
 // AssignGroupToAccount назначает группу учетной записи
-func (p *PostgreSQL) AssignGroupToAccount(ctx context.Context, data *dto.GroupServiceNamesWithUserIdDTO) error {
+func (p *PostgreSQL) AssignGroupToAccount(ctx context.Context, data *dto.UserIdGroupService) error {
 	stmt := `INSERT INTO account_groups (group_fk, account_fk)
 			VALUES (
 				(SELECT group_id 
@@ -228,7 +228,7 @@ func (p *PostgreSQL) AssignGroupToAccount(ctx context.Context, data *dto.GroupSe
 }
 
 // AssignInstancePermissionToAccount прикрепляет разрешение конкретного экземпляра сервиса к учетной записи
-func (p *PostgreSQL) AssignInstancePermissionToAccount(ctx context.Context, data *dto.InstanceAndPermissionNamesWithUserIdDTO) error {
+func (p *PostgreSQL) AssignInstancePermissionToAccount(ctx context.Context, data *dto.UserIdInstancePermission) error {
 	cte := `WITH instance_cte AS (SELECT instance_id, service_fk
                       FROM instances
                       WHERE name = $1)`
@@ -248,7 +248,7 @@ func (p *PostgreSQL) AssignInstancePermissionToAccount(ctx context.Context, data
 }
 
 // AssignPermissionToGroup назначает разрешения группе
-func (p *PostgreSQL) AssignPermissionToGroup(ctx context.Context, data *dto.GroupPermissionServiceNamesDTO) error {
+func (p *PostgreSQL) AssignPermissionToGroup(ctx context.Context, data *dto.GroupPermissionService) error {
 	stmt := `INSERT INTO group_permissions (group_fk, permission_fk)
 			VALUES (
 	       	(SELECT group_id
@@ -264,7 +264,7 @@ func (p *PostgreSQL) AssignPermissionToGroup(ctx context.Context, data *dto.Grou
 }
 
 // GetInstancePermissionsForAccount возвращает название, номер и описание разрешений аккаунта для экземпляра сервиса
-func (p *PostgreSQL) GetInstancePermissionsForAccount(ctx context.Context, data *dto.InstanceNameWithUserIdDTO) ([]dto.PermissionWithoutServiceDTO, error) {
+func (p *PostgreSQL) GetInstancePermissionsForAccount(ctx context.Context, data *dto.UserIdInstance) ([]dto.NameNumberDescription, error) {
 	cte := `
 	WITH account_cte AS (SELECT account_id
                      FROM accounts
@@ -294,7 +294,7 @@ func (p *PostgreSQL) GetInstancePermissionsForAccount(ctx context.Context, data 
 		return nil, adaptErr(err)
 	}
 
-	result := make([]dto.PermissionWithoutServiceDTO, 0)
+	result := make([]dto.NameNumberDescription, 0)
 	var number int
 	var name, description string
 
@@ -302,7 +302,7 @@ func (p *PostgreSQL) GetInstancePermissionsForAccount(ctx context.Context, data 
 		if err = rows.Scan(&name, &number, &description); err != nil {
 			return result, adaptErr(err)
 		}
-		result = append(result, dto.PermissionWithoutServiceDTO{Name: name, Number: number, Description: description})
+		result = append(result, dto.NameNumberDescription{Name: name, Number: number, Description: description})
 
 	}
 
@@ -310,7 +310,7 @@ func (p *PostgreSQL) GetInstancePermissionsForAccount(ctx context.Context, data 
 }
 
 // GetInstancePermissionsNumbersForAccount возвращает номера разрешений аккаунта для экземпляра сервиса
-func (p *PostgreSQL) GetInstancePermissionsNumbersForAccount(ctx context.Context, data *dto.InstanceNameWithUserIdDTO) ([]int, error) {
+func (p *PostgreSQL) GetInstancePermissionsNumbersForAccount(ctx context.Context, data *dto.UserIdInstance) ([]int, error) {
 	cte := `
 	WITH account_cte AS (SELECT account_id
                      FROM accounts
@@ -353,7 +353,7 @@ func (p *PostgreSQL) GetInstancePermissionsNumbersForAccount(ctx context.Context
 
 // GetServicePermissionsForAccount возвращает название, номер и описание разрешений аккаунта для сервиса (без разрешений
 // для экземпляра)
-func (p *PostgreSQL) GetServicePermissionsForAccount(ctx context.Context, data *dto.ServiceNameWithUserIdDTO) ([]dto.PermissionWithoutServiceDTO, error) {
+func (p *PostgreSQL) GetServicePermissionsForAccount(ctx context.Context, data *dto.UserIdService) ([]dto.NameNumberDescription, error) {
 	cte := `
 	WITH account_cte AS (SELECT account_id
                      FROM accounts
@@ -401,7 +401,7 @@ func (p *PostgreSQL) GetServicePermissionsForAccount(ctx context.Context, data *
 		return nil, adaptErr(err)
 	}
 
-	result := make([]dto.PermissionWithoutServiceDTO, 0)
+	result := make([]dto.NameNumberDescription, 0)
 	var number int
 	var name, description string
 
@@ -409,7 +409,7 @@ func (p *PostgreSQL) GetServicePermissionsForAccount(ctx context.Context, data *
 		if err = rows.Scan(&name, &number, &description); err != nil {
 			return result, adaptErr(err)
 		}
-		result = append(result, dto.PermissionWithoutServiceDTO{Name: name, Number: number, Description: description})
+		result = append(result, dto.NameNumberDescription{Name: name, Number: number, Description: description})
 
 	}
 
@@ -418,7 +418,7 @@ func (p *PostgreSQL) GetServicePermissionsForAccount(ctx context.Context, data *
 
 // GetServicePermissionsNumbersForAccount возвращает номера разрешений аккаунта для сервиса (без разрешений для
 // экземпляра)
-func (p *PostgreSQL) GetServicePermissionsNumbersForAccount(ctx context.Context, data *dto.ServiceNameWithUserIdDTO) ([]int, error) {
+func (p *PostgreSQL) GetServicePermissionsNumbersForAccount(ctx context.Context, data *dto.UserIdService) ([]int, error) {
 	cte := `
 	WITH account_cte AS (SELECT account_id
                      FROM accounts

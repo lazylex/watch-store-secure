@@ -41,7 +41,7 @@ func MustCreate(cfg config.Redis, ttl config.TTL) *Redis {
 
 // SaveSession сохраняет данные о времени жизни сессии и её пользователе. Переданный токен служит для создания ключа,
 // по которому хранится идентификатор пользователя (хранение осуществляется переданное в TTL количество секунд)
-func (r *Redis) SaveSession(ctx context.Context, dto *dto.SessionDTO) error {
+func (r *Redis) SaveSession(ctx context.Context, dto *dto.UserIdToken) error {
 	pipe := r.client.Pipeline()
 	pipe.Set(ctx, keySession(dto.Token), dto.UserId.String(), r.ttl.SessionTTL)
 	pipe.Set(ctx, keySessionByUUID(dto.UserId.String()), dto.Token, r.ttl.SessionTTL)
@@ -119,7 +119,7 @@ func (r *Redis) GetUserUUIDFromSession(ctx context.Context, sessionToken string)
 	return parsedUUID, adaptErr(err)
 }
 
-func (r *Redis) GetUserIdAndPasswordHash(ctx context.Context, login loginVO.Login) (dto.UserIdWithPasswordHashDTO, error) {
+func (r *Redis) GetUserIdAndPasswordHash(ctx context.Context, login loginVO.Login) (dto.UserIdHash, error) {
 	var err error
 	var parsedUUID uuid.UUID
 	var values map[string]string
@@ -127,17 +127,17 @@ func (r *Redis) GetUserIdAndPasswordHash(ctx context.Context, login loginVO.Logi
 	key := keyUserIdAndPasswordHash(login)
 
 	if values, err = r.client.HGetAll(ctx, key).Result(); err != nil {
-		return dto.UserIdWithPasswordHashDTO{}, adaptErr(err)
+		return dto.UserIdHash{}, adaptErr(err)
 	}
 
 	r.client.Expire(ctx, key, r.ttl.UserIdAndPasswordHashTTL)
 	if parsedUUID, err = uuid.Parse(values[userIdField]); err != nil {
-		return dto.UserIdWithPasswordHashDTO{}, adaptErr(err)
+		return dto.UserIdHash{}, adaptErr(err)
 	}
-	return dto.UserIdWithPasswordHashDTO{UserId: parsedUUID, Hash: values[hashField]}, nil
+	return dto.UserIdHash{UserId: parsedUUID, Hash: values[hashField]}, nil
 }
 
-func (r *Redis) SetUserIdAndPasswordHash(ctx context.Context, data *dto.UserLoginAndIdWithPasswordHashDTO) {
+func (r *Redis) SetUserIdAndPasswordHash(ctx context.Context, data *dto.UserIdLoginHash) {
 	key := keyUserIdAndPasswordHash(data.Login)
 	r.client.HSet(ctx, key, userIdField, data.UserId.String(), hashField, data.Hash)
 	r.client.Expire(ctx, key, r.ttl.UserIdAndPasswordHashTTL)
@@ -165,18 +165,18 @@ func (r *Redis) GetAccountStateByLogin(ctx context.Context, login loginVO.Login)
 }
 
 // SetAccountState сохраняет состояние аккаунта с переданным логином
-func (r *Redis) SetAccountState(ctx context.Context, data *dto.LoginStateDTO) error {
+func (r *Redis) SetAccountState(ctx context.Context, data *dto.LoginState) error {
 	return adaptErr(r.client.Set(ctx, keyAccountStateByLogin(data.Login), int(data.State), r.ttl.AccountStateTTL).Err())
 }
 
 // SetServicePermissionsNumbersForAccount сохраняет номера разрешений аккаунта для сервиса
-func (r *Redis) SetServicePermissionsNumbersForAccount(ctx context.Context, data *dto.ServiceNameWithUserIdAndPermNumbersDTO) error {
+func (r *Redis) SetServicePermissionsNumbersForAccount(ctx context.Context, data *dto.UserIdServicePermNumbers) error {
 	key := keyServicePermissionsNumbers(data.Service, data.UserId)
 	return adaptErr(r.setPermissionsNumbers(ctx, key, data.PermissionNumbers))
 }
 
 // GetServicePermissionsNumbersForAccount возвращает номера всех разрешений аккаунта для сервиса
-func (r *Redis) GetServicePermissionsNumbersForAccount(ctx context.Context, data *dto.ServiceNameWithUserIdDTO) ([]int, error) {
+func (r *Redis) GetServicePermissionsNumbersForAccount(ctx context.Context, data *dto.UserIdService) ([]int, error) {
 	key := keyServicePermissionsNumbers(data.Service, data.UserId)
 	if numbers, err := r.getPermissionsNumbers(ctx, key); err != nil {
 		return []int{}, adaptErr(err)
@@ -187,13 +187,13 @@ func (r *Redis) GetServicePermissionsNumbersForAccount(ctx context.Context, data
 }
 
 // SetInstancePermissionsNumbersForAccount сохраняет номера разрешений аккаунта для экземпляра сервиса
-func (r *Redis) SetInstancePermissionsNumbersForAccount(ctx context.Context, data *dto.InstanceNameWithUserIdAndPermNumbersDTO) error {
+func (r *Redis) SetInstancePermissionsNumbersForAccount(ctx context.Context, data *dto.UserIdInstancePermNumbers) error {
 	key := keyInstancePermissionsNumbers(data.Instance, data.UserId)
 	return adaptErr(r.setPermissionsNumbers(ctx, key, data.PermissionNumbers))
 }
 
 // GetInstancePermissionsNumbersForAccount возвращает номера разрешений аккаунта для экземпляра сервиса
-func (r *Redis) GetInstancePermissionsNumbersForAccount(ctx context.Context, data *dto.InstanceNameWithUserIdDTO) ([]int, error) {
+func (r *Redis) GetInstancePermissionsNumbersForAccount(ctx context.Context, data *dto.UserIdInstance) ([]int, error) {
 	key := keyInstancePermissionsNumbers(data.Instance, data.UserId)
 	if numbers, err := r.getPermissionsNumbers(ctx, key); err != nil {
 		return []int{}, adaptErr(err)
@@ -236,14 +236,14 @@ func (r *Redis) getPermissionsNumbers(ctx context.Context, key string) ([]int, e
 
 // ExistServicePermissionsNumbersForAccount возвращает true, если в памяти сохранены номера разрешений сервиса для
 // аккаунта
-func (r *Redis) ExistServicePermissionsNumbersForAccount(ctx context.Context, data *dto.ServiceNameWithUserIdDTO) bool {
+func (r *Redis) ExistServicePermissionsNumbersForAccount(ctx context.Context, data *dto.UserIdService) bool {
 	key := keyServicePermissionsNumbers(data.Service, data.UserId)
 	return r.existKey(ctx, key)
 }
 
 // ExistInstancePermissionsNumbersForAccount возвращает true, если в памяти сохранены номера разрешений экземпляра для
 // аккаунта
-func (r *Redis) ExistInstancePermissionsNumbersForAccount(ctx context.Context, data *dto.InstanceNameWithUserIdDTO) bool {
+func (r *Redis) ExistInstancePermissionsNumbersForAccount(ctx context.Context, data *dto.UserIdInstance) bool {
 	key := keyInstancePermissionsNumbers(data.Instance, data.UserId)
 	return r.existKey(ctx, key)
 }

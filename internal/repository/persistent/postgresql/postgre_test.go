@@ -58,7 +58,7 @@ func TestPostgreSQL_SetAndGetAccountLoginData(t *testing.T) {
 	defer p.DropCurrentTestSchema()
 	ctx := context.Background()
 
-	data := dto.AccountLoginDataDTO{
+	data := dto.UserIdLoginHashState{
 		Login:  "test_user",
 		UserId: uuid.New(),
 		Hash:   "$2a$14$qXnQ8n9U0FItXkto3Sf8XuvZny48y4iZLTluWZtZszTrc7REdzUAy",
@@ -104,7 +104,7 @@ func TestPostgreSQL_ErrCreateConnection(t *testing.T) {
 func TestPostgreSQL_CreateService(t *testing.T) {
 	p := getPostgreSQL()
 	defer p.DropCurrentTestSchema()
-	data := dto.NameWithDescriptionDTO{
+	data := dto.NameDescription{
 		Name:        "test_service",
 		Description: "just test service",
 	}
@@ -116,7 +116,7 @@ func TestPostgreSQL_CreateService(t *testing.T) {
 func TestPostgreSQL_ErrCreateDuplicateService(t *testing.T) {
 	p := getPostgreSQL()
 	defer p.DropCurrentTestSchema()
-	data := dto.NameWithDescriptionDTO{
+	data := dto.NameDescription{
 		Name:        "test_service",
 		Description: "just test service",
 	}
@@ -133,15 +133,15 @@ func TestPostgreSQL_BigTest(t *testing.T) {
 	defer p.DropCurrentTestSchema()
 	ctx := context.Background()
 
-	if p.CreateService(ctx, &dto.NameWithDescriptionDTO{Name: "service1", Description: "description 1"}) != nil {
+	if p.CreateService(ctx, &dto.NameDescription{Name: "service1", Description: "description 1"}) != nil {
 		t.Fatal()
 	}
 
-	if p.CreateGroup(ctx, &dto.NameAndServiceWithDescriptionDTO{Name: "group1", Description: "group1 description", Service: "service1"}) != nil {
+	if p.CreateGroup(ctx, &dto.NameServiceDescription{Name: "group1", Description: "group1 description", Service: "service1"}) != nil {
 		t.Fatal()
 	}
 
-	if p.CreateRole(ctx, &dto.NameAndServiceWithDescriptionDTO{Name: "role1", Description: "r1", Service: "service1"}) != nil {
+	if p.CreateRole(ctx, &dto.NameServiceDescription{Name: "role1", Description: "r1", Service: "service1"}) != nil {
 		t.Fatal()
 	}
 
@@ -158,7 +158,7 @@ func TestPostgreSQL_BigTest(t *testing.T) {
 	}
 
 	userId := uuid.New()
-	if p.SetAccountLoginData(ctx, &dto.AccountLoginDataDTO{
+	if p.SetAccountLoginData(ctx, &dto.UserIdLoginHashState{
 		Login:  "test_user",
 		UserId: userId,
 		Hash:   "$2a$14$qXnQ8n9U0FItXkto3Sf8XuvZny48y4iZLTluWZtZszTrc7REdzUAy",
@@ -167,7 +167,7 @@ func TestPostgreSQL_BigTest(t *testing.T) {
 		t.Fatal()
 	}
 
-	if p.AssignPermissionToGroup(ctx, &dto.GroupPermissionServiceNamesDTO{
+	if p.AssignPermissionToGroup(ctx, &dto.GroupPermissionService{
 		Group:      "group1",
 		Permission: "perm1",
 		Service:    "service1",
@@ -175,7 +175,7 @@ func TestPostgreSQL_BigTest(t *testing.T) {
 		t.Fatal()
 	}
 
-	if p.AssignPermissionToRole(ctx, &dto.PermissionRoleServiceNamesDTO{
+	if p.AssignPermissionToRole(ctx, &dto.PermissionRoleService{
 		Permission: "perm2",
 		Role:       "role1",
 		Service:    "service1",
@@ -183,7 +183,7 @@ func TestPostgreSQL_BigTest(t *testing.T) {
 		t.Fatal()
 	}
 
-	if p.AssignRoleToGroup(ctx, &dto.GroupRoleServiceNamesDTO{
+	if p.AssignRoleToGroup(ctx, &dto.GroupRoleService{
 		Group:   "group1",
 		Role:    "role1",
 		Service: "service1",
@@ -191,7 +191,7 @@ func TestPostgreSQL_BigTest(t *testing.T) {
 		t.Fatal()
 	}
 
-	if p.AssignGroupToAccount(ctx, &dto.GroupServiceNamesWithUserIdDTO{
+	if p.AssignGroupToAccount(ctx, &dto.UserIdGroupService{
 		UserId:  userId,
 		Group:   "group1",
 		Service: "service1",
@@ -199,7 +199,7 @@ func TestPostgreSQL_BigTest(t *testing.T) {
 		t.Fatal()
 	}
 
-	if permissions, err := p.GetServicePermissionsForAccount(ctx, &dto.ServiceNameWithUserIdDTO{
+	if permissions, err := p.GetServicePermissionsForAccount(ctx, &dto.UserIdService{
 		UserId:  userId,
 		Service: "service1",
 	}); err != nil {
@@ -210,21 +210,21 @@ func TestPostgreSQL_BigTest(t *testing.T) {
 		}
 	}
 
-	if perm, err := p.GetInstancePermissionsForAccount(ctx, &dto.InstanceNameWithUserIdDTO{
+	if perm, err := p.GetInstancePermissionsForAccount(ctx, &dto.UserIdInstance{
 		UserId:   userId,
 		Instance: "instance1",
 	}); len(perm) > 0 || err != nil {
 		t.Fatal()
 	}
 
-	if p.CreateInstance(ctx, &dto.NameAndServiceDTO{
+	if p.CreateInstance(ctx, &dto.NameService{
 		Name:    "instance1",
 		Service: "service1",
 	}) != nil {
 		t.Fatal()
 	}
 
-	if p.AssignInstancePermissionToAccount(ctx, &dto.InstanceAndPermissionNamesWithUserIdDTO{
+	if p.AssignInstancePermissionToAccount(ctx, &dto.UserIdInstancePermission{
 		UserId:     userId,
 		Instance:   "instance1",
 		Permission: "perm3",
@@ -232,28 +232,28 @@ func TestPostgreSQL_BigTest(t *testing.T) {
 		t.Fatal()
 	}
 
-	if perm, err := p.GetInstancePermissionsForAccount(ctx, &dto.InstanceNameWithUserIdDTO{
+	if perm, err := p.GetInstancePermissionsForAccount(ctx, &dto.UserIdInstance{
 		UserId:   userId,
 		Instance: "instance1",
 	}); len(perm) != 1 || err != nil {
 		t.Fatal()
 	}
 
-	if numbers, err := p.GetInstancePermissionsNumbersForAccount(ctx, &dto.InstanceNameWithUserIdDTO{
+	if numbers, err := p.GetInstancePermissionsNumbersForAccount(ctx, &dto.UserIdInstance{
 		UserId:   userId,
 		Instance: "instance1",
 	}); err != nil || len(numbers) != 1 || numbers[0] != 3 {
 		t.Fatal()
 	}
 
-	if numbers, err := p.GetServicePermissionsNumbersForAccount(ctx, &dto.ServiceNameWithUserIdDTO{
+	if numbers, err := p.GetServicePermissionsNumbersForAccount(ctx, &dto.UserIdService{
 		UserId:  userId,
 		Service: "service1",
 	}); err != nil || len(numbers) != 2 {
 		t.Fatal()
 	}
 
-	if p.SetAccountState(ctx, &dto.LoginStateDTO{Login: "test_user", State: account_state.Disabled}) != nil {
+	if p.SetAccountState(ctx, &dto.LoginState{Login: "test_user", State: account_state.Disabled}) != nil {
 		t.Fatal()
 	}
 
@@ -274,11 +274,11 @@ func TestPostgreSQL_BigTest(t *testing.T) {
 		t.Fatal()
 	}
 
-	if p.CreateRole(ctx, &dto.NameAndServiceWithDescriptionDTO{Name: "role2", Description: "r2", Service: "service1"}) != nil {
+	if p.CreateRole(ctx, &dto.NameServiceDescription{Name: "role2", Description: "r2", Service: "service1"}) != nil {
 		t.Fatal()
 	}
 
-	if p.AssignRoleToAccount(ctx, &dto.RoleServiceNamesWithUserIdDTO{
+	if p.AssignRoleToAccount(ctx, &dto.UserIdRoleService{
 		UserId:  userId,
 		Role:    "role2",
 		Service: "service1",

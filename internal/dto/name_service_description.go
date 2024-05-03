@@ -1,6 +1,6 @@
 package dto
 
-type NameAndServiceWithDescriptionDTO struct {
+type NameServiceDescription struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Service     string `json:"service"`

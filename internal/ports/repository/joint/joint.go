@@ -10,17 +10,17 @@ import (
 )
 
 type ServiceInterface interface {
-	CreateService(context.Context, *dto.NameWithDescriptionDTO) error
-	CreateInstance(context.Context, *dto.NameAndServiceDTO) error
+	CreateService(context.Context, *dto.NameDescription) error
+	CreateInstance(context.Context, *dto.NameService) error
 }
 
 type LoginInterface interface {
-	SaveSession(context.Context, *dto.SessionDTO) error
+	SaveSession(context.Context, *dto.UserIdToken) error
 	DeleteSession(context.Context, uuid.UUID) error
-	SetAccountLoginData(context.Context, *dto.AccountLoginDataDTO) error
-	GetAccountLoginData(context.Context, login.Login) (dto.AccountLoginDataDTO, error)
-	GetUserIdAndPasswordHash(context.Context, login.Login) (dto.UserIdWithPasswordHashDTO, error)
-	SetAccountState(context.Context, *dto.LoginStateDTO) error
+	SetAccountLoginData(context.Context, *dto.UserIdLoginHashState) error
+	GetAccountLoginData(context.Context, login.Login) (dto.UserIdLoginHashState, error)
+	GetUserIdAndPasswordHash(context.Context, login.Login) (dto.UserIdHash, error)
+	SetAccountState(context.Context, *dto.LoginState) error
 	GetAccountState(context.Context, login.Login) (account_state.State, error)
 }
 
@@ -31,10 +31,10 @@ type RBACInterface interface {
 	common.RBACAssignToAccountInterface
 	common.RBACAssignInterface
 
-	GetServicePermissionsForAccount(context.Context, *dto.ServiceNameWithUserIdDTO) ([]dto.PermissionWithoutServiceDTO, error)
-	GetServicePermissionsNumbersForAccount(context.Context, *dto.ServiceNameWithUserIdDTO) ([]int, error)
+	GetServicePermissionsForAccount(context.Context, *dto.UserIdService) ([]dto.NameNumberDescription, error)
+	GetServicePermissionsNumbersForAccount(context.Context, *dto.UserIdService) ([]int, error)
 
-	GetInstancePermissionsNumbersForAccount(context.Context, *dto.InstanceNameWithUserIdDTO) ([]int, error)
+	GetInstancePermissionsNumbersForAccount(context.Context, *dto.UserIdInstance) ([]int, error)
 }
 
 //go:generate mockgen -source=joint.go -destination=mocks/joint.go

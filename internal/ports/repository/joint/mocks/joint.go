@@ -39,7 +39,7 @@ func (m *MockServiceInterface) EXPECT() *MockServiceInterfaceMockRecorder {
 }
 
 // CreateInstance mocks base method.
-func (m *MockServiceInterface) CreateInstance(arg0 context.Context, arg1 *dto.NameAndServiceDTO) error {
+func (m *MockServiceInterface) CreateInstance(arg0 context.Context, arg1 *dto.NameService) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateInstance", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -53,7 +53,7 @@ func (mr *MockServiceInterfaceMockRecorder) CreateInstance(arg0, arg1 interface{
 }
 
 // CreateService mocks base method.
-func (m *MockServiceInterface) CreateService(arg0 context.Context, arg1 *dto.NameWithDescriptionDTO) error {
+func (m *MockServiceInterface) CreateService(arg0 context.Context, arg1 *dto.NameDescription) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateService", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -104,10 +104,10 @@ func (mr *MockLoginInterfaceMockRecorder) DeleteSession(arg0, arg1 interface{}) 
 }
 
 // GetAccountLoginData mocks base method.
-func (m *MockLoginInterface) GetAccountLoginData(arg0 context.Context, arg1 login.Login) (dto.AccountLoginDataDTO, error) {
+func (m *MockLoginInterface) GetAccountLoginData(arg0 context.Context, arg1 login.Login) (dto.UserIdLoginHashState, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAccountLoginData", arg0, arg1)
-	ret0, _ := ret[0].(dto.AccountLoginDataDTO)
+	ret0, _ := ret[0].(dto.UserIdLoginHashState)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -134,10 +134,10 @@ func (mr *MockLoginInterfaceMockRecorder) GetAccountState(arg0, arg1 interface{}
 }
 
 // GetUserIdAndPasswordHash mocks base method.
-func (m *MockLoginInterface) GetUserIdAndPasswordHash(arg0 context.Context, arg1 login.Login) (dto.UserIdWithPasswordHashDTO, error) {
+func (m *MockLoginInterface) GetUserIdAndPasswordHash(arg0 context.Context, arg1 login.Login) (dto.UserIdHash, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserIdAndPasswordHash", arg0, arg1)
-	ret0, _ := ret[0].(dto.UserIdWithPasswordHashDTO)
+	ret0, _ := ret[0].(dto.UserIdHash)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -149,7 +149,7 @@ func (mr *MockLoginInterfaceMockRecorder) GetUserIdAndPasswordHash(arg0, arg1 in
 }
 
 // SaveSession mocks base method.
-func (m *MockLoginInterface) SaveSession(arg0 context.Context, arg1 *dto.SessionDTO) error {
+func (m *MockLoginInterface) SaveSession(arg0 context.Context, arg1 *dto.UserIdToken) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveSession", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -163,7 +163,7 @@ func (mr *MockLoginInterfaceMockRecorder) SaveSession(arg0, arg1 interface{}) *g
 }
 
 // SetAccountLoginData mocks base method.
-func (m *MockLoginInterface) SetAccountLoginData(arg0 context.Context, arg1 *dto.AccountLoginDataDTO) error {
+func (m *MockLoginInterface) SetAccountLoginData(arg0 context.Context, arg1 *dto.UserIdLoginHashState) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetAccountLoginData", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -177,7 +177,7 @@ func (mr *MockLoginInterfaceMockRecorder) SetAccountLoginData(arg0, arg1 interfa
 }
 
 // SetAccountState mocks base method.
-func (m *MockLoginInterface) SetAccountState(arg0 context.Context, arg1 *dto.LoginStateDTO) error {
+func (m *MockLoginInterface) SetAccountState(arg0 context.Context, arg1 *dto.LoginState) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetAccountState", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -214,7 +214,7 @@ func (m *MockRBACInterface) EXPECT() *MockRBACInterfaceMockRecorder {
 }
 
 // AssignGroupToAccount mocks base method.
-func (m *MockRBACInterface) AssignGroupToAccount(arg0 context.Context, arg1 *dto.GroupServiceNamesWithUserIdDTO) error {
+func (m *MockRBACInterface) AssignGroupToAccount(arg0 context.Context, arg1 *dto.UserIdGroupService) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AssignGroupToAccount", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -228,7 +228,7 @@ func (mr *MockRBACInterfaceMockRecorder) AssignGroupToAccount(arg0, arg1 interfa
 }
 
 // AssignInstancePermissionToAccount mocks base method.
-func (m *MockRBACInterface) AssignInstancePermissionToAccount(arg0 context.Context, arg1 *dto.InstanceAndPermissionNamesWithUserIdDTO) error {
+func (m *MockRBACInterface) AssignInstancePermissionToAccount(arg0 context.Context, arg1 *dto.UserIdInstancePermission) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AssignInstancePermissionToAccount", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -242,7 +242,7 @@ func (mr *MockRBACInterfaceMockRecorder) AssignInstancePermissionToAccount(arg0,
 }
 
 // AssignPermissionToGroup mocks base method.
-func (m *MockRBACInterface) AssignPermissionToGroup(arg0 context.Context, arg1 *dto.GroupPermissionServiceNamesDTO) error {
+func (m *MockRBACInterface) AssignPermissionToGroup(arg0 context.Context, arg1 *dto.GroupPermissionService) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AssignPermissionToGroup", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -256,7 +256,7 @@ func (mr *MockRBACInterfaceMockRecorder) AssignPermissionToGroup(arg0, arg1 inte
 }
 
 // AssignPermissionToRole mocks base method.
-func (m *MockRBACInterface) AssignPermissionToRole(arg0 context.Context, arg1 *dto.PermissionRoleServiceNamesDTO) error {
+func (m *MockRBACInterface) AssignPermissionToRole(arg0 context.Context, arg1 *dto.PermissionRoleService) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AssignPermissionToRole", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -270,7 +270,7 @@ func (mr *MockRBACInterfaceMockRecorder) AssignPermissionToRole(arg0, arg1 inter
 }
 
 // AssignRoleToAccount mocks base method.
-func (m *MockRBACInterface) AssignRoleToAccount(arg0 context.Context, arg1 *dto.RoleServiceNamesWithUserIdDTO) error {
+func (m *MockRBACInterface) AssignRoleToAccount(arg0 context.Context, arg1 *dto.UserIdRoleService) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AssignRoleToAccount", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -284,7 +284,7 @@ func (mr *MockRBACInterfaceMockRecorder) AssignRoleToAccount(arg0, arg1 interfac
 }
 
 // AssignRoleToGroup mocks base method.
-func (m *MockRBACInterface) AssignRoleToGroup(arg0 context.Context, arg1 *dto.GroupRoleServiceNamesDTO) error {
+func (m *MockRBACInterface) AssignRoleToGroup(arg0 context.Context, arg1 *dto.GroupRoleService) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AssignRoleToGroup", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -298,7 +298,7 @@ func (mr *MockRBACInterfaceMockRecorder) AssignRoleToGroup(arg0, arg1 interface{
 }
 
 // CreateGroup mocks base method.
-func (m *MockRBACInterface) CreateGroup(arg0 context.Context, arg1 *dto.NameAndServiceWithDescriptionDTO) error {
+func (m *MockRBACInterface) CreateGroup(arg0 context.Context, arg1 *dto.NameServiceDescription) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateGroup", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -312,7 +312,7 @@ func (mr *MockRBACInterfaceMockRecorder) CreateGroup(arg0, arg1 interface{}) *go
 }
 
 // CreatePermission mocks base method.
-func (m *MockRBACInterface) CreatePermission(arg0 context.Context, arg1 *dto.PermissionWithoutNumberDTO) error {
+func (m *MockRBACInterface) CreatePermission(arg0 context.Context, arg1 *dto.NameServiceDescription) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreatePermission", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -326,7 +326,7 @@ func (mr *MockRBACInterfaceMockRecorder) CreatePermission(arg0, arg1 interface{}
 }
 
 // CreateRole mocks base method.
-func (m *MockRBACInterface) CreateRole(arg0 context.Context, arg1 *dto.NameAndServiceWithDescriptionDTO) error {
+func (m *MockRBACInterface) CreateRole(arg0 context.Context, arg1 *dto.NameServiceDescription) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateRole", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -340,7 +340,7 @@ func (mr *MockRBACInterfaceMockRecorder) CreateRole(arg0, arg1 interface{}) *gom
 }
 
 // GetInstancePermissionsNumbersForAccount mocks base method.
-func (m *MockRBACInterface) GetInstancePermissionsNumbersForAccount(arg0 context.Context, arg1 *dto.InstanceNameWithUserIdDTO) ([]int, error) {
+func (m *MockRBACInterface) GetInstancePermissionsNumbersForAccount(arg0 context.Context, arg1 *dto.UserIdInstance) ([]int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetInstancePermissionsNumbersForAccount", arg0, arg1)
 	ret0, _ := ret[0].([]int)
@@ -355,10 +355,10 @@ func (mr *MockRBACInterfaceMockRecorder) GetInstancePermissionsNumbersForAccount
 }
 
 // GetServicePermissionsForAccount mocks base method.
-func (m *MockRBACInterface) GetServicePermissionsForAccount(arg0 context.Context, arg1 *dto.ServiceNameWithUserIdDTO) ([]dto.PermissionWithoutServiceDTO, error) {
+func (m *MockRBACInterface) GetServicePermissionsForAccount(arg0 context.Context, arg1 *dto.UserIdService) ([]dto.NameNumberDescription, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetServicePermissionsForAccount", arg0, arg1)
-	ret0, _ := ret[0].([]dto.PermissionWithoutServiceDTO)
+	ret0, _ := ret[0].([]dto.NameNumberDescription)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -370,7 +370,7 @@ func (mr *MockRBACInterfaceMockRecorder) GetServicePermissionsForAccount(arg0, a
 }
 
 // GetServicePermissionsNumbersForAccount mocks base method.
-func (m *MockRBACInterface) GetServicePermissionsNumbersForAccount(arg0 context.Context, arg1 *dto.ServiceNameWithUserIdDTO) ([]int, error) {
+func (m *MockRBACInterface) GetServicePermissionsNumbersForAccount(arg0 context.Context, arg1 *dto.UserIdService) ([]int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetServicePermissionsNumbersForAccount", arg0, arg1)
 	ret0, _ := ret[0].([]int)
@@ -408,7 +408,7 @@ func (m *MockInterface) EXPECT() *MockInterfaceMockRecorder {
 }
 
 // AssignGroupToAccount mocks base method.
-func (m *MockInterface) AssignGroupToAccount(arg0 context.Context, arg1 *dto.GroupServiceNamesWithUserIdDTO) error {
+func (m *MockInterface) AssignGroupToAccount(arg0 context.Context, arg1 *dto.UserIdGroupService) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AssignGroupToAccount", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -422,7 +422,7 @@ func (mr *MockInterfaceMockRecorder) AssignGroupToAccount(arg0, arg1 interface{}
 }
 
 // AssignInstancePermissionToAccount mocks base method.
-func (m *MockInterface) AssignInstancePermissionToAccount(arg0 context.Context, arg1 *dto.InstanceAndPermissionNamesWithUserIdDTO) error {
+func (m *MockInterface) AssignInstancePermissionToAccount(arg0 context.Context, arg1 *dto.UserIdInstancePermission) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AssignInstancePermissionToAccount", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -436,7 +436,7 @@ func (mr *MockInterfaceMockRecorder) AssignInstancePermissionToAccount(arg0, arg
 }
 
 // AssignPermissionToGroup mocks base method.
-func (m *MockInterface) AssignPermissionToGroup(arg0 context.Context, arg1 *dto.GroupPermissionServiceNamesDTO) error {
+func (m *MockInterface) AssignPermissionToGroup(arg0 context.Context, arg1 *dto.GroupPermissionService) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AssignPermissionToGroup", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -450,7 +450,7 @@ func (mr *MockInterfaceMockRecorder) AssignPermissionToGroup(arg0, arg1 interfac
 }
 
 // AssignPermissionToRole mocks base method.
-func (m *MockInterface) AssignPermissionToRole(arg0 context.Context, arg1 *dto.PermissionRoleServiceNamesDTO) error {
+func (m *MockInterface) AssignPermissionToRole(arg0 context.Context, arg1 *dto.PermissionRoleService) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AssignPermissionToRole", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -464,7 +464,7 @@ func (mr *MockInterfaceMockRecorder) AssignPermissionToRole(arg0, arg1 interface
 }
 
 // AssignRoleToAccount mocks base method.
-func (m *MockInterface) AssignRoleToAccount(arg0 context.Context, arg1 *dto.RoleServiceNamesWithUserIdDTO) error {
+func (m *MockInterface) AssignRoleToAccount(arg0 context.Context, arg1 *dto.UserIdRoleService) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AssignRoleToAccount", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -478,7 +478,7 @@ func (mr *MockInterfaceMockRecorder) AssignRoleToAccount(arg0, arg1 interface{})
 }
 
 // AssignRoleToGroup mocks base method.
-func (m *MockInterface) AssignRoleToGroup(arg0 context.Context, arg1 *dto.GroupRoleServiceNamesDTO) error {
+func (m *MockInterface) AssignRoleToGroup(arg0 context.Context, arg1 *dto.GroupRoleService) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AssignRoleToGroup", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -492,7 +492,7 @@ func (mr *MockInterfaceMockRecorder) AssignRoleToGroup(arg0, arg1 interface{}) *
 }
 
 // CreateGroup mocks base method.
-func (m *MockInterface) CreateGroup(arg0 context.Context, arg1 *dto.NameAndServiceWithDescriptionDTO) error {
+func (m *MockInterface) CreateGroup(arg0 context.Context, arg1 *dto.NameServiceDescription) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateGroup", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -506,7 +506,7 @@ func (mr *MockInterfaceMockRecorder) CreateGroup(arg0, arg1 interface{}) *gomock
 }
 
 // CreateInstance mocks base method.
-func (m *MockInterface) CreateInstance(arg0 context.Context, arg1 *dto.NameAndServiceDTO) error {
+func (m *MockInterface) CreateInstance(arg0 context.Context, arg1 *dto.NameService) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateInstance", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -520,7 +520,7 @@ func (mr *MockInterfaceMockRecorder) CreateInstance(arg0, arg1 interface{}) *gom
 }
 
 // CreatePermission mocks base method.
-func (m *MockInterface) CreatePermission(arg0 context.Context, arg1 *dto.PermissionWithoutNumberDTO) error {
+func (m *MockInterface) CreatePermission(arg0 context.Context, arg1 *dto.NameServiceDescription) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreatePermission", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -534,7 +534,7 @@ func (mr *MockInterfaceMockRecorder) CreatePermission(arg0, arg1 interface{}) *g
 }
 
 // CreateRole mocks base method.
-func (m *MockInterface) CreateRole(arg0 context.Context, arg1 *dto.NameAndServiceWithDescriptionDTO) error {
+func (m *MockInterface) CreateRole(arg0 context.Context, arg1 *dto.NameServiceDescription) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateRole", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -548,7 +548,7 @@ func (mr *MockInterfaceMockRecorder) CreateRole(arg0, arg1 interface{}) *gomock.
 }
 
 // CreateService mocks base method.
-func (m *MockInterface) CreateService(arg0 context.Context, arg1 *dto.NameWithDescriptionDTO) error {
+func (m *MockInterface) CreateService(arg0 context.Context, arg1 *dto.NameDescription) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateService", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -576,10 +576,10 @@ func (mr *MockInterfaceMockRecorder) DeleteSession(arg0, arg1 interface{}) *gomo
 }
 
 // GetAccountLoginData mocks base method.
-func (m *MockInterface) GetAccountLoginData(arg0 context.Context, arg1 login.Login) (dto.AccountLoginDataDTO, error) {
+func (m *MockInterface) GetAccountLoginData(arg0 context.Context, arg1 login.Login) (dto.UserIdLoginHashState, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAccountLoginData", arg0, arg1)
-	ret0, _ := ret[0].(dto.AccountLoginDataDTO)
+	ret0, _ := ret[0].(dto.UserIdLoginHashState)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -606,7 +606,7 @@ func (mr *MockInterfaceMockRecorder) GetAccountState(arg0, arg1 interface{}) *go
 }
 
 // GetInstancePermissionsNumbersForAccount mocks base method.
-func (m *MockInterface) GetInstancePermissionsNumbersForAccount(arg0 context.Context, arg1 *dto.InstanceNameWithUserIdDTO) ([]int, error) {
+func (m *MockInterface) GetInstancePermissionsNumbersForAccount(arg0 context.Context, arg1 *dto.UserIdInstance) ([]int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetInstancePermissionsNumbersForAccount", arg0, arg1)
 	ret0, _ := ret[0].([]int)
@@ -621,10 +621,10 @@ func (mr *MockInterfaceMockRecorder) GetInstancePermissionsNumbersForAccount(arg
 }
 
 // GetServicePermissionsForAccount mocks base method.
-func (m *MockInterface) GetServicePermissionsForAccount(arg0 context.Context, arg1 *dto.ServiceNameWithUserIdDTO) ([]dto.PermissionWithoutServiceDTO, error) {
+func (m *MockInterface) GetServicePermissionsForAccount(arg0 context.Context, arg1 *dto.UserIdService) ([]dto.NameNumberDescription, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetServicePermissionsForAccount", arg0, arg1)
-	ret0, _ := ret[0].([]dto.PermissionWithoutServiceDTO)
+	ret0, _ := ret[0].([]dto.NameNumberDescription)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -636,7 +636,7 @@ func (mr *MockInterfaceMockRecorder) GetServicePermissionsForAccount(arg0, arg1 
 }
 
 // GetServicePermissionsNumbersForAccount mocks base method.
-func (m *MockInterface) GetServicePermissionsNumbersForAccount(arg0 context.Context, arg1 *dto.ServiceNameWithUserIdDTO) ([]int, error) {
+func (m *MockInterface) GetServicePermissionsNumbersForAccount(arg0 context.Context, arg1 *dto.UserIdService) ([]int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetServicePermissionsNumbersForAccount", arg0, arg1)
 	ret0, _ := ret[0].([]int)
@@ -651,10 +651,10 @@ func (mr *MockInterfaceMockRecorder) GetServicePermissionsNumbersForAccount(arg0
 }
 
 // GetUserIdAndPasswordHash mocks base method.
-func (m *MockInterface) GetUserIdAndPasswordHash(arg0 context.Context, arg1 login.Login) (dto.UserIdWithPasswordHashDTO, error) {
+func (m *MockInterface) GetUserIdAndPasswordHash(arg0 context.Context, arg1 login.Login) (dto.UserIdHash, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserIdAndPasswordHash", arg0, arg1)
-	ret0, _ := ret[0].(dto.UserIdWithPasswordHashDTO)
+	ret0, _ := ret[0].(dto.UserIdHash)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -666,7 +666,7 @@ func (mr *MockInterfaceMockRecorder) GetUserIdAndPasswordHash(arg0, arg1 interfa
 }
 
 // SaveSession mocks base method.
-func (m *MockInterface) SaveSession(arg0 context.Context, arg1 *dto.SessionDTO) error {
+func (m *MockInterface) SaveSession(arg0 context.Context, arg1 *dto.UserIdToken) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SaveSession", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -680,7 +680,7 @@ func (mr *MockInterfaceMockRecorder) SaveSession(arg0, arg1 interface{}) *gomock
 }
 
 // SetAccountLoginData mocks base method.
-func (m *MockInterface) SetAccountLoginData(arg0 context.Context, arg1 *dto.AccountLoginDataDTO) error {
+func (m *MockInterface) SetAccountLoginData(arg0 context.Context, arg1 *dto.UserIdLoginHashState) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetAccountLoginData", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -694,7 +694,7 @@ func (mr *MockInterfaceMockRecorder) SetAccountLoginData(arg0, arg1 interface{})
 }
 
 // SetAccountState mocks base method.
-func (m *MockInterface) SetAccountState(arg0 context.Context, arg1 *dto.LoginStateDTO) error {
+func (m *MockInterface) SetAccountState(arg0 context.Context, arg1 *dto.LoginState) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetAccountState", arg0, arg1)
 	ret0, _ := ret[0].(error)

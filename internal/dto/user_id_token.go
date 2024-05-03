@@ -4,7 +4,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type SessionDTO struct {
+type UserIdToken struct {
 	UserId uuid.UUID `json:"user_id"`
 	Token  string    `json:"token"`
 }

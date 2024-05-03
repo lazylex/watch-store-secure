@@ -10,12 +10,12 @@ import (
 
 //go:generate mockgen -source=service.go -destination=mocks/service.go
 type Service interface {
-	Login(context.Context, *dto.LoginPasswordDTO) (string, error)
+	Login(context.Context, *dto.LoginPassword) (string, error)
 	Logout(context.Context, uuid.UUID) error
-	CreateAccount(context.Context, *dto.LoginPasswordDTO, service.AccountOptions) (uuid.UUID, error)
+	CreateAccount(context.Context, *dto.LoginPassword, service.AccountOptions) (uuid.UUID, error)
 
-	RegisterInstance(context.Context, *dto.NameAndServiceDTO) error
-	RegisterService(context.Context, *dto.NameWithDescriptionDTO) error
+	RegisterInstance(context.Context, *dto.NameService) error
+	RegisterService(context.Context, *dto.NameDescription) error
 
 	common.RBACCreateInterface
 	common.RBACAssignToAccountInterface

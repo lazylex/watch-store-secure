@@ -1,6 +1,6 @@
 package dto
 
-type NameWithDescriptionDTO struct {
+type NameDescription struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }

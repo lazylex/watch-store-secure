@@ -5,7 +5,7 @@ import (
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/login"
 )
 
-type UserLoginAndIdWithPasswordHashDTO struct {
+type UserIdLoginHash struct {
 	Login  login.Login `json:"login"`
 	UserId uuid.UUID   `json:"user_id"`
 	Hash   string      `json:"hash"`
