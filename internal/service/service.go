@@ -48,7 +48,7 @@ func (s *Service) Login(ctx context.Context, data *dto.LoginPassword) (string, e
 	userId, errGetUsr := s.getUserId(ctx, data)
 	if userId == uuid.Nil || errGetUsr != nil {
 		s.metrics.AuthenticationErrorInc()
-		return "", adaptErr(err)
+		return "", adaptErr(errGetUsr)
 	}
 
 	if token, err = s.createToken(); err != nil {
@@ -109,7 +109,7 @@ func (s *Service) CreateAccount(ctx context.Context, data *dto.LoginPassword, op
 		return userId, nil
 	}
 
-	return uuid.Nil,
+	return userId,
 		adaptErr(se.NewServiceError(fmt.Sprintf("couldn’t create %d roles; %d groups; %d instance assignments;",
 			errRoleCount, errGroupCount, errInstanceCount)))
 }
