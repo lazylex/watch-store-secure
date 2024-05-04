@@ -145,15 +145,15 @@ func TestPostgreSQL_BigTest(t *testing.T) {
 		t.Fatal()
 	}
 
-	if p.CreatePermission(ctx, &dto.PermissionWithoutNumberDTO{Name: "perm1", Description: "p1", Service: "service1"}) != nil {
+	if p.CreatePermission(ctx, &dto.NameServiceDescription{Name: "perm1", Description: "p1", Service: "service1"}) != nil {
 		t.Fatal()
 	}
 
-	if p.CreatePermission(ctx, &dto.PermissionWithoutNumberDTO{Name: "perm2", Description: "p2", Service: "service1"}) != nil {
+	if p.CreatePermission(ctx, &dto.NameServiceDescription{Name: "perm2", Description: "p2", Service: "service1"}) != nil {
 		t.Fatal()
 	}
 
-	if p.CreatePermission(ctx, &dto.PermissionWithoutNumberDTO{Name: "perm3", Description: "p3", Service: "service1"}) != nil {
+	if p.CreatePermission(ctx, &dto.NameServiceDescription{Name: "perm3", Description: "p3", Service: "service1"}) != nil {
 		t.Fatal()
 	}
 
