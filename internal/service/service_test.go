@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/lazylex/watch-store/secure/internal/config"
@@ -107,53 +108,364 @@ func TestService_LoginErrDataNotSaved(t *testing.T) {
 }
 
 func TestService_Logout(t *testing.T) {
-	t.Fail()
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+	id := uuid.New()
+	repo.EXPECT().DeleteSession(ctx, id).Times(1).Return(nil)
+	metrics.EXPECT().LogoutInc().Times(1)
+
+	if s.Logout(ctx, id) != nil {
+		t.Fail()
+	}
 }
 
-func TestService_CreateAccount(t *testing.T) {
-	t.Fail()
+func TestService_LogoutError(t *testing.T) {
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+	id := uuid.New()
+	repo.EXPECT().DeleteSession(ctx, id).Times(1).Return(errors.New(""))
+
+	if s.Logout(ctx, id) != service.ErrLogout {
+		t.Fail()
+	}
 }
+
+//func TestService_CreateAccount(t *testing.T) {
+//	t.Fail()
+//}
 
 func TestService_RegisterInstance(t *testing.T) {
-	t.Fail()
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+	data := dto.NameService{Name: "saver", Service: "tron"}
+
+	repo.EXPECT().CreateInstance(ctx, &data).Times(1).Return(nil)
+
+	if s.RegisterInstance(ctx, &data) != nil {
+		t.Fail()
+	}
+}
+
+func TestService_RegisterInstanceErr(t *testing.T) {
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+	data := dto.NameService{Name: "saver", Service: "tron"}
+
+	repo.EXPECT().CreateInstance(ctx, &data).Times(1).Return(joint.ErrDuplicateData)
+
+	if s.RegisterInstance(ctx, &data) != service.ErrAlreadyExist {
+		t.Fail()
+	}
 }
 
 func TestService_RegisterService(t *testing.T) {
-	t.Fail()
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+	data := dto.NameDescription{Name: "saver", Description: ""}
+
+	repo.EXPECT().CreateService(ctx, &data).Times(1).Return(nil)
+
+	if s.RegisterService(ctx, &data) != nil {
+		t.Fail()
+	}
+}
+
+func TestService_RegisterServiceErr(t *testing.T) {
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+	data := dto.NameDescription{Name: "saver", Description: ""}
+
+	repo.EXPECT().CreateService(ctx, &data).Times(1).Return(joint.ErrDuplicateData)
+
+	if s.RegisterService(ctx, &data) != service.ErrAlreadyExist {
+		t.Fail()
+	}
 }
 
 func TestService_CreatePermission(t *testing.T) {
-	t.Fail()
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+	data := dto.NameServiceDescription{Name: "Flynn", Description: "", Service: "tron"}
+
+	repo.EXPECT().CreatePermission(ctx, &data).Times(1).Return(nil)
+
+	if s.CreatePermission(ctx, &data) != nil {
+		t.Fail()
+	}
+}
+
+func TestService_CreatePermissionErr(t *testing.T) {
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+	data := dto.NameServiceDescription{Name: "Flynn", Description: "", Service: "tron"}
+
+	repo.EXPECT().CreatePermission(ctx, &data).Times(1).Return(joint.ErrDuplicateData)
+
+	if s.CreatePermission(ctx, &data) != service.ErrAlreadyExist {
+		t.Fail()
+	}
 }
 
 func TestService_CreateRole(t *testing.T) {
-	t.Fail()
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+	data := dto.NameServiceDescription{Name: "creator", Description: "", Service: "tron"}
+
+	repo.EXPECT().CreateRole(ctx, &data).Times(1).Return(nil)
+
+	if s.CreateRole(ctx, &data) != nil {
+		t.Fail()
+	}
+}
+
+func TestService_CreateRoleErr(t *testing.T) {
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+	data := dto.NameServiceDescription{Name: "creator", Description: "", Service: "tron"}
+
+	repo.EXPECT().CreateRole(ctx, &data).Times(1).Return(joint.ErrDuplicateData)
+
+	if s.CreateRole(ctx, &data) != service.ErrAlreadyExist {
+		t.Fail()
+	}
 }
 
 func TestService_CreateGroup(t *testing.T) {
-	t.Fail()
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+	data := dto.NameServiceDescription{Name: "users", Description: "", Service: "tron"}
+
+	repo.EXPECT().CreateGroup(ctx, &data).Times(1).Return(nil)
+
+	if s.CreateGroup(ctx, &data) != nil {
+		t.Fail()
+	}
+}
+
+func TestService_CreateGroupErr(t *testing.T) {
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+	data := dto.NameServiceDescription{Name: "users", Description: "", Service: "tron"}
+
+	repo.EXPECT().CreateGroup(ctx, &data).Times(1).Return(joint.ErrDuplicateData)
+
+	if s.CreateGroup(ctx, &data) != service.ErrAlreadyExist {
+		t.Fail()
+	}
 }
 
 func TestService_AssignRoleToAccount(t *testing.T) {
-	t.Fail()
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+	data := dto.UserIdRoleService{UserId: uuid.New(), Role: "visitor", Service: "tron"}
+
+	repo.EXPECT().AssignRoleToAccount(ctx, &data).Times(1).Return(nil)
+
+	if s.AssignRoleToAccount(ctx, &data) != nil {
+		t.Fail()
+	}
+}
+
+func TestService_AssignRoleToAccountErr(t *testing.T) {
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+	data := dto.UserIdRoleService{UserId: uuid.New(), Role: "visitor", Service: "tron"}
+
+	repo.EXPECT().AssignRoleToAccount(ctx, &data).Times(1).Return(joint.ErrDataNotSaved)
+
+	if s.AssignRoleToAccount(ctx, &data) == nil {
+		t.Fail()
+	}
 }
 
 func TestService_AssignGroupToAccount(t *testing.T) {
-	t.Fail()
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+	data := dto.UserIdGroupService{UserId: uuid.New(), Group: "users", Service: "tron"}
+
+	repo.EXPECT().AssignGroupToAccount(ctx, &data).Times(1).Return(nil)
+
+	if s.AssignGroupToAccount(ctx, &data) != nil {
+		t.Fail()
+	}
+}
+
+func TestService_AssignGroupToAccountErr(t *testing.T) {
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+	data := dto.UserIdGroupService{UserId: uuid.New(), Group: "users", Service: "tron"}
+
+	repo.EXPECT().AssignGroupToAccount(ctx, &data).Times(1).Return(joint.ErrDataNotSaved)
+
+	if s.AssignGroupToAccount(ctx, &data) == nil {
+		t.Fail()
+	}
 }
 
 func TestService_AssignInstancePermissionToAccount(t *testing.T) {
-	t.Fail()
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+	data := dto.UserIdInstancePermission{Instance: "node1", Permission: "delete", UserId: uuid.New()}
+
+	repo.EXPECT().AssignInstancePermissionToAccount(ctx, &data).Times(1).Return(nil)
+
+	if s.AssignInstancePermissionToAccount(ctx, &data) != nil {
+		t.Fail()
+	}
+}
+
+func TestService_AssignInstancePermissionToAccountErr(t *testing.T) {
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+	data := dto.UserIdInstancePermission{Instance: "node1", Permission: "delete", UserId: uuid.New()}
+
+	repo.EXPECT().AssignInstancePermissionToAccount(ctx, &data).Times(1).Return(joint.ErrDataNotSaved)
+
+	if s.AssignInstancePermissionToAccount(ctx, &data) == nil {
+		t.Fail()
+	}
 }
 
 func TestService_AssignRoleToGroup(t *testing.T) {
-	t.Fail()
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+	data := dto.GroupRoleService{Group: "users", Role: "admin", Service: "tron"}
+
+	repo.EXPECT().AssignRoleToGroup(ctx, &data).Times(1).Return(nil)
+
+	if s.AssignRoleToGroup(ctx, &data) != nil {
+		t.Fail()
+	}
+}
+
+func TestService_AssignRoleToGroupErr(t *testing.T) {
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+	data := dto.GroupRoleService{Group: "users", Role: "admin", Service: "tron"}
+
+	repo.EXPECT().AssignRoleToGroup(ctx, &data).Times(1).Return(joint.ErrDataNotSaved)
+
+	if s.AssignRoleToGroup(ctx, &data) == nil {
+		t.Fail()
+	}
 }
 
 func TestService_AssignPermissionToRole(t *testing.T) {
-	t.Fail()
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+	data := dto.PermissionRoleService{Permission: "delete", Role: "admin", Service: "tron"}
+
+	repo.EXPECT().AssignPermissionToRole(ctx, &data).Times(1).Return(nil)
+
+	if s.AssignPermissionToRole(ctx, &data) != nil {
+		t.Fail()
+	}
+}
+
+func TestService_AssignPermissionToRoleErr(t *testing.T) {
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+	data := dto.PermissionRoleService{Permission: "delete", Role: "admin", Service: "tron"}
+
+	repo.EXPECT().AssignPermissionToRole(ctx, &data).Times(1).Return(joint.ErrDataNotSaved)
+
+	if s.AssignPermissionToRole(ctx, &data) == nil {
+		t.Fail()
+	}
 }
 
 func TestService_AssignPermissionToGroup(t *testing.T) {
-	t.Fail()
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+	data := dto.GroupPermissionService{Permission: "delete", Group: "users", Service: "tron"}
+
+	repo.EXPECT().AssignPermissionToGroup(ctx, &data).Times(1).Return(nil)
+
+	if s.AssignPermissionToGroup(ctx, &data) != nil {
+		t.Fail()
+	}
+}
+
+func TestService_AssignPermissionToGroupErr(t *testing.T) {
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+	data := dto.GroupPermissionService{Permission: "delete", Group: "users", Service: "tron"}
+
+	repo.EXPECT().AssignPermissionToGroup(ctx, &data).Times(1).Return(joint.ErrDataNotSaved)
+
+	if s.AssignPermissionToGroup(ctx, &data) == nil {
+		t.Fail()
+	}
 }
