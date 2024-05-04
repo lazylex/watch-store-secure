@@ -28,10 +28,6 @@ func main() {
 	repo := joint.New(inMemoryRepo, persistentRepo)
 	serv := service.New(metrics.Service, &repo, cfg.Secure)
 
-	if cfg.Env == config.EnvironmentDebug || cfg.Env == config.EnvironmentLocal {
-		runCodeForDebug(inMemoryRepo, persistentRepo, repo, serv)
-	}
-
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	signal.Notify(c, os.Kill)
