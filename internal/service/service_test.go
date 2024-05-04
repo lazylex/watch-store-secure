@@ -7,31 +7,103 @@ import (
 	"github.com/lazylex/watch-store/secure/internal/config"
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/account_state"
 	"github.com/lazylex/watch-store/secure/internal/dto"
-	mock_service "github.com/lazylex/watch-store/secure/internal/ports/metrics/service/mocks"
-	mock_joint "github.com/lazylex/watch-store/secure/internal/ports/repository/joint/mocks"
+	"github.com/lazylex/watch-store/secure/internal/errors/joint"
+	"github.com/lazylex/watch-store/secure/internal/errors/service"
+	mockservice "github.com/lazylex/watch-store/secure/internal/ports/metrics/service/mocks"
+	mockjoint "github.com/lazylex/watch-store/secure/internal/ports/repository/joint/mocks"
 
 	"testing"
 )
 
+var correctLoginData = dto.LoginPassword{Login: "good", Password: "correct"}
+
 func TestService_Login(t *testing.T) {
 	ctx := context.Background()
 	controller := gomock.NewController(t)
-	repo := mock_joint.NewMockInterface(controller)
-	metrics := mock_service.NewMockMetricsInterface(controller)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
 	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
 
-	data := dto.LoginPassword{Login: "good", Password: "correct"}
 	idHash := dto.UserIdHash{UserId: uuid.New(), Hash: `$2a$14$YSZzgtT8U7a6WKLrvhyCxe4f5Cc.Gnpj/gLlIt1QrOwBGm6Uo16dm`}
 
-	repo.EXPECT().GetAccountState(ctx, data.Login).Times(1).Return(account_state.State(account_state.Enabled), nil)
-	repo.EXPECT().GetUserIdAndPasswordHash(ctx, data.Login).Times(1).Return(idHash, nil)
+	repo.EXPECT().GetAccountState(ctx, correctLoginData.Login).Times(1).Return(account_state.State(account_state.Enabled), nil)
+	repo.EXPECT().GetUserIdAndPasswordHash(ctx, correctLoginData.Login).Times(1).Return(idHash, nil)
 	repo.EXPECT().SaveSession(ctx, gomock.Any()).Times(1).Return(nil)
 	metrics.EXPECT().LoginInc().AnyTimes()
-	token, err := s.Login(ctx, &data)
+	token, err := s.Login(ctx, &correctLoginData)
 	if len(token) != 24 || err != nil {
 		t.Fail()
 	}
+}
 
+func TestService_LoginErrGetAccountState(t *testing.T) {
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+
+	repo.EXPECT().GetAccountState(ctx, correctLoginData.Login).Times(1).Return(account_state.State(0), joint.ErrEmptyResult)
+
+	token, err := s.Login(ctx, &correctLoginData)
+
+	if len(token) != 0 || err == nil {
+		t.Fail()
+	}
+}
+
+func TestService_LoginErrNotEnabledAccount(t *testing.T) {
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+
+	repo.EXPECT().GetAccountState(ctx, correctLoginData.Login).Times(1).Return(account_state.State(account_state.Disabled), nil)
+
+	token, err := s.Login(ctx, &correctLoginData)
+
+	if len(token) != 0 || err != service.ErrNotEnabledAccount {
+		t.Fail()
+	}
+}
+
+func TestService_LoginErrGetUserId(t *testing.T) {
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+
+	idHash := dto.UserIdHash{UserId: uuid.Nil, Hash: `$2a$14$YSZzgtT8U7a6WKLrvhyCxe4f5Cc.Gnpj/gLlIt1QrOwBGm6Uo16dm`}
+
+	repo.EXPECT().GetAccountState(ctx, correctLoginData.Login).Times(1).Return(account_state.State(account_state.Enabled), nil)
+	repo.EXPECT().GetUserIdAndPasswordHash(ctx, correctLoginData.Login).Times(1).Return(idHash, nil)
+
+	metrics.EXPECT().AuthenticationErrorInc().Times(1)
+	token, err := s.Login(ctx, &correctLoginData)
+	if len(token) != 0 || err != nil {
+		t.Fail()
+	}
+}
+
+func TestService_LoginErrDataNotSaved(t *testing.T) {
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+
+	idHash := dto.UserIdHash{UserId: uuid.New(), Hash: `$2a$14$YSZzgtT8U7a6WKLrvhyCxe4f5Cc.Gnpj/gLlIt1QrOwBGm6Uo16dm`}
+
+	repo.EXPECT().GetAccountState(ctx, correctLoginData.Login).Times(1).Return(account_state.State(account_state.Enabled), nil)
+	repo.EXPECT().GetUserIdAndPasswordHash(ctx, correctLoginData.Login).Times(1).Return(idHash, nil)
+	repo.EXPECT().SaveSession(ctx, gomock.Any()).Times(1).Return(joint.ErrDataNotSaved)
+
+	token, err := s.Login(ctx, &correctLoginData)
+	if len(token) != 0 || err == nil {
+		t.Fail()
+	}
 }
 
 func TestService_Logout(t *testing.T) {
