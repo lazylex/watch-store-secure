@@ -176,13 +176,13 @@ func (s *Service) createPasswordHash(pwd password.Password) (string, error) {
 }
 
 // getUserId возвращает uuid пользователя (сервиса)
-func (s *Service) getUserId(ctx context.Context, dto *dto.LoginPassword) (uuid.UUID, error) {
-	userIdAndPasswordHash, err := s.repository.GetUserIdAndPasswordHash(ctx, dto.Login)
+func (s *Service) getUserId(ctx context.Context, data *dto.LoginPassword) (uuid.UUID, error) {
+	userIdAndPasswordHash, err := s.repository.GetUserIdAndPasswordHash(ctx, data.Login)
 	if err != nil {
 		return uuid.Nil, adaptErr(err)
 	}
 
-	if !s.isPasswordCorrect(dto.Password, userIdAndPasswordHash.Hash) {
+	if !s.isPasswordCorrect(data.Password, userIdAndPasswordHash.Hash) {
 		return uuid.Nil, se.ErrAuthenticationData
 	}
 
@@ -191,17 +191,12 @@ func (s *Service) getUserId(ctx context.Context, dto *dto.LoginPassword) (uuid.U
 
 // isPasswordCorrect возвращает true, если пароль соответствует хэшу
 func (s *Service) isPasswordCorrect(pwd password.Password, hash string) bool {
-	passwordHash, err := s.createPasswordHash(pwd)
-	if err != nil {
-		return false
-	}
-
-	return passwordHash == hash
+	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(pwd)) == nil
 }
 
 // createToken создает токен сессии для идентификации аутентифицированного пользователя (сервиса)
 func (s *Service) createToken() (string, error) {
-	b := make([]byte, s.secure.LoginTokenLength)
+	b := make([]byte, s.secure.LoginTokenLength/2)
 	if _, err := rand.Read(b); err != nil {
 		return "", se.ErrCreateToken
 	}
