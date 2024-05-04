@@ -18,15 +18,13 @@ import (
 func main() {
 	cfg := config.MustLoad()
 	slog.SetDefault(logger.MustCreate(cfg.Env, cfg.Instance))
-	if err := clearScreen(); err != nil {
-		slog.Error(err.Error())
-	}
+	clearScreen()
 
 	metrics := prometheusMetrics.MustCreate(&cfg.Prometheus)
 	inMemoryRepo := redis.MustCreate(cfg.Redis, cfg.TTL)
 	persistentRepo := postgresql.MustCreate(cfg.PersistentStorage)
 	repo := joint.New(inMemoryRepo, persistentRepo)
-	serv := service.New(metrics.Service, &repo, cfg.Secure)
+	_ = service.New(metrics.Service, &repo, cfg.Secure)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
@@ -38,11 +36,11 @@ func main() {
 	persistentRepo.Close()
 }
 
-func clearScreen() error {
+func clearScreen() {
 	cmd := exec.Command("clear")
 	cmd.Stdout = os.Stdout
-	return cmd.Run()
+	_ = cmd.Run()
 }
 
-// TODO добавить Кафку для публикации информации о перезагрузке сервиса и необходимости перелогина всех остальных
-// сервисов. Так же, возможно, добавить восстановление сессий из дампа Redis
+// TODO добавить Кафку для публикации информации о перезагрузке сервиса и необходимости повторного входа в систему всех
+// остальных сервисов. Так же, возможно, добавить восстановление сессий из дампа Redis
