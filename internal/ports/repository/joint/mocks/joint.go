@@ -620,6 +620,21 @@ func (mr *MockInterfaceMockRecorder) GetInstancePermissionsNumbersForAccount(arg
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetInstancePermissionsNumbersForAccount", reflect.TypeOf((*MockInterface)(nil).GetInstancePermissionsNumbersForAccount), arg0, arg1)
 }
 
+// GetServiceName mocks base method.
+func (m *MockInterface) GetServiceName(arg0 context.Context, arg1 string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetServiceName", arg0, arg1)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetServiceName indicates an expected call of GetServiceName.
+func (mr *MockInterfaceMockRecorder) GetServiceName(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetServiceName", reflect.TypeOf((*MockInterface)(nil).GetServiceName), arg0, arg1)
+}
+
 // GetServicePermissionsForAccount mocks base method.
 func (m *MockInterface) GetServicePermissionsForAccount(arg0 context.Context, arg1 *dto.UserIdService) ([]dto.NameNumberDescription, error) {
 	m.ctrl.T.Helper()

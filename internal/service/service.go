@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/lazylex/watch-store/secure/internal/config"
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/account_state"
@@ -14,6 +15,7 @@ import (
 	"github.com/lazylex/watch-store/secure/internal/ports/metrics/service"
 	"github.com/lazylex/watch-store/secure/internal/ports/repository/joint"
 	"golang.org/x/crypto/bcrypt"
+	"time"
 )
 
 type Service struct {
@@ -256,4 +258,35 @@ func (s *Service) AssignPermissionToRole(ctx context.Context, data *dto.Permissi
 // AssignPermissionToGroup прикрепляет разрешение к группе
 func (s *Service) AssignPermissionToGroup(ctx context.Context, data *dto.GroupPermissionService) error {
 	return adaptErr(s.repository.AssignPermissionToGroup(ctx, data))
+}
+
+// CreateToken создает JWT-токен, содержащий номера разрешений пользователя (сервиса) для переданного экземпляра сервиса
+func (s *Service) CreateToken(ctx context.Context, data *dto.UserIdInstance) (string, error) {
+	var err error
+	var ip, sp []int
+	var serviceName string
+
+	if ip, err = s.repository.GetInstancePermissionsNumbersForAccount(ctx, data); err != nil {
+		return "", adaptErr(err)
+	}
+
+	if serviceName, err = s.repository.GetServiceName(ctx, data.Instance); err != nil {
+		return "", adaptErr(err)
+	}
+
+	if sp, err = s.repository.GetServicePermissionsNumbersForAccount(ctx,
+		&dto.UserIdService{UserId: data.UserId, Service: serviceName}); err != nil {
+		return "", adaptErr(err)
+	}
+	// TODO удалить дубликаты (при наличии)
+	ip = append(ip, sp...)
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"perm": ip,
+		// TODO время жизни токена определять в конфигурации
+		"exp": time.Now().Add(168 * time.Hour).Unix(),
+	})
+
+	// TODO вставлять подпись токена вместо пустой строки
+	return token.SignedString([]byte(""))
 }

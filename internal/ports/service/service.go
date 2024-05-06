@@ -20,4 +20,6 @@ type Service interface {
 	common.RBACCreateInterface
 	common.RBACAssignToAccountInterface
 	common.RBACAssignInterface
+
+	CreateToken(context.Context, *dto.UserIdInstance) (string, error)
 }

@@ -328,3 +328,9 @@ func (r *Repository) makeDataCache() {
 		}
 	}
 }
+
+func (r *Repository) GetServiceName(context.Context, string) (string, error) {
+	// TODO implement
+	slog.Debug("GetServiceName not implemented")
+	return "", nil
+}

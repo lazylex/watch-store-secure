@@ -562,3 +562,19 @@ func TestService_AssignPermissionToGroupErr(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestService_CreateToken(t *testing.T) {
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+
+	repo.EXPECT().GetInstancePermissionsNumbersForAccount(ctx, gomock.Any()).Times(1).Return([]int{1}, nil)
+	repo.EXPECT().GetServiceName(ctx, gomock.Any()).Times(1).Return("", nil)
+	repo.EXPECT().GetServicePermissionsNumbersForAccount(ctx, gomock.Any()).Times(1).Return([]int{4, 6}, nil)
+	token, err := s.CreateToken(ctx, &dto.UserIdInstance{UserId: uuid.Nil, Instance: ""})
+	if len(token) == 0 || err != nil {
+		t.Fail()
+	}
+}

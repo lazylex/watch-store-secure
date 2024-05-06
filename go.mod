@@ -3,6 +3,7 @@ module github.com/lazylex/watch-store/secure
 go 1.21.5
 
 require (
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.5.0
 	github.com/ilyakaznacheev/cleanenv v1.5.0

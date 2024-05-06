@@ -42,4 +42,5 @@ type Interface interface {
 	ServiceInterface
 	LoginInterface
 	RBACInterface
+	GetServiceName(context.Context, string) (string, error)
 }
