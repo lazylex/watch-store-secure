@@ -38,18 +38,18 @@ func (m *MockServiceInterface) EXPECT() *MockServiceInterfaceMockRecorder {
 	return m.recorder
 }
 
-// CreateInstance mocks base method.
-func (m *MockServiceInterface) CreateInstance(arg0 context.Context, arg1 *dto.NameService) error {
+// CreateOrUpdateInstance mocks base method.
+func (m *MockServiceInterface) CreateOrUpdateInstance(arg0 context.Context, arg1 *dto.NameServiceSecret) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateInstance", arg0, arg1)
+	ret := m.ctrl.Call(m, "CreateOrUpdateInstance", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// CreateInstance indicates an expected call of CreateInstance.
-func (mr *MockServiceInterfaceMockRecorder) CreateInstance(arg0, arg1 interface{}) *gomock.Call {
+// CreateOrUpdateInstance indicates an expected call of CreateOrUpdateInstance.
+func (mr *MockServiceInterfaceMockRecorder) CreateOrUpdateInstance(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateInstance", reflect.TypeOf((*MockServiceInterface)(nil).CreateInstance), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrUpdateInstance", reflect.TypeOf((*MockServiceInterface)(nil).CreateOrUpdateInstance), arg0, arg1)
 }
 
 // CreateService mocks base method.
@@ -505,18 +505,18 @@ func (mr *MockInterfaceMockRecorder) CreateGroup(arg0, arg1 interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGroup", reflect.TypeOf((*MockInterface)(nil).CreateGroup), arg0, arg1)
 }
 
-// CreateInstance mocks base method.
-func (m *MockInterface) CreateInstance(arg0 context.Context, arg1 *dto.NameService) error {
+// CreateOrUpdateInstance mocks base method.
+func (m *MockInterface) CreateOrUpdateInstance(arg0 context.Context, arg1 *dto.NameServiceSecret) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateInstance", arg0, arg1)
+	ret := m.ctrl.Call(m, "CreateOrUpdateInstance", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// CreateInstance indicates an expected call of CreateInstance.
-func (mr *MockInterfaceMockRecorder) CreateInstance(arg0, arg1 interface{}) *gomock.Call {
+// CreateOrUpdateInstance indicates an expected call of CreateOrUpdateInstance.
+func (mr *MockInterfaceMockRecorder) CreateOrUpdateInstance(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateInstance", reflect.TypeOf((*MockInterface)(nil).CreateInstance), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrUpdateInstance", reflect.TypeOf((*MockInterface)(nil).CreateOrUpdateInstance), arg0, arg1)
 }
 
 // CreatePermission mocks base method.
@@ -618,6 +618,21 @@ func (m *MockInterface) GetInstancePermissionsNumbersForAccount(arg0 context.Con
 func (mr *MockInterfaceMockRecorder) GetInstancePermissionsNumbersForAccount(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetInstancePermissionsNumbersForAccount", reflect.TypeOf((*MockInterface)(nil).GetInstancePermissionsNumbersForAccount), arg0, arg1)
+}
+
+// GetInstanceSecret mocks base method.
+func (m *MockInterface) GetInstanceSecret(arg0 context.Context, arg1 string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetInstanceSecret", arg0, arg1)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetInstanceSecret indicates an expected call of GetInstanceSecret.
+func (mr *MockInterfaceMockRecorder) GetInstanceSecret(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetInstanceSecret", reflect.TypeOf((*MockInterface)(nil).GetInstanceSecret), arg0, arg1)
 }
 
 // GetServiceName mocks base method.

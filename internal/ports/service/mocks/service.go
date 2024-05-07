@@ -178,6 +178,21 @@ func (mr *MockServiceMockRecorder) CreateRole(arg0, arg1 interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRole", reflect.TypeOf((*MockService)(nil).CreateRole), arg0, arg1)
 }
 
+// CreateToken mocks base method.
+func (m *MockService) CreateToken(arg0 context.Context, arg1 *dto.UserIdInstance) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateToken", arg0, arg1)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateToken indicates an expected call of CreateToken.
+func (mr *MockServiceMockRecorder) CreateToken(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateToken", reflect.TypeOf((*MockService)(nil).CreateToken), arg0, arg1)
+}
+
 // Login mocks base method.
 func (m *MockService) Login(arg0 context.Context, arg1 *dto.LoginPassword) (string, error) {
 	m.ctrl.T.Helper()
@@ -208,7 +223,7 @@ func (mr *MockServiceMockRecorder) Logout(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // RegisterInstance mocks base method.
-func (m *MockService) RegisterInstance(arg0 context.Context, arg1 *dto.NameService) error {
+func (m *MockService) RegisterInstance(arg0 context.Context, arg1 *dto.NameServiceSecret) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RegisterInstance", arg0, arg1)
 	ret0, _ := ret[0].(error)

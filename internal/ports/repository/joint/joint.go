@@ -11,7 +11,7 @@ import (
 
 type ServiceInterface interface {
 	CreateService(context.Context, *dto.NameDescription) error
-	CreateInstance(context.Context, *dto.NameService) error
+	CreateOrUpdateInstance(context.Context, *dto.NameServiceSecret) error
 }
 
 type LoginInterface interface {
@@ -42,5 +42,6 @@ type Interface interface {
 	ServiceInterface
 	LoginInterface
 	RBACInterface
+	GetInstanceSecret(context.Context, string) (string, error)
 	GetServiceName(context.Context, string) (string, error)
 }

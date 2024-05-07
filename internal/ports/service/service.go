@@ -14,7 +14,7 @@ type Service interface {
 	Logout(context.Context, uuid.UUID) error
 	CreateAccount(context.Context, *dto.LoginPassword, service.AccountOptions) (uuid.UUID, error)
 
-	RegisterInstance(context.Context, *dto.NameService) error
+	RegisterInstance(context.Context, *dto.NameServiceSecret) error
 	RegisterService(context.Context, *dto.NameDescription) error
 
 	common.RBACCreateInterface

@@ -222,8 +222,8 @@ func (s *Service) CreateGroup(ctx context.Context, data *dto.NameServiceDescript
 }
 
 // RegisterInstance регистрирует название экземпляра сервиса
-func (s *Service) RegisterInstance(ctx context.Context, data *dto.NameService) error {
-	return adaptErr(s.repository.CreateInstance(ctx, data))
+func (s *Service) RegisterInstance(ctx context.Context, data *dto.NameServiceSecret) error {
+	return adaptErr(s.repository.CreateOrUpdateInstance(ctx, data))
 }
 
 func (s *Service) RegisterService(ctx context.Context, data *dto.NameDescription) error {
@@ -264,7 +264,11 @@ func (s *Service) AssignPermissionToGroup(ctx context.Context, data *dto.GroupPe
 func (s *Service) CreateToken(ctx context.Context, data *dto.UserIdInstance) (string, error) {
 	var err error
 	var ip, sp []int
-	var serviceName string
+	var serviceName, secret string
+
+	if secret, err = s.repository.GetInstanceSecret(ctx, data.Instance); err != nil {
+		return "", adaptErr(err)
+	}
 
 	if ip, err = s.repository.GetInstancePermissionsNumbersForAccount(ctx, data); err != nil {
 		return "", adaptErr(err)
@@ -287,6 +291,5 @@ func (s *Service) CreateToken(ctx context.Context, data *dto.UserIdInstance) (st
 		"exp": time.Now().Add(168 * time.Hour).Unix(),
 	})
 
-	// TODO вставлять подпись токена вместо пустой строки
-	return token.SignedString([]byte(""))
+	return token.SignedString([]byte(secret))
 }

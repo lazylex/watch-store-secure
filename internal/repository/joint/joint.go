@@ -144,9 +144,15 @@ func (r *Repository) CreateGroup(ctx context.Context, data *dto.NameServiceDescr
 	return adaptErr(r.persistent.CreateGroup(ctx, data))
 }
 
-// CreateInstance добавляет в БД название экземпляра сервиса
-func (r *Repository) CreateInstance(ctx context.Context, data *dto.NameService) error {
-	return adaptErr(r.persistent.CreateInstance(ctx, data))
+// CreateOrUpdateInstance добавляет/обновляет в БД название экземпляра сервиса и секретный ключ для подписи токена
+func (r *Repository) CreateOrUpdateInstance(ctx context.Context, data *dto.NameServiceSecret) error {
+	if err := r.persistent.CreateOrUpdateInstance(ctx, data); err != nil {
+		return adaptErr(err)
+	}
+
+	// TODO вставить сохранение данных об экземпляре сервиса в память
+
+	return nil
 }
 
 // AssignRoleToGroup присоединяет роль к группе
@@ -261,6 +267,21 @@ func (r *Repository) GetInstancePermissionsNumbersForAccount(ctx context.Context
 	return numbers, adaptErr(err)
 }
 
+// GetServiceName возвращает название сервиса переданного экземпляра
+func (r *Repository) GetServiceName(ctx context.Context, instanceName string) (string, error) {
+	// TODO добавить взаимодействие с памятью
+	name, err := r.persistent.GetServiceName(ctx, instanceName)
+	return name, adaptErr(err)
+}
+
+// GetInstanceSecret возвращает строку, необходимую для подписи токена, предназначенного для взаимодействия с
+// соответствующим экземпляром сервиса
+func (r *Repository) GetInstanceSecret(ctx context.Context, name string) (string, error) {
+	// TODO добавить взаимодействие с памятью
+	secret, err := r.persistent.GetInstanceSecret(ctx, name)
+	return secret, err
+}
+
 // getInstancePermissionsNumbersForAccountFromPersistentWithSaveToMemory возвращает номера разрешений аккаунта для
 // экземпляра сервиса и кеширует их в память
 func (r *Repository) getInstancePermissionsNumbersForAccountFromPersistentWithSaveToMemory(ctx context.Context, data *dto.UserIdInstance) ([]int, error) {
@@ -327,10 +348,4 @@ func (r *Repository) makeDataCache() {
 			<-c
 		}
 	}
-}
-
-func (r *Repository) GetServiceName(context.Context, string) (string, error) {
-	// TODO implement
-	slog.Debug("GetServiceName not implemented")
-	return "", nil
 }

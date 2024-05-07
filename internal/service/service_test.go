@@ -239,9 +239,9 @@ func TestService_RegisterInstance(t *testing.T) {
 	repo := mockjoint.NewMockInterface(controller)
 	metrics := mockservice.NewMockMetricsInterface(controller)
 	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
-	data := dto.NameService{Name: "saver", Service: "tron"}
+	data := dto.NameServiceSecret{Name: "saver", Service: "tron", Secret: "secret"}
 
-	repo.EXPECT().CreateInstance(ctx, &data).Times(1).Return(nil)
+	repo.EXPECT().CreateOrUpdateInstance(ctx, &data).Times(1).Return(nil)
 
 	if s.RegisterInstance(ctx, &data) != nil {
 		t.Fail()
@@ -254,9 +254,9 @@ func TestService_RegisterInstanceErr(t *testing.T) {
 	repo := mockjoint.NewMockInterface(controller)
 	metrics := mockservice.NewMockMetricsInterface(controller)
 	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
-	data := dto.NameService{Name: "saver", Service: "tron"}
+	data := dto.NameServiceSecret{Name: "saver", Service: "tron", Secret: "secret"}
 
-	repo.EXPECT().CreateInstance(ctx, &data).Times(1).Return(joint.ErrDuplicateData)
+	repo.EXPECT().CreateOrUpdateInstance(ctx, &data).Times(1).Return(joint.ErrDuplicateData)
 
 	if s.RegisterInstance(ctx, &data) != service.ErrAlreadyExist {
 		t.Fail()
@@ -570,6 +570,7 @@ func TestService_CreateToken(t *testing.T) {
 	metrics := mockservice.NewMockMetricsInterface(controller)
 	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
 
+	repo.EXPECT().GetInstanceSecret(ctx, gomock.Any()).Times(1).Return("secret", nil)
 	repo.EXPECT().GetInstancePermissionsNumbersForAccount(ctx, gomock.Any()).Times(1).Return([]int{1}, nil)
 	repo.EXPECT().GetServiceName(ctx, gomock.Any()).Times(1).Return("", nil)
 	repo.EXPECT().GetServicePermissionsNumbersForAccount(ctx, gomock.Any()).Times(1).Return([]int{4, 6}, nil)

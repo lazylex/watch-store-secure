@@ -38,6 +38,7 @@ func (p *PostgreSQL) createNotExistedSchemaAndTables() error {
 		(
 			instance_id SERIAL PRIMARY KEY,
 			name VARCHAR(100) NOT NULL UNIQUE,
+			secret VARCHAR(100) NOT NULL,
 			service_fk INTEGER NOT NULL REFERENCES services ON DELETE CASCADE
 		)`
 	if err := p.createTable(stmt); err != nil {

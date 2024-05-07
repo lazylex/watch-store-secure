@@ -155,8 +155,9 @@ func (p *PostgreSQL) CreateService(ctx context.Context, data *dto.NameDescriptio
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Name, data.Description))
 }
 
-// CreateInstance добавляет в БД название экземпляра сервиса
-func (p *PostgreSQL) CreateInstance(ctx context.Context, data *dto.NameService) error {
+// CreateOrUpdateInstance сохраняет/обновляет в БД название экземпляра сервиса и его секретный ключ
+func (p *PostgreSQL) CreateOrUpdateInstance(ctx context.Context, data *dto.NameServiceSecret) error {
+	// TODO изменить запрос на добавление или обновление данных
 	stmt := `INSERT INTO instances (name, service_fk)
 			VALUES ($1,
 			        (SELECT service_id FROM services WHERE name=$2));`
@@ -513,4 +514,29 @@ func (p *PostgreSQL) GetAccountsLoginsByState(ctx context.Context, state account
 	}
 
 	return result, nil
+}
+
+// GetInstanceSecret возвращает строку, необходимую для подписи токена, предназначенного для взаимодействия с
+// соответствующим экземпляром сервиса
+func (p *PostgreSQL) GetInstanceSecret(ctx context.Context, name string) (string, error) {
+	var secret string
+	stmt := `SELECT secret FROM instances WHERE name = $1`
+	row := p.pool.QueryRowEx(ctx, stmt, nil, name)
+	if err := row.Scan(&secret); err != nil {
+		return "", adaptErr(err)
+	}
+
+	return secret, nil
+}
+
+// GetServiceName возвращает название сервиса переданного экземпляра
+func (p *PostgreSQL) GetServiceName(ctx context.Context, instanceName string) (string, error) {
+	var name string
+	stmt := `SELECT name FROM services WHERE service_id = (SELECT service_fk FROM instances WHERE name = $1)`
+	row := p.pool.QueryRowEx(ctx, stmt, nil, instanceName)
+	if err := row.Scan(&name); err != nil {
+		return "", adaptErr(err)
+	}
+
+	return name, nil
 }
