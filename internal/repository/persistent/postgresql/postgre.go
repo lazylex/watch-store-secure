@@ -157,11 +157,15 @@ func (p *PostgreSQL) CreateService(ctx context.Context, data *dto.NameDescriptio
 
 // CreateOrUpdateInstance сохраняет/обновляет в БД название экземпляра сервиса и его секретный ключ
 func (p *PostgreSQL) CreateOrUpdateInstance(ctx context.Context, data *dto.NameServiceSecret) error {
-	// TODO изменить запрос на добавление или обновление данных
-	stmt := `INSERT INTO instances (name, service_fk)
+	// TODO использование INSERT ... ON CONFLICT увеличивает счетчик даже при обновлении. Желательно обойтись без этого
+	stmt := `INSERT INTO instances (name, service_fk, secret)
 			VALUES ($1,
-			        (SELECT service_id FROM services WHERE name=$2));`
-	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Name, data.Service))
+			        (SELECT service_id FROM services WHERE name=$2),
+			        $3)
+			ON CONFLICT ON CONSTRAINT instances_name_key DO UPDATE
+			    SET secret = excluded.secret;`
+
+	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Name, data.Service, data.Secret))
 }
 
 // AssignPermissionToRole назначает роли разрешение
