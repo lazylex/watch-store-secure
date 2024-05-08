@@ -31,3 +31,4 @@ ttl:
 secure:
   login_token_length: 24
   password_creation_cost: 14
+  token_ttl: 168h

@@ -12,6 +12,7 @@ import (
 	"github.com/lazylex/watch-store/secure/internal/errors/service"
 	mockservice "github.com/lazylex/watch-store/secure/internal/ports/metrics/service/mocks"
 	mockjoint "github.com/lazylex/watch-store/secure/internal/ports/repository/joint/mocks"
+	"time"
 
 	"testing"
 )
@@ -568,7 +569,7 @@ func TestService_CreateToken(t *testing.T) {
 	controller := gomock.NewController(t)
 	repo := mockjoint.NewMockInterface(controller)
 	metrics := mockservice.NewMockMetricsInterface(controller)
-	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+	s := New(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14, TokenTTL: 168 * time.Hour})
 
 	repo.EXPECT().GetInstanceSecret(ctx, gomock.Any()).Times(1).Return("secret", nil)
 	repo.EXPECT().GetInstancePermissionsNumbersForAccount(ctx, gomock.Any()).Times(1).Return([]int{1}, nil)

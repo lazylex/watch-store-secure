@@ -72,8 +72,9 @@ type TTL struct {
 }
 
 type Secure struct {
-	LoginTokenLength     int `yaml:"login_token_length" env:"LOGIN_TOKEN_LENGTH" env-required:"true"`
-	PasswordCreationCost int `yaml:"password_creation_cost" env:"PASSWORD_CREATION_COST" env-required:"true"`
+	LoginTokenLength     int           `yaml:"login_token_length" env:"LOGIN_TOKEN_LENGTH" env-required:"true"`
+	PasswordCreationCost int           `yaml:"password_creation_cost" env:"PASSWORD_CREATION_COST" env-required:"true"`
+	TokenTTL             time.Duration `yaml:"token_ttl" env:"TOKEN_TTL" env-required:"true"`
 }
 
 // MustLoad возвращает конфигурацию, считанную из файла, путь к которому передан из командной строки по флагу config или
