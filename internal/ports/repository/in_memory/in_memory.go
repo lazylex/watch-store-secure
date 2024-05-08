@@ -30,7 +30,16 @@ type RBACInterface interface {
 	ExistServicePermissionsNumbersForAccount(context.Context, *dto.UserIdService) bool
 }
 
+type InstanceInterface interface {
+	SetInstanceServiceAndSecret(ctx context.Context, data *dto.NameServiceSecret) error
+	SetInstanceServiceName(ctx context.Context, data *dto.NameService) error
+	GetServiceName(ctx context.Context, instanceName string) (string, error)
+	SetInstanceSecret(ctx context.Context, data *dto.NameSecret) error
+	GetInstanceSecret(ctx context.Context, name string) (string, error)
+}
+
 type Interface interface {
 	LoginInterface
 	RBACInterface
+	InstanceInterface
 }

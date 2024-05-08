@@ -14,6 +14,7 @@ const (
 	prefixInstancePermissionsNumbers = "ipn"
 	prefixUuidHash                   = "uh"
 	prefixAccountState               = "as"
+	prefixInstance                   = "i"
 )
 
 // keySession ключ для получения UUID пользователя сессии
@@ -44,4 +45,8 @@ func keyUserIdAndPasswordHash(login loginVO.Login) string {
 // keyAccountStateByLogin ключ для получения состояния учетной записи по логину
 func keyAccountStateByLogin(login loginVO.Login) string {
 	return fmt.Sprintf("%s:%s", prefixAccountState, login)
+}
+
+func keyInstance(instance string) string {
+	return fmt.Sprintf("%s:%s", prefixInstance, instance)
 }

@@ -202,6 +202,69 @@ func (r *Redis) GetInstancePermissionsNumbersForAccount(ctx context.Context, dat
 	}
 }
 
+// SetInstanceServiceAndSecret сохраняет название сервиса для экземпляра и секретный ключ для создания подписи
+// JWT-токена
+func (r *Redis) SetInstanceServiceAndSecret(ctx context.Context, data *dto.NameServiceSecret) error {
+	key := keyInstance(data.Name)
+	if err := r.client.HSet(ctx, key, "service", data.Service, "secret", data.Secret).Err(); err != nil {
+		return adaptErr(err)
+	}
+
+	defer r.client.Expire(ctx, key, r.ttl.InstanceDataTTL)
+
+	return nil
+}
+
+// GetServiceName возвращает название сервиса по имени его экземпляра
+func (r *Redis) GetServiceName(ctx context.Context, instanceName string) (string, error) {
+	key := keyInstance(instanceName)
+	result, err := r.client.HGet(ctx, key, "service").Result()
+	if err != nil {
+		return "", adaptErr(err)
+	}
+
+	defer r.client.Expire(ctx, key, r.ttl.InstanceDataTTL)
+
+	return result, nil
+}
+
+// SetInstanceServiceName сохраняет название сервиса для экземпляра
+func (r *Redis) SetInstanceServiceName(ctx context.Context, data *dto.NameService) error {
+	key := keyInstance(data.Name)
+	if err := r.client.HSet(ctx, key, "service", data.Service).Err(); err != nil {
+		return adaptErr(err)
+	}
+
+	defer r.client.Expire(ctx, key, r.ttl.InstanceDataTTL)
+
+	return nil
+}
+
+// GetInstanceSecret возвращает секретный ключ для экземпляра сервиса
+func (r *Redis) GetInstanceSecret(ctx context.Context, instanceName string) (string, error) {
+	key := keyInstance(instanceName)
+	result, err := r.client.HGet(ctx, key, "secret").Result()
+	if err != nil {
+		return "", adaptErr(err)
+	}
+
+	defer r.client.Expire(ctx, key, r.ttl.InstanceDataTTL)
+
+	return result, nil
+}
+
+// SetInstanceSecret сохраняет секретный ключ экземпляра сервиса, необходимый для создания подписи JWT-токена
+func (r *Redis) SetInstanceSecret(ctx context.Context, data *dto.NameSecret) error {
+	key := keyInstance(data.Name)
+	if err := r.client.HSet(ctx, key, "secret", data.Secret).Err(); err != nil {
+		return adaptErr(err)
+	}
+
+	defer r.client.Expire(ctx, key, r.ttl.InstanceDataTTL)
+
+	return nil
+}
+
 // setPermissionsNumbers сохраняет номера разрешений аккаунта по заданному ключу
 func (r *Redis) setPermissionsNumbers(ctx context.Context, key string, permissionNumbers []int) error {
 

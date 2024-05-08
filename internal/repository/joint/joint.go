@@ -150,7 +150,9 @@ func (r *Repository) CreateOrUpdateInstance(ctx context.Context, data *dto.NameS
 		return adaptErr(err)
 	}
 
-	// TODO вставить сохранение данных об экземпляре сервиса в память
+	if err := r.memory.SetInstanceServiceAndSecret(ctx, data); err != nil {
+		return adaptErr(joint.ErrCacheSavedData)
+	}
 
 	return nil
 }
@@ -269,16 +271,41 @@ func (r *Repository) GetInstancePermissionsNumbersForAccount(ctx context.Context
 
 // GetServiceName возвращает название сервиса переданного экземпляра
 func (r *Repository) GetServiceName(ctx context.Context, instanceName string) (string, error) {
-	// TODO добавить взаимодействие с памятью
-	name, err := r.persistent.GetServiceName(ctx, instanceName)
-	return name, adaptErr(err)
+	var name string
+	var err error
+
+	if name, err = r.memory.GetServiceName(ctx, instanceName); err == nil {
+		return name, nil
+	}
+
+	if name, err = r.persistent.GetServiceName(ctx, instanceName); err != nil {
+		return "", adaptErr(err)
+	}
+
+	defer func() {
+		_ = r.memory.SetInstanceServiceName(ctx, &dto.NameService{Name: instanceName, Service: name})
+	}()
+
+	return name, nil
 }
 
 // GetInstanceSecret возвращает строку, необходимую для подписи токена, предназначенного для взаимодействия с
 // соответствующим экземпляром сервиса
 func (r *Repository) GetInstanceSecret(ctx context.Context, name string) (string, error) {
-	// TODO добавить взаимодействие с памятью
-	secret, err := r.persistent.GetInstanceSecret(ctx, name)
+	var secret string
+	var err error
+	if secret, err = r.memory.GetInstanceSecret(ctx, name); err == nil {
+		return secret, nil
+	}
+
+	if secret, err = r.persistent.GetInstanceSecret(ctx, name); err != nil {
+		return "", adaptErr(err)
+	}
+
+	defer func() {
+		_ = r.memory.SetInstanceSecret(ctx, &dto.NameSecret{Name: name, Secret: secret})
+	}()
+
 	return secret, err
 }
 

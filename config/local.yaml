@@ -28,6 +28,7 @@ ttl:
   user_id_and_password_hash_ttl: 168h
   account_state_ttl: 168h
   permissions_numbers_ttl: 24h
+  instance_data_ttl: 168h
 secure:
   login_token_length: 24
   password_creation_cost: 14
