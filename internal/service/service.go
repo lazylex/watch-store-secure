@@ -263,14 +263,14 @@ func (s *Service) AssignPermissionToGroup(ctx context.Context, data *dto.GroupPe
 // CreateToken создает JWT-токен, содержащий номера разрешений пользователя (сервиса) для переданного экземпляра сервиса
 func (s *Service) CreateToken(ctx context.Context, data *dto.UserIdInstance) (string, error) {
 	var err error
-	var ip, sp []int
+	var permissions1, permissions2 []int
 	var serviceName, secret string
 
 	if secret, err = s.repository.GetInstanceSecret(ctx, data.Instance); err != nil {
 		return "", adaptErr(err)
 	}
 
-	if ip, err = s.repository.GetInstancePermissionsNumbersForAccount(ctx, data); err != nil {
+	if permissions1, err = s.repository.GetInstancePermissionsNumbersForAccount(ctx, data); err != nil {
 		return "", adaptErr(err)
 	}
 
@@ -278,15 +278,25 @@ func (s *Service) CreateToken(ctx context.Context, data *dto.UserIdInstance) (st
 		return "", adaptErr(err)
 	}
 
-	if sp, err = s.repository.GetServicePermissionsNumbersForAccount(ctx,
+	if permissions2, err = s.repository.GetServicePermissionsNumbersForAccount(ctx,
 		&dto.UserIdService{UserId: data.UserId, Service: serviceName}); err != nil {
 		return "", adaptErr(err)
 	}
-	// TODO удалить дубликаты (при наличии)
-	ip = append(ip, sp...)
+
+	permissions1 = append(permissions1, permissions2...)
+	permissions2 = permissions2[:0]
+
+	unique := make(map[int]bool, len(permissions1)/2)
+
+	for _, v := range permissions1 {
+		if _, ok := unique[v]; !ok {
+			unique[v] = true
+			permissions2 = append(permissions2, v)
+		}
+	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"perm": ip,
+		"perm": permissions2,
 		"exp":  time.Now().Add(s.secure.TokenTTL).Unix(),
 	})
 
