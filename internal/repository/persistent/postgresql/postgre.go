@@ -157,113 +157,242 @@ func (p *PostgreSQL) CreateService(ctx context.Context, data *dto.NameDescriptio
 
 // CreateOrUpdateInstance сохраняет/обновляет в БД название экземпляра сервиса и его секретный ключ
 func (p *PostgreSQL) CreateOrUpdateInstance(ctx context.Context, data *dto.NameServiceSecret) error {
-	// TODO использование INSERT ... ON CONFLICT увеличивает счетчик даже при обновлении. Желательно обойтись без этого
-	stmt := `INSERT INTO instances (name, service_fk, secret)
-			VALUES ($1,
-			        (SELECT service_id FROM services WHERE name=$2),
-			        $3)
-			ON CONFLICT ON CONSTRAINT instances_name_key DO UPDATE
-			    SET secret = excluded.secret;`
+	cte := `
+	WITH
+		s AS (SELECT instance_id FROM instances WHERE name = $1),
+		i AS (
+    		INSERT INTO instances (name, service_fk, secret)
+    		SELECT
+				$1,
+				(SELECT service_id FROM services WHERE name = $2),
+				$3 
+			WHERE NOT EXISTS (SELECT 1 FROM s)
+		)`
+
+	stmt := cte + `
+	UPDATE instances
+	SET secret = $3
+	WHERE instance_id = (SELECT instance_id FROM s);`
 
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Name, data.Service, data.Secret))
 }
 
 // AssignPermissionToRole назначает роли разрешение
 func (p *PostgreSQL) AssignPermissionToRole(ctx context.Context, data *dto.PermissionRoleService) error {
-	stmt := `INSERT INTO role_permissions (role_fk, permission_fk)
-			VALUES (
-            	(SELECT role_id 
-				FROM roles 
-				WHERE service_fk = (SELECT service_id FROM services WHERE name=$1) AND name=$2),
+	stmt := `
+	INSERT
+	INTO
+	role_permissions(role_fk, permission_fk)
+	VALUES(
+		(SELECT
+	role_id
+	FROM
+	roles
+	WHERE
+	service_fk = (SELECT
+	service_id
+	FROM
+	services
+	WHERE
+	name =$1) AND
+	name =$2),
 
-				(SELECT permission_id 
-				FROM permissions 
-				WHERE service_fk = (SELECT service_id FROM services WHERE name=$1) AND name=$3)
-			);`
+	(SELECT
+	permission_id
+	FROM
+	permissions
+	WHERE
+	service_fk = (SELECT
+	service_id
+	FROM
+	services
+	WHERE
+	name =$1) AND
+	name =$3)
+)
+	`
 
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Service, data.Role, data.Permission))
 }
 
 // AssignRoleToGroup присоединяет роль к группе
 func (p *PostgreSQL) AssignRoleToGroup(ctx context.Context, data *dto.GroupRoleService) error {
-	stmt := `INSERT INTO group_roles (role_fk, group_fk)
-			VALUES (
-				(SELECT role_id 
-				FROM roles 
-				WHERE service_fk = (SELECT service_id FROM services WHERE name=$1) AND name=$2),
+	stmt := `
+	INSERT
+	INTO
+	group_roles(role_fk, group_fk)
+	VALUES(
+		(SELECT
+	role_id
+	FROM
+	roles
+	WHERE
+	service_fk = (SELECT
+	service_id
+	FROM
+	services
+	WHERE
+	name =$1) AND
+	name =$2),
 
-				(SELECT group_id 
-				FROM groups 
-				WHERE service_fk = (SELECT service_id FROM services WHERE name=$1) AND name=$3)
-			);`
+	(SELECT
+	group_id
+	FROM
+	groups
+	WHERE
+	service_fk = (SELECT
+	service_id
+	FROM
+	services
+	WHERE
+	name =$1) AND
+	name =$3)
+)
+	`
 
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Service, data.Role, data.Group))
 }
 
 // AssignRoleToAccount назначает роль учетной записи
 func (p *PostgreSQL) AssignRoleToAccount(ctx context.Context, data *dto.UserIdRoleService) error {
-	stmt := `INSERT INTO account_roles (role_fk, account_fk)
-			VALUES (
-				(SELECT role_id 
-                FROM roles 
-                WHERE service_fk = (SELECT service_id FROM services WHERE name=$1) AND name=$2),
+	stmt := `
+	INSERT
+	INTO
+	account_roles(role_fk, account_fk)
+	VALUES(
+		(SELECT
+	role_id
+	FROM
+	roles
+	WHERE
+	service_fk = (SELECT
+	service_id
+	FROM
+	services
+	WHERE
+	name =$1) AND
+	name =$2),
 
-				(SELECT account_id
-				FROM accounts
-				WHERE uuid = $3) 
-			);`
+	(SELECT
+	account_id
+	FROM
+	accounts
+	WHERE
+	uuid = $3)
+)
+	`
 
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Service, data.Role, data.UserId))
 }
 
 // AssignGroupToAccount назначает группу учетной записи
 func (p *PostgreSQL) AssignGroupToAccount(ctx context.Context, data *dto.UserIdGroupService) error {
-	stmt := `INSERT INTO account_groups (group_fk, account_fk)
-			VALUES (
-				(SELECT group_id 
-                FROM groups 
-                WHERE service_fk = (SELECT service_id FROM services WHERE name=$1) AND name=$2),
+	stmt := `
+	INSERT
+	INTO
+	account_groups(group_fk, account_fk)
+	VALUES(
+		(SELECT
+	group_id
+	FROM
+	groups
+	WHERE
+	service_fk = (SELECT
+	service_id
+	FROM
+	services
+	WHERE
+	name =$1) AND
+	name =$2),
 
-				(SELECT account_id
-				FROM accounts
-				WHERE uuid = $3) 
-			);`
+	(SELECT
+	account_id
+	FROM
+	accounts
+	WHERE
+	uuid = $3)
+)
+	`
 
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Service, data.Group, data.UserId))
 }
 
 // AssignInstancePermissionToAccount прикрепляет разрешение конкретного экземпляра сервиса к учетной записи
 func (p *PostgreSQL) AssignInstancePermissionToAccount(ctx context.Context, data *dto.UserIdInstancePermission) error {
-	cte := `WITH instance_cte AS (SELECT instance_id, service_fk
-                      FROM instances
-                      WHERE name = $1)`
+	cte := `
+	WITH
+	instance_cte
+	AS(SELECT
+	instance_id, service_fk
+	FROM
+	instances
+	WHERE
+	name = $1)`
 	stmt := cte + `
-		INSERT
-		INTO accounts_instances_permissions (account_fk, instance_fk, permission_fk)
-		VALUES ((SELECT account_id
-				 FROM accounts
-				 WHERE uuid = $2),
-				(SELECT instance_id FROM instance_cte),
-				(SELECT permission_id
-				 FROM permissions
-				 WHERE name = $3
-				   AND service_fk IN (SELECT service_fk FROM instance_cte)));`
+	INSERT
+	INTO
+	accounts_instances_permissions(account_fk, instance_fk, permission_fk)
+	VALUES((SELECT
+	account_id
+	FROM
+	accounts
+	WHERE
+	uuid = $2),
+	(SELECT
+	instance_id
+	FROM
+	instance_cte),
+	(SELECT
+	permission_id
+	FROM
+	permissions
+	WHERE
+	name = $3
+	AND
+	service_fk
+	IN(SELECT
+	service_fk
+	FROM
+	instance_cte)))
+	`
 
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Instance, data.UserId, data.Permission))
 }
 
 // AssignPermissionToGroup назначает разрешения группе
 func (p *PostgreSQL) AssignPermissionToGroup(ctx context.Context, data *dto.GroupPermissionService) error {
-	stmt := `INSERT INTO group_permissions (group_fk, permission_fk)
-			VALUES (
-	       	(SELECT group_id
-				FROM groups
-				WHERE service_fk = (SELECT service_id FROM services WHERE name=$1) AND name=$2),
-	
-				(SELECT permission_id
-				FROM permissions
-				WHERE service_fk = (SELECT service_id FROM services WHERE name=$1) AND name=$3)
-			);`
+	stmt := `
+	INSERT
+	INTO
+	group_permissions(group_fk, permission_fk)
+	VALUES(
+		(SELECT
+	group_id
+	FROM
+	groups
+	WHERE
+	service_fk = (SELECT
+	service_id
+	FROM
+	services
+	WHERE
+	name =$1) AND
+	name =$2),
+
+	(SELECT
+	permission_id
+	FROM
+	permissions
+	WHERE
+	service_fk = (SELECT
+	service_id
+	FROM
+	services
+	WHERE
+	name =$1) AND
+	name =$3)
+)
+	`
 
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Service, data.Group, data.Permission))
 }
@@ -271,26 +400,49 @@ func (p *PostgreSQL) AssignPermissionToGroup(ctx context.Context, data *dto.Grou
 // GetInstancePermissionsForAccount возвращает название, номер и описание разрешений аккаунта для экземпляра сервиса
 func (p *PostgreSQL) GetInstancePermissionsForAccount(ctx context.Context, data *dto.UserIdInstance) ([]dto.NameNumberDescription, error) {
 	cte := `
-	WITH account_cte AS (SELECT account_id
-                     FROM accounts
-                     WHERE uuid = $1)`
+	WITH
+	account_cte
+	AS(SELECT
+	account_id
+	FROM
+	accounts
+	WHERE
+	uuid = $1)`
 
 	stmt := cte + `
-	SELECT name,
-		   number,
-		   description
-	FROM permissions
-	WHERE permission_id IN
-		  (SELECT permission_fk
-		   FROM accounts_instances_permissions
-		   WHERE account_fk = (SELECT account_id FROM account_cte)
-	
-			 AND instance_fk IN
-				 (SELECT instance_id
-				  FROM instances
-				  WHERE name = $2))
+	SELECT
+	name,
+		number,
+		description
+	FROM
+	permissions
+	WHERE
+	permission_id
+	IN
+	(SELECT
+	permission_fk
+	FROM
+	accounts_instances_permissions
+	WHERE
+	account_fk = (SELECT
+	account_id
+	FROM
+	account_cte)
 
-	ORDER BY number`
+	AND
+	instance_fk
+	IN
+	(SELECT
+	instance_id
+	FROM
+	instances
+	WHERE
+	name = $2))
+
+	ORDER
+	BY
+	number
+	`
 
 	rows, err := p.pool.QueryEx(ctx, stmt, nil, data.UserId, data.Instance)
 	defer rows.Close()
@@ -317,24 +469,47 @@ func (p *PostgreSQL) GetInstancePermissionsForAccount(ctx context.Context, data 
 // GetInstancePermissionsNumbersForAccount возвращает номера разрешений аккаунта для экземпляра сервиса
 func (p *PostgreSQL) GetInstancePermissionsNumbersForAccount(ctx context.Context, data *dto.UserIdInstance) ([]int, error) {
 	cte := `
-	WITH account_cte AS (SELECT account_id
-                     FROM accounts
-                     WHERE uuid = $1)`
+	WITH
+	account_cte
+	AS(SELECT
+	account_id
+	FROM
+	accounts
+	WHERE
+	uuid = $1)`
 
 	stmt := cte + `
-	SELECT number
-	FROM permissions
-	WHERE permission_id IN
-		  (SELECT permission_fk
-		   FROM accounts_instances_permissions
-		   WHERE account_fk = (SELECT account_id FROM account_cte)
-	
-			 AND instance_fk IN
-				 (SELECT instance_id
-				  FROM instances
-				  WHERE name = $2))
+	SELECT
+	number
+	FROM
+	permissions
+	WHERE
+	permission_id
+	IN
+	(SELECT
+	permission_fk
+	FROM
+	accounts_instances_permissions
+	WHERE
+	account_fk = (SELECT
+	account_id
+	FROM
+	account_cte)
 
-	ORDER BY number`
+	AND
+	instance_fk
+	IN
+	(SELECT
+	instance_id
+	FROM
+	instances
+	WHERE
+	name = $2))
+
+	ORDER
+	BY
+	number
+	`
 
 	rows, err := p.pool.QueryEx(ctx, stmt, nil, data.UserId, data.Instance)
 	defer rows.Close()
@@ -360,44 +535,95 @@ func (p *PostgreSQL) GetInstancePermissionsNumbersForAccount(ctx context.Context
 // для экземпляра)
 func (p *PostgreSQL) GetServicePermissionsForAccount(ctx context.Context, data *dto.UserIdService) ([]dto.NameNumberDescription, error) {
 	cte := `
-	WITH account_cte AS (SELECT account_id
-                     FROM accounts
-                     WHERE uuid = $1),
-     groups_cte AS (SELECT group_fk
-                    FROM account_groups
-                    WHERE account_fk = (SELECT account_id FROM account_cte)),
-     service_cte AS (SELECT service_id
-                     FROM services
-                     WHERE name = $2)`
+	WITH
+	account_cte
+	AS(SELECT
+	account_id
+	FROM
+	accounts
+	WHERE
+	uuid = $1),
+	groups_cte
+	AS(SELECT
+	group_fk
+	FROM
+	account_groups
+	WHERE
+	account_fk = (SELECT
+	account_id
+	FROM
+	account_cte)),
+	service_cte
+	AS(SELECT
+	service_id
+	FROM
+	services
+	WHERE
+	name = $2)`
 
 	stmt := cte + `
-	SELECT name,
-		   number,
-		   description
-	FROM permissions
-	WHERE permission_id IN
-		  (SELECT permission_fk
-		   FROM role_permissions
-		   WHERE role_fk IN
-				 (SELECT role_fk
-				  FROM group_roles
-				  WHERE group_fk IN (SELECT group_fk FROM groups_cte)
-	
-				  UNION
-	
-				  SELECT role_fk
-				  FROM account_roles
-				  WHERE account_fk = (SELECT account_id FROM account_cte))
-	
-		   UNION
-	
-		   SELECT permission_fk
-		   FROM group_permissions
-		   WHERE group_fk IN (SELECT group_fk FROM groups_cte)
-		   )
-	
-	  AND service_fk = (SELECT service_id FROM service_cte)
-	ORDER BY number`
+	SELECT
+	name,
+		number,
+		description
+	FROM
+	permissions
+	WHERE
+	permission_id
+	IN
+	(SELECT
+	permission_fk
+	FROM
+	role_permissions
+	WHERE
+	role_fk
+	IN
+	(SELECT
+	role_fk
+	FROM
+	group_roles
+	WHERE
+	group_fk
+	IN(SELECT
+	group_fk
+	FROM
+	groups_cte)
+
+	UNION
+
+	SELECT
+	role_fk
+	FROM
+	account_roles
+	WHERE
+	account_fk = (SELECT
+	account_id
+	FROM
+	account_cte))
+
+	UNION
+
+	SELECT
+	permission_fk
+	FROM
+	group_permissions
+	WHERE
+	group_fk
+	IN(SELECT
+	group_fk
+	FROM
+	groups_cte)
+)
+
+	AND
+	service_fk = (SELECT
+	service_id
+	FROM
+	service_cte)
+	ORDER
+	BY
+	number
+	`
 
 	rows, err := p.pool.QueryEx(ctx, stmt, nil, data.UserId, data.Service)
 	defer rows.Close()
@@ -425,42 +651,93 @@ func (p *PostgreSQL) GetServicePermissionsForAccount(ctx context.Context, data *
 // экземпляра)
 func (p *PostgreSQL) GetServicePermissionsNumbersForAccount(ctx context.Context, data *dto.UserIdService) ([]int, error) {
 	cte := `
-	WITH account_cte AS (SELECT account_id
-                     FROM accounts
-                     WHERE uuid = $1),
-     groups_cte AS (SELECT group_fk
-                    FROM account_groups
-                    WHERE account_fk = (SELECT account_id FROM account_cte)),
-     service_cte AS (SELECT service_id
-                     FROM services
-                     WHERE name = $2)`
+	WITH
+	account_cte
+	AS(SELECT
+	account_id
+	FROM
+	accounts
+	WHERE
+	uuid = $1),
+	groups_cte
+	AS(SELECT
+	group_fk
+	FROM
+	account_groups
+	WHERE
+	account_fk = (SELECT
+	account_id
+	FROM
+	account_cte)),
+	service_cte
+	AS(SELECT
+	service_id
+	FROM
+	services
+	WHERE
+	name = $2)`
 
 	stmt := cte + `
-	SELECT number
-	FROM permissions
-	WHERE permission_id IN
-		  (SELECT permission_fk
-		   FROM role_permissions
-		   WHERE role_fk IN
-				 (SELECT role_fk
-				  FROM group_roles
-				  WHERE group_fk IN (SELECT group_fk FROM groups_cte)
-	
-				  UNION
-	
-				  SELECT role_fk
-				  FROM account_roles
-				  WHERE account_fk = (SELECT account_id FROM account_cte))
-	
-		   UNION
-	
-		   SELECT permission_fk
-		   FROM group_permissions
-		   WHERE group_fk IN (SELECT group_fk FROM groups_cte)
-		   )
-	
-	  AND service_fk = (SELECT service_id FROM service_cte)
-	ORDER BY number`
+	SELECT
+	number
+	FROM
+	permissions
+	WHERE
+	permission_id
+	IN
+	(SELECT
+	permission_fk
+	FROM
+	role_permissions
+	WHERE
+	role_fk
+	IN
+	(SELECT
+	role_fk
+	FROM
+	group_roles
+	WHERE
+	group_fk
+	IN(SELECT
+	group_fk
+	FROM
+	groups_cte)
+
+	UNION
+
+	SELECT
+	role_fk
+	FROM
+	account_roles
+	WHERE
+	account_fk = (SELECT
+	account_id
+	FROM
+	account_cte))
+
+	UNION
+
+	SELECT
+	permission_fk
+	FROM
+	group_permissions
+	WHERE
+	group_fk
+	IN(SELECT
+	group_fk
+	FROM
+	groups_cte)
+)
+
+	AND
+	service_fk = (SELECT
+	service_id
+	FROM
+	service_cte)
+	ORDER
+	BY
+	number
+	`
 
 	rows, err := p.pool.QueryEx(ctx, stmt, nil, data.UserId, data.Service)
 	defer rows.Close()
@@ -486,7 +763,20 @@ func (p *PostgreSQL) GetServicePermissionsNumbersForAccount(ctx context.Context,
 // GetPermissionNumber возвращает номер разрешения для заданного экземпляра сервиса
 func (p *PostgreSQL) GetPermissionNumber(ctx context.Context, name, instance string) (int, error) {
 	var number int
-	stmt := `SELECT number FROM permissions WHERE name=$1 AND service_fk=(SELECT service_fk FROM instances WHERE name=$2)`
+	stmt := `
+	SELECT
+	number
+	FROM
+	permissions
+	WHERE
+	name =$1
+	AND
+	service_fk = (SELECT
+	service_fk
+	FROM
+	instances
+	WHERE
+	name =$2)`
 	row := p.pool.QueryRowEx(ctx, stmt, nil, name, instance)
 	if err := row.Scan(&number); err != nil {
 		return 0, adaptErr(err)
@@ -497,7 +787,14 @@ func (p *PostgreSQL) GetPermissionNumber(ctx context.Context, name, instance str
 
 // GetAccountsLoginsByState возвращает список логинов пользователей с переданным функции состоянием
 func (p *PostgreSQL) GetAccountsLoginsByState(ctx context.Context, state account_state.State) ([]loginVO.Login, error) {
-	stmt := `SELECT login FROM accounts WHERE state = $1`
+	stmt := `
+	SELECT
+	login
+	FROM
+	accounts
+	WHERE
+	state = $1
+	`
 	rows, err := p.pool.QueryEx(ctx, stmt, nil, state)
 	defer rows.Close()
 
@@ -524,7 +821,14 @@ func (p *PostgreSQL) GetAccountsLoginsByState(ctx context.Context, state account
 // соответствующим экземпляром сервиса
 func (p *PostgreSQL) GetInstanceSecret(ctx context.Context, name string) (string, error) {
 	var secret string
-	stmt := `SELECT secret FROM instances WHERE name = $1`
+	stmt := `
+	SELECT
+	secret
+	FROM
+	instances
+	WHERE
+	name = $1
+	`
 	row := p.pool.QueryRowEx(ctx, stmt, nil, name)
 	if err := row.Scan(&secret); err != nil {
 		return "", adaptErr(err)
@@ -536,7 +840,18 @@ func (p *PostgreSQL) GetInstanceSecret(ctx context.Context, name string) (string
 // GetServiceName возвращает название сервиса переданного экземпляра
 func (p *PostgreSQL) GetServiceName(ctx context.Context, instanceName string) (string, error) {
 	var name string
-	stmt := `SELECT name FROM services WHERE service_id = (SELECT service_fk FROM instances WHERE name = $1)`
+	stmt := `
+	SELECT
+	name
+	FROM
+	services
+	WHERE
+	service_id = (SELECT
+	service_fk
+	FROM
+	instances
+	WHERE
+	name = $1)`
 	row := p.pool.QueryRowEx(ctx, stmt, nil, instanceName)
 	if err := row.Scan(&name); err != nil {
 		return "", adaptErr(err)
