@@ -217,9 +217,10 @@ func TestPostgreSQL_BigTest(t *testing.T) {
 		t.Fatal()
 	}
 
-	if p.CreateOrUpdateInstance(ctx, &dto.NameService{
+	if p.CreateOrUpdateInstance(ctx, &dto.NameServiceSecret{
 		Name:    "instance1",
 		Service: "service1",
+		Secret:  "",
 	}) != nil {
 		t.Fatal()
 	}
