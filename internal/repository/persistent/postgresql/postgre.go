@@ -859,3 +859,21 @@ func (p *PostgreSQL) GetServiceName(ctx context.Context, instanceName string) (s
 
 	return name, nil
 }
+
+// DeleteRole удаляет роль из БД
+func (p *PostgreSQL) DeleteRole(ctx context.Context, data *dto.NameService) error {
+	slog.Debug("DeleteRole not implemented")
+	return nil
+}
+
+// DeleteGroup удаляет группу из БД
+func (p *PostgreSQL) DeleteGroup(ctx context.Context, data *dto.NameService) error {
+	slog.Debug("DeleteGroup not implemented")
+	return nil
+}
+
+// DeletePermission удаляет разрешение из БД
+func (p *PostgreSQL) DeletePermission(ctx context.Context, data *dto.NameService) error {
+	slog.Debug("DeletePermission not implemented")
+	return nil
+}

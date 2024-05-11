@@ -30,6 +30,7 @@ type RBACInterface interface {
 	common.RBACCreateInterface
 	common.RBACAssignToAccountInterface
 	common.RBACAssignInterface
+	common.RBACDeleteInterface
 
 	GetServicePermissionsForAccount(context.Context, *dto.UserIdService) ([]dto.NameNumberDescription, error)
 	GetServicePermissionsNumbersForAccount(context.Context, *dto.UserIdService) ([]int, error)

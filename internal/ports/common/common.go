@@ -22,3 +22,9 @@ type RBACAssignInterface interface {
 	AssignPermissionToRole(context.Context, *dto.PermissionRoleService) error
 	AssignPermissionToGroup(context.Context, *dto.GroupPermissionService) error
 }
+
+type RBACDeleteInterface interface {
+	DeleteRole(context.Context, *dto.NameService) error
+	DeleteGroup(context.Context, *dto.NameService) error
+	DeletePermission(context.Context, *dto.NameService) error
+}

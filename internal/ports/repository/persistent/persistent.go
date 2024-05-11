@@ -36,6 +36,10 @@ type RBACInterface interface {
 	GetServicePermissionsNumbersForAccount(context.Context, *dto.UserIdService) ([]int, error)
 
 	GetPermissionNumber(ctx context.Context, permission string, instance string) (int, error)
+
+	DeleteRole(context.Context, *dto.NameService) error
+	DeleteGroup(context.Context, *dto.NameService) error
+	DeletePermission(context.Context, *dto.NameService) error
 }
 
 type Interface interface {

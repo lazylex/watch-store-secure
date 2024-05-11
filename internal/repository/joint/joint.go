@@ -309,6 +309,21 @@ func (r *Repository) GetInstanceSecret(ctx context.Context, name string) (string
 	return secret, err
 }
 
+// DeleteRole удаляет роль из БД
+func (r *Repository) DeleteRole(ctx context.Context, data *dto.NameService) error {
+	return adaptErr(r.persistent.DeleteRole(ctx, data))
+}
+
+// DeleteGroup удаляет группу из БД
+func (r *Repository) DeleteGroup(ctx context.Context, data *dto.NameService) error {
+	return adaptErr(r.persistent.DeleteGroup(ctx, data))
+}
+
+// DeletePermission удаляет разрешение из БД
+func (r *Repository) DeletePermission(ctx context.Context, data *dto.NameService) error {
+	return adaptErr(r.persistent.DeletePermission(ctx, data))
+}
+
 // getInstancePermissionsNumbersForAccountFromPersistentWithSaveToMemory возвращает номера разрешений аккаунта для
 // экземпляра сервиса и кеширует их в память
 func (r *Repository) getInstancePermissionsNumbersForAccountFromPersistentWithSaveToMemory(ctx context.Context, data *dto.UserIdInstance) ([]int, error) {
