@@ -11,6 +11,7 @@ var (
 	ErrCreateToken        = NewServiceError("error creating token")
 	ErrLogout             = NewServiceError("error logout")
 	ErrAlreadyExist       = NewServiceError("already exist")
+	ErrNothingWasChanged  = NewServiceError("nothing was changed")
 )
 
 // FullServiceError возвращает полностью заполненную структуру с типом JointType

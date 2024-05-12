@@ -32,6 +32,8 @@ func adaptErrSkipFrames(err error, skip int) error {
 		switch {
 		case message == joint.ErrDuplicateData.Message:
 			return service.ErrAlreadyExist.WithOrigin(be.Origin)
+		case message == joint.ErrDataNotSaved.Message:
+			return service.ErrNothingWasChanged.WithOrigin(be.Origin)
 		}
 
 		if be.Type == service.ErrServiceType {

@@ -24,8 +24,6 @@ type LoginInterface interface {
 	GetAccountState(context.Context, login.Login) (account_state.State, error)
 }
 
-// TODO добавить удаление разрешений, ролей и групп
-
 type RBACInterface interface {
 	common.RBACCreateInterface
 	common.RBACAssignToAccountInterface

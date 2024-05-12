@@ -260,6 +260,21 @@ func (s *Service) AssignPermissionToGroup(ctx context.Context, data *dto.GroupPe
 	return adaptErr(s.repository.AssignPermissionToGroup(ctx, data))
 }
 
+// DeleteRole удаляет роль
+func (s *Service) DeleteRole(ctx context.Context, data *dto.NameService) error {
+	return adaptErr(s.repository.DeleteRole(ctx, data))
+}
+
+// DeleteGroup удаляет группу
+func (s *Service) DeleteGroup(ctx context.Context, data *dto.NameService) error {
+	return adaptErr(s.repository.DeleteGroup(ctx, data))
+}
+
+// DeletePermission удаляет разрешение
+func (s *Service) DeletePermission(ctx context.Context, data *dto.NameService) error {
+	return adaptErr(s.repository.DeletePermission(ctx, data))
+}
+
 // CreateToken создает JWT-токен, содержащий номера разрешений пользователя (сервиса) для переданного экземпляра сервиса
 func (s *Service) CreateToken(ctx context.Context, data *dto.UserIdInstance) (string, error) {
 	var err error

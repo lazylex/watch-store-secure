@@ -638,18 +638,18 @@ func (p *PostgreSQL) GetServiceName(ctx context.Context, instanceName string) (s
 
 // DeleteRole удаляет роль из БД
 func (p *PostgreSQL) DeleteRole(ctx context.Context, data *dto.NameService) error {
-	slog.Debug("DeleteRole not implemented")
-	return nil
+	stmt := `DELETE FROM roles WHERE name = $1 AND service_fk = (SELECT service_id FROM services WHERE name = $2)`
+	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Name, data.Service))
 }
 
 // DeleteGroup удаляет группу из БД
 func (p *PostgreSQL) DeleteGroup(ctx context.Context, data *dto.NameService) error {
-	slog.Debug("DeleteGroup not implemented")
-	return nil
+	stmt := `DELETE FROM groups WHERE name = $1 AND service_fk = (SELECT service_id FROM services WHERE name = $2)`
+	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Name, data.Service))
 }
 
 // DeletePermission удаляет разрешение из БД
 func (p *PostgreSQL) DeletePermission(ctx context.Context, data *dto.NameService) error {
-	slog.Debug("DeletePermission not implemented")
-	return nil
+	stmt := `DELETE FROM permissions WHERE name = $1 AND service_fk = (SELECT service_id FROM services WHERE name = $2)`
+	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Name, data.Service))
 }
