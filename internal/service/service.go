@@ -81,6 +81,10 @@ func (s *Service) CreateAccount(ctx context.Context, data *dto.LoginPassword, op
 	var hash string
 	var err error
 
+	if err = data.Login.Validate(); err != nil {
+		return uuid.Nil, adaptErr(err)
+	}
+
 	if hash, err = s.createPasswordHash(data.Password); err != nil {
 		return uuid.Nil, adaptErr(err)
 	}
