@@ -15,6 +15,7 @@ import (
 
 const NAMESPACE = "secure"
 
+// Metrics структура, содержащая объекты, реализующие интерфейсы для сбора метрик
 type Metrics struct {
 	Service service.MetricsInterface
 }
