@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/lazylex/watch-store/secure/internal/config"
-	internalLogger "github.com/lazylex/watch-store/secure/internal/logger"
 	"github.com/lazylex/watch-store/secure/internal/ports/metrics/service"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -38,7 +37,7 @@ func MustCreate(cfg *config.Prometheus) *Metrics {
 
 	metrics, err := registerMetrics()
 	if err != nil {
-		slog.With(slog.String(internalLogger.OPLabel, "metrics.MustCreate")).Error(err.Error())
+		slog.Error(err.Error())
 		os.Exit(1)
 	}
 
@@ -70,12 +69,11 @@ func registerMetrics() (*Metrics, error) {
 func startHTTP(url, port string) {
 	go func() {
 		mux := http.NewServeMux()
-		log := slog.With(internalLogger.OPLabel, "metrics.startHTTP")
 		mux.Handle(url, promhttp.Handler())
-		log.Info(fmt.Sprintf(":%s%s ready for prometheus", port, url))
+		slog.Info(fmt.Sprintf(":%s%s ready for prometheus", port, url))
 		err := http.ListenAndServe(":"+port, mux)
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Error("can't start http server for prometheus")
+			slog.Error("can't start http server for prometheus")
 			os.Exit(1)
 		}
 	}()
