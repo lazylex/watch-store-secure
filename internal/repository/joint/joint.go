@@ -11,6 +11,7 @@ import (
 	"github.com/lazylex/watch-store/secure/internal/ports/repository/in_memory"
 	"github.com/lazylex/watch-store/secure/internal/ports/repository/persistent"
 	"log/slog"
+	"os"
 	"time"
 )
 
@@ -20,8 +21,14 @@ type Repository struct {
 	persistent  persistent.Interface
 }
 
-func New(memory in_memory.Interface, persistent persistent.Interface) Repository {
-	r := Repository{memory: memory, persistent: persistent, stateLocker: CreateStateLocker()}
+// MustCreate создает объединенное хранилище из in memory кеша и постоянного хранилища. Возвращает структуру Repository
+// для взаимодействия с хранилищем, параллельно проводя кеширование части данных из постоянного хранилища в память.
+func MustCreate(memoryRepo in_memory.Interface, persistentRepo persistent.Interface) Repository {
+	if memoryRepo == nil || persistentRepo == nil {
+		slog.Error(adaptErr(joint.ErrNilRepo).Error())
+		os.Exit(1)
+	}
+	r := Repository{memory: memoryRepo, persistent: persistentRepo, stateLocker: CreateStateLocker()}
 	go r.makeDataCache()
 	return r
 }

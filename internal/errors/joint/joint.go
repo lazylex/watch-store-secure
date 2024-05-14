@@ -10,6 +10,7 @@ var (
 	ErrEmptyResult        = NewJointError("empty result")
 	ErrDataTypeConversion = NewJointError("data type conversion failed")
 	ErrCacheSavedData     = NewJointError("can't save data to cache")
+	ErrNilRepo            = NewJointError("the repository must be initialized, but it's nil")
 )
 
 // FullJointError возвращает полностью заполненную структуру с типом JointType

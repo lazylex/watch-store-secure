@@ -23,7 +23,7 @@ func main() {
 	metrics := prometheusMetrics.MustCreate(&cfg.Prometheus)
 	inMemoryRepo := redis.MustCreate(cfg.Redis, cfg.TTL)
 	persistentRepo := postgresql.MustCreate(cfg.PersistentStorage)
-	repo := joint.New(inMemoryRepo, persistentRepo)
+	repo := joint.MustCreate(inMemoryRepo, persistentRepo)
 	_ = service.New(metrics.Service, &repo, cfg.Secure)
 
 	c := make(chan os.Signal, 1)
