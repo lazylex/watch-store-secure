@@ -339,6 +339,48 @@ func (mr *MockRBACInterfaceMockRecorder) CreateRole(arg0, arg1 interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRole", reflect.TypeOf((*MockRBACInterface)(nil).CreateRole), arg0, arg1)
 }
 
+// DeleteGroup mocks base method.
+func (m *MockRBACInterface) DeleteGroup(arg0 context.Context, arg1 *dto.NameService) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteGroup", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteGroup indicates an expected call of DeleteGroup.
+func (mr *MockRBACInterfaceMockRecorder) DeleteGroup(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteGroup", reflect.TypeOf((*MockRBACInterface)(nil).DeleteGroup), arg0, arg1)
+}
+
+// DeletePermission mocks base method.
+func (m *MockRBACInterface) DeletePermission(arg0 context.Context, arg1 *dto.NameService) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeletePermission", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeletePermission indicates an expected call of DeletePermission.
+func (mr *MockRBACInterfaceMockRecorder) DeletePermission(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePermission", reflect.TypeOf((*MockRBACInterface)(nil).DeletePermission), arg0, arg1)
+}
+
+// DeleteRole mocks base method.
+func (m *MockRBACInterface) DeleteRole(arg0 context.Context, arg1 *dto.NameService) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteRole", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteRole indicates an expected call of DeleteRole.
+func (mr *MockRBACInterfaceMockRecorder) DeleteRole(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRole", reflect.TypeOf((*MockRBACInterface)(nil).DeleteRole), arg0, arg1)
+}
+
 // GetInstancePermissionsNumbersForAccount mocks base method.
 func (m *MockRBACInterface) GetInstancePermissionsNumbersForAccount(arg0 context.Context, arg1 *dto.UserIdInstance) ([]int, error) {
 	m.ctrl.T.Helper()
@@ -559,6 +601,48 @@ func (m *MockInterface) CreateService(arg0 context.Context, arg1 *dto.NameDescri
 func (mr *MockInterfaceMockRecorder) CreateService(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateService", reflect.TypeOf((*MockInterface)(nil).CreateService), arg0, arg1)
+}
+
+// DeleteGroup mocks base method.
+func (m *MockInterface) DeleteGroup(arg0 context.Context, arg1 *dto.NameService) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteGroup", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteGroup indicates an expected call of DeleteGroup.
+func (mr *MockInterfaceMockRecorder) DeleteGroup(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteGroup", reflect.TypeOf((*MockInterface)(nil).DeleteGroup), arg0, arg1)
+}
+
+// DeletePermission mocks base method.
+func (m *MockInterface) DeletePermission(arg0 context.Context, arg1 *dto.NameService) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeletePermission", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeletePermission indicates an expected call of DeletePermission.
+func (mr *MockInterfaceMockRecorder) DeletePermission(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePermission", reflect.TypeOf((*MockInterface)(nil).DeletePermission), arg0, arg1)
+}
+
+// DeleteRole mocks base method.
+func (m *MockInterface) DeleteRole(arg0 context.Context, arg1 *dto.NameService) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteRole", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteRole indicates an expected call of DeleteRole.
+func (mr *MockInterfaceMockRecorder) DeleteRole(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRole", reflect.TypeOf((*MockInterface)(nil).DeleteRole), arg0, arg1)
 }
 
 // DeleteSession mocks base method.
