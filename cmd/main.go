@@ -24,7 +24,7 @@ func main() {
 	inMemoryRepo := redis.MustCreate(cfg.Redis, cfg.TTL)
 	persistentRepo := postgresql.MustCreate(cfg.PersistentStorage)
 	repo := joint.MustCreate(inMemoryRepo, persistentRepo)
-	_ = service.New(metrics.Service, &repo, cfg.Secure)
+	_ = service.MustCreate(metrics.Service, &repo, cfg.Secure)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)

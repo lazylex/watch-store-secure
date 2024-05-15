@@ -12,6 +12,9 @@ var (
 	ErrLogout             = NewServiceError("error logout")
 	ErrAlreadyExist       = NewServiceError("already exist")
 	ErrNothingWasChanged  = NewServiceError("nothing was changed")
+	ErrNilMetrics         = NewServiceError("metrics can't be nil")
+	ErrNilRepo            = NewServiceError("repository can't be nil")
+	ErrEmptyConfig        = NewServiceError("empty config")
 )
 
 // FullServiceError возвращает полностью заполненную структуру с типом JointType

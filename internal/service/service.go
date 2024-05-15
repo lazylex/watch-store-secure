@@ -1,3 +1,7 @@
+/*
+Package service.
+Пакет содержит реализацию сервисного слоя, реализуя основную логику работы приложения.
+*/
 package service
 
 import (
@@ -15,6 +19,8 @@ import (
 	"github.com/lazylex/watch-store/secure/internal/ports/metrics/service"
 	"github.com/lazylex/watch-store/secure/internal/ports/repository/joint"
 	"golang.org/x/crypto/bcrypt"
+	"log/slog"
+	"os"
 	"time"
 )
 
@@ -33,8 +39,23 @@ type AccountOptions struct {
 	InstancePermissions []dto.InstancePermission // Срез разрешений для конкретных экземпляров сервисов
 }
 
-// New конструктор для сервиса
-func New(metrics service.MetricsInterface, repository joint.Interface, cfg config.Secure) *Service {
+// MustCreate конструктор для сервиса. Если метрики или хранилище равны nil или настройки безопасности пусты, работа
+// приложения завершается
+func MustCreate(metrics service.MetricsInterface, repository joint.Interface, cfg config.Secure) *Service {
+	var err error
+	switch {
+	case metrics == nil:
+		err = se.ErrNilMetrics
+	case repository == nil:
+		err = se.ErrNilRepo
+	case cfg == (config.Secure{}):
+		err = se.ErrEmptyConfig
+	}
+
+	if err != nil {
+		slog.Error(err.Error())
+		os.Exit(1)
+	}
 	return &Service{metrics: metrics, repository: repository, secure: cfg}
 }
 
