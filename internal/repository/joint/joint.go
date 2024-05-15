@@ -24,9 +24,9 @@ import (
 // Repository структура, содержащая блокировщик состояния и объекты, реализующие интерфейсы работы с постоянным и
 // in memory хранилищами.
 type Repository struct {
-	stateLocker StateLocker
-	memory      in_memory.Interface
-	persistent  persistent.Interface
+	stateLocker StateLocker          // Структура, управляющая блокировками чтения/записи состояния аккаунтов
+	memory      in_memory.Interface  // Объект, реализующий работу с хранилищем, расположенном в ОЗУ
+	persistent  persistent.Interface // Объект, реализующий работу с постоянным хранилищем
 }
 
 // MustCreate создает объединенное хранилище из in memory кеша и постоянного хранилища. Возвращает структуру Repository

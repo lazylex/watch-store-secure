@@ -18,16 +18,19 @@ import (
 	"time"
 )
 
+// Service структура для взаимодействия с хранилищем данных, настройками безопасности и подсчетом метрик. Логика пакета
+// реализуется на базе этой структуры.
 type Service struct {
-	metrics    service.MetricsInterface
-	repository joint.Interface
-	secure     config.Secure
+	metrics    service.MetricsInterface // Метрики
+	repository joint.Interface          // Хранилище данных
+	secure     config.Secure            // Настройки безопасности
 }
 
+// AccountOptions опции для создаваемых учетных записей.
 type AccountOptions struct {
-	Groups              []dto.NameService
-	Roles               []dto.NameService
-	InstancePermissions []dto.InstancePermission
+	Groups              []dto.NameService        // Срез групп, в которых состоит пользователь
+	Roles               []dto.NameService        // Срез ролей, в которых состоит пользователь
+	InstancePermissions []dto.InstancePermission // Срез разрешений для конкретных экземпляров сервисов
 }
 
 // New конструктор для сервиса
