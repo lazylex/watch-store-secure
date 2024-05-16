@@ -12,10 +12,10 @@ const (
 )
 
 func (l Login) Validate() error {
-	if len(l) > 100 {
+	if len(l) > maxLength {
 		return fmt.Errorf("maximum login length exceeded (%d characters)", maxLength)
 	}
-	if len(l) < 3 {
+	if len(l) < minLength {
 		return fmt.Errorf("login length must be at least %d characters", minLength)
 	}
 
