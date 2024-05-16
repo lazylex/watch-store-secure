@@ -183,12 +183,25 @@ func TestService_CreateAccount(t *testing.T) {
 	repo.EXPECT().AssignRoleToAccount(ctx, gomock.Any()).Times(1).Return(nil)
 	repo.EXPECT().AssignInstancePermissionToAccount(ctx, gomock.Any()).Times(1).Return(nil)
 
-	accountId, err := s.CreateAccount(ctx, &dto.LoginPassword{Login: "Homer Jay Simpson", Password: "donut"}, AccountOptions{
+	accountId, err := s.CreateAccount(ctx, &dto.LoginPassword{Login: "Homer Jay Simpson", Password: "Donut_123"}, AccountOptions{
 		Groups:              []dto.NameService{{"users", "tron"}},
 		Roles:               []dto.NameService{{"admin", "tron"}},
 		InstancePermissions: []dto.InstancePermission{{"node1", "delete"}},
 	})
 	if err != nil || accountId == uuid.Nil {
+		t.Fail()
+	}
+}
+
+func TestService_CreateAccountErrPwdNoUpperCaseLetter(t *testing.T) {
+	ctx := context.Background()
+	controller := gomock.NewController(t)
+	repo := mockjoint.NewMockInterface(controller)
+	metrics := mockservice.NewMockMetricsInterface(controller)
+	s := MustCreate(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
+
+	accountId, err := s.CreateAccount(ctx, &dto.LoginPassword{Login: "Homer Jay Simpson", Password: "donut"}, AccountOptions{})
+	if err == nil || accountId != uuid.Nil {
 		t.Fail()
 	}
 }
