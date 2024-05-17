@@ -1,8 +1,8 @@
 /*
-Package logger.
-Пакет для создания логгера, соответствующего окружению, в котором запущено приложение. Функция MustCreate возвращает
-указатель на slog.Logger. В случае несоответствия переданного в функцию окружения одному из доступных вариантов
-(config.EnvironmentLocal, config.EnvironmentDebug или config.EnvironmentProduction) выполнение приложения прекращается.
+Package logger: пакет для создания логгера, соответствующего окружению, в котором запущено приложение. Функция
+MustCreate возвращает указатель на slog.Logger. В случае несоответствия переданного в функцию окружения одному из
+доступных вариантов (config.EnvironmentLocal, config.EnvironmentDebug или config.EnvironmentProduction) выполнение
+приложения прекращается.
 */
 package logger
 
