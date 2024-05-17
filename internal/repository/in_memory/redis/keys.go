@@ -17,36 +17,39 @@ const (
 	prefixInstance                   = "i"
 )
 
-// keySession ключ для получения UUID пользователя сессии
+// keySession ключ для получения UUID пользователя сессии.
 func keySession(sessionToken string) string {
 	return fmt.Sprintf("%s:%s", prefixSession, sessionToken)
 }
 
-// keySessionByUUID ключ для получения токена сессии по UUID пользователя
+// keySessionByUUID ключ для получения токена сессии по UUID пользователя.
 func keySessionByUUID(userID string) string {
 	return fmt.Sprintf("%s:%s", prefixSessionByUUID, userID)
 }
 
-// keyServicePermissionsNumbers ключ для получения списка разрешений сервиса service для пользователя (сервиса) с UUID равным id
+// keyServicePermissionsNumbers ключ для получения списка разрешений сервиса service для пользователя (сервиса) с UUID
+// равным id.
 func keyServicePermissionsNumbers(service string, id uuid.UUID) string {
 	return fmt.Sprintf("%s:%s:%s", prefixServicePermissionsNumbers, service, id.String())
 }
 
-// keyInstancePermissionsNumbers ключ для получения списка разрешений экземпляра для пользователя (сервиса) с UUID равным id
+// keyInstancePermissionsNumbers ключ для получения списка разрешений экземпляра для пользователя (сервиса) с UUID
+// равным id.
 func keyInstancePermissionsNumbers(instance string, id uuid.UUID) string {
 	return fmt.Sprintf("%s:%s:%s", prefixInstancePermissionsNumbers, instance, id.String())
 }
 
-// keyUserIdAndPasswordHash ключ для получения идентификатора пользователя и хэша его пароля по логину
+// keyUserIdAndPasswordHash ключ для получения идентификатора пользователя и хэша его пароля по логину.
 func keyUserIdAndPasswordHash(login loginVO.Login) string {
 	return fmt.Sprintf("%s:%s", prefixUuidHash, string(login))
 }
 
-// keyAccountStateByLogin ключ для получения состояния учетной записи по логину
+// keyAccountStateByLogin ключ для получения состояния учетной записи по логину.
 func keyAccountStateByLogin(login loginVO.Login) string {
 	return fmt.Sprintf("%s:%s", prefixAccountState, login)
 }
 
+// keyInstance ключ для получения секрета и названия сервиса для экземпляра.
 func keyInstance(instance string) string {
 	return fmt.Sprintf("%s:%s", prefixInstance, instance)
 }

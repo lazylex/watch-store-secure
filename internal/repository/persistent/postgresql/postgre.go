@@ -16,7 +16,7 @@ import (
 
 const testSchemaPrefix = "test_schema_"
 
-// PostgreSQL структура, хранящая пул соединений, их максимальное количество и текущую схему базы данных
+// PostgreSQL структура, хранящая пул соединений, их максимальное количество и текущую схему базы данных.
 type PostgreSQL struct {
 	pool           *pgx.ConnPool // пул соединений
 	maxConnections int           // максимально доступное количество соединений с БД
@@ -24,7 +24,7 @@ type PostgreSQL struct {
 }
 
 // MustCreate возвращает структуру для взаимодействия с базой данных в СУБД PostgreSQL. В случае ошибки завершает
-// работу всего приложения
+// работу всего приложения.
 func MustCreate(cfg config.PersistentStorage) *PostgreSQL {
 	schema := "public"
 	if len(cfg.DatabaseSchema) > 0 {
@@ -62,20 +62,20 @@ func MustCreate(cfg config.PersistentStorage) *PostgreSQL {
 
 // MustCreateForTest возвращает структуру для взаимодействия с тестовой базой данных в СУБД PostgreSQL. Переданная в
 // конфигурации схема игнорируется и меняется на сгенерированную случайным образом (префикс из константы
-// testSchemaPrefix и случайное целое число). В остальном идентично функции MustCreate
+// testSchemaPrefix и случайное целое число). В остальном идентично функции MustCreate.
 func MustCreateForTest(cfg config.PersistentStorage) *PostgreSQL {
 	cfg.DatabaseSchema = fmt.Sprintf("%s%d", testSchemaPrefix, rand.Int())
 	return MustCreate(cfg)
 }
 
-// Close закрывает пул соединений с БД
+// Close закрывает пул соединений с БД.
 func (p *PostgreSQL) Close() {
 	p.pool.Close()
 	slog.Info("closed postgres pool")
 }
 
 // DropCurrentTestSchema удаляет текущую схему со всеми данными, если она предназначалась для тестов. Это определяется
-// по суффиксу схемы, который должен быть test_schema_ для тестовых схем
+// по суффиксу схемы, который должен быть test_schema_ для тестовых схем.
 func (p *PostgreSQL) DropCurrentTestSchema() {
 	if !strings.HasPrefix(p.schema, testSchemaPrefix) {
 		slog.Warn(fmt.Sprintf("can't dropping current schema. It's not start with %s prefix", testSchemaPrefix))
@@ -89,11 +89,12 @@ func (p *PostgreSQL) DropCurrentTestSchema() {
 	}
 }
 
+// GetMaxConnections возвращает максимальное количество подключений к БД.
 func (p *PostgreSQL) GetMaxConnections() int {
 	return p.maxConnections
 }
 
-// GetAccountLoginData возвращает необходимые для процесса входа в систему данные пользователя (сервиса)
+// GetAccountLoginData возвращает необходимые для процесса входа в систему данные пользователя (сервиса).
 func (p *PostgreSQL) GetAccountLoginData(ctx context.Context, login loginVO.Login) (dto.UserIdLoginHashState, error) {
 	result := dto.UserIdLoginHashState{Login: login}
 	stmt := `SELECT uuid, pwd_hash, state FROM accounts WHERE login = $1;`
@@ -106,19 +107,20 @@ func (p *PostgreSQL) GetAccountLoginData(ctx context.Context, login loginVO.Logi
 	return result, nil
 }
 
-// SetAccountLoginData сохраняет в БД идентификатор пользователя (сервиса), логин, хеш пароля и состояние учетной записи
+// SetAccountLoginData сохраняет в БД идентификатор пользователя (сервиса), логин, хеш пароля и состояние учетной
+// записи.
 func (p *PostgreSQL) SetAccountLoginData(ctx context.Context, data *dto.UserIdLoginHashState) error {
 	stmt := `INSERT INTO accounts (uuid, login, pwd_hash, state) values ($1, $2, $3, $4);`
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.UserId, data.Login, data.Hash, data.State))
 }
 
-// SetAccountState устанавливает состояние учетной записи
+// SetAccountState устанавливает состояние учетной записи.
 func (p *PostgreSQL) SetAccountState(ctx context.Context, data *dto.LoginState) error {
 	stmt := `UPDATE accounts SET state = $1 WHERE login = $2;`
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.State, data.Login))
 }
 
-// CreatePermission добавляет разрешение в таблицу permissions
+// CreatePermission добавляет разрешение в таблицу permissions.
 func (p *PostgreSQL) CreatePermission(ctx context.Context, data *dto.NameServiceDescription) error {
 	stmt := `	INSERT INTO permissions (name, description, service_fk, number)
 				VALUES ($1,
@@ -136,27 +138,27 @@ func (p *PostgreSQL) CreatePermission(ctx context.Context, data *dto.NameService
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Name, data.Description, data.Service))
 }
 
-// CreateRole добавляет роль в БД
+// CreateRole добавляет роль в БД.
 func (p *PostgreSQL) CreateRole(ctx context.Context, data *dto.NameServiceDescription) error {
 	stmt := `INSERT INTO roles (name, description, service_fk)
 			VALUES ($1, $2, (SELECT service_id FROM services WHERE name=$3));`
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Name, data.Description, data.Service))
 }
 
-// CreateGroup добавляет группу в БД
+// CreateGroup добавляет группу в БД.
 func (p *PostgreSQL) CreateGroup(ctx context.Context, data *dto.NameServiceDescription) error {
 	stmt := `INSERT INTO groups (name, description, service_fk)
 			VALUES ($1, $2, (SELECT service_id FROM services WHERE name=$3));`
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Name, data.Description, data.Service))
 }
 
-// CreateService добавляет сервис в БД
+// CreateService добавляет сервис в БД.
 func (p *PostgreSQL) CreateService(ctx context.Context, data *dto.NameDescription) error {
 	stmt := `INSERT INTO services (name, description) VALUES ($1, $2);`
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Name, data.Description))
 }
 
-// CreateOrUpdateInstance сохраняет/обновляет в БД название экземпляра сервиса и его секретный ключ
+// CreateOrUpdateInstance сохраняет/обновляет в БД название экземпляра сервиса и его секретный ключ.
 func (p *PostgreSQL) CreateOrUpdateInstance(ctx context.Context, data *dto.NameServiceSecret) error {
 	cte := `WITH
 			s AS (SELECT instance_id FROM instances WHERE name = $1),
@@ -176,7 +178,7 @@ func (p *PostgreSQL) CreateOrUpdateInstance(ctx context.Context, data *dto.NameS
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Name, data.Service, data.Secret))
 }
 
-// AssignPermissionToRole назначает роли разрешение
+// AssignPermissionToRole назначает роли разрешение.
 func (p *PostgreSQL) AssignPermissionToRole(ctx context.Context, data *dto.PermissionRoleService) error {
 	stmt := `	INSERT INTO role_permissions(role_fk, permission_fk)
 				VALUES(
@@ -198,7 +200,7 @@ func (p *PostgreSQL) AssignPermissionToRole(ctx context.Context, data *dto.Permi
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Service, data.Role, data.Permission))
 }
 
-// AssignRoleToGroup присоединяет роль к группе
+// AssignRoleToGroup присоединяет роль к группе.
 func (p *PostgreSQL) AssignRoleToGroup(ctx context.Context, data *dto.GroupRoleService) error {
 	stmt := `	INSERT INTO group_roles(role_fk, group_fk)
 				VALUES(
@@ -222,7 +224,7 @@ func (p *PostgreSQL) AssignRoleToGroup(ctx context.Context, data *dto.GroupRoleS
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Service, data.Role, data.Group))
 }
 
-// AssignRoleToAccount назначает роль учетной записи
+// AssignRoleToAccount назначает роль учетной записи.
 func (p *PostgreSQL) AssignRoleToAccount(ctx context.Context, data *dto.UserIdRoleService) error {
 	stmt := `	INSERT INTO account_roles(role_fk, account_fk)
 				VALUES(
@@ -242,7 +244,7 @@ func (p *PostgreSQL) AssignRoleToAccount(ctx context.Context, data *dto.UserIdRo
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Service, data.Role, data.UserId))
 }
 
-// AssignGroupToAccount назначает группу учетной записи
+// AssignGroupToAccount назначает группу учетной записи.
 func (p *PostgreSQL) AssignGroupToAccount(ctx context.Context, data *dto.UserIdGroupService) error {
 	stmt := `	INSERT INTO account_groups(group_fk, account_fk)
 				VALUES(
@@ -262,7 +264,7 @@ func (p *PostgreSQL) AssignGroupToAccount(ctx context.Context, data *dto.UserIdG
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Service, data.Group, data.UserId))
 }
 
-// AssignInstancePermissionToAccount прикрепляет разрешение конкретного экземпляра сервиса к учетной записи
+// AssignInstancePermissionToAccount прикрепляет разрешение конкретного экземпляра сервиса к учетной записи.
 func (p *PostgreSQL) AssignInstancePermissionToAccount(ctx context.Context, data *dto.UserIdInstancePermission) error {
 	cte := `WITH
 			instance_cte AS 
@@ -291,7 +293,7 @@ func (p *PostgreSQL) AssignInstancePermissionToAccount(ctx context.Context, data
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Instance, data.UserId, data.Permission))
 }
 
-// AssignPermissionToGroup назначает разрешения группе
+// AssignPermissionToGroup назначает разрешения группе.
 func (p *PostgreSQL) AssignPermissionToGroup(ctx context.Context, data *dto.GroupPermissionService) error {
 	stmt := `	INSERT INTO group_permissions(group_fk, permission_fk)
 				VALUES(
@@ -315,7 +317,7 @@ func (p *PostgreSQL) AssignPermissionToGroup(ctx context.Context, data *dto.Grou
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Service, data.Group, data.Permission))
 }
 
-// GetInstancePermissionsForAccount возвращает название, номер и описание разрешений аккаунта для экземпляра сервиса
+// GetInstancePermissionsForAccount возвращает название, номер и описание разрешений аккаунта для экземпляра сервиса.
 func (p *PostgreSQL) GetInstancePermissionsForAccount(ctx context.Context, data *dto.UserIdInstance) ([]dto.NameNumberDescription, error) {
 	cte := `WITH account_cte AS
 			(SELECT account_id
@@ -362,7 +364,7 @@ func (p *PostgreSQL) GetInstancePermissionsForAccount(ctx context.Context, data 
 	return result, nil
 }
 
-// GetInstancePermissionsNumbersForAccount возвращает номера разрешений аккаунта для экземпляра сервиса
+// GetInstancePermissionsNumbersForAccount возвращает номера разрешений аккаунта для экземпляра сервиса.
 func (p *PostgreSQL) GetInstancePermissionsNumbersForAccount(ctx context.Context, data *dto.UserIdInstance) ([]int, error) {
 	cte := `WITH account_cte AS
 			(SELECT account_id
@@ -408,7 +410,7 @@ func (p *PostgreSQL) GetInstancePermissionsNumbersForAccount(ctx context.Context
 }
 
 // GetServicePermissionsForAccount возвращает название, номер и описание разрешений аккаунта для сервиса (без разрешений
-// для экземпляра)
+// для экземпляра).
 func (p *PostgreSQL) GetServicePermissionsForAccount(ctx context.Context, data *dto.UserIdService) ([]dto.NameNumberDescription, error) {
 	cte := `WITH
 			account_cte AS
@@ -481,7 +483,7 @@ func (p *PostgreSQL) GetServicePermissionsForAccount(ctx context.Context, data *
 }
 
 // GetServicePermissionsNumbersForAccount возвращает номера разрешений аккаунта для сервиса (без разрешений для
-// экземпляра)
+// экземпляра).
 func (p *PostgreSQL) GetServicePermissionsNumbersForAccount(ctx context.Context, data *dto.UserIdService) ([]int, error) {
 	cte := `WITH
 			account_cte AS
@@ -561,7 +563,7 @@ func (p *PostgreSQL) GetServicePermissionsNumbersForAccount(ctx context.Context,
 	return result, nil
 }
 
-// GetPermissionNumber возвращает номер разрешения для заданного экземпляра сервиса
+// GetPermissionNumber возвращает номер разрешения для заданного экземпляра сервиса.
 func (p *PostgreSQL) GetPermissionNumber(ctx context.Context, name, instance string) (int, error) {
 	var number int
 	stmt := `	SELECT number
@@ -580,7 +582,7 @@ func (p *PostgreSQL) GetPermissionNumber(ctx context.Context, name, instance str
 	return number, nil
 }
 
-// GetAccountsLoginsByState возвращает список логинов пользователей с переданным функции состоянием
+// GetAccountsLoginsByState возвращает список логинов пользователей с переданным функции состоянием.
 func (p *PostgreSQL) GetAccountsLoginsByState(ctx context.Context, state account_state.State) ([]loginVO.Login, error) {
 	stmt := `SELECT login FROM accounts WHERE state = $1`
 
@@ -607,7 +609,7 @@ func (p *PostgreSQL) GetAccountsLoginsByState(ctx context.Context, state account
 }
 
 // GetInstanceSecret возвращает строку, необходимую для подписи токена, предназначенного для взаимодействия с
-// соответствующим экземпляром сервиса
+// соответствующим экземпляром сервиса.
 func (p *PostgreSQL) GetInstanceSecret(ctx context.Context, name string) (string, error) {
 	var secret string
 	stmt := `SELECT secret FROM instances WHERE name = $1`
@@ -620,7 +622,7 @@ func (p *PostgreSQL) GetInstanceSecret(ctx context.Context, name string) (string
 	return secret, nil
 }
 
-// GetServiceName возвращает название сервиса переданного экземпляра
+// GetServiceName возвращает название сервиса переданного экземпляра.
 func (p *PostgreSQL) GetServiceName(ctx context.Context, instanceName string) (string, error) {
 	var name string
 	stmt := `	SELECT name
@@ -637,19 +639,19 @@ func (p *PostgreSQL) GetServiceName(ctx context.Context, instanceName string) (s
 	return name, nil
 }
 
-// DeleteRole удаляет роль из БД
+// DeleteRole удаляет роль из БД.
 func (p *PostgreSQL) DeleteRole(ctx context.Context, data *dto.NameService) error {
 	stmt := `DELETE FROM roles WHERE name = $1 AND service_fk = (SELECT service_id FROM services WHERE name = $2)`
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Name, data.Service))
 }
 
-// DeleteGroup удаляет группу из БД
+// DeleteGroup удаляет группу из БД.
 func (p *PostgreSQL) DeleteGroup(ctx context.Context, data *dto.NameService) error {
 	stmt := `DELETE FROM groups WHERE name = $1 AND service_fk = (SELECT service_id FROM services WHERE name = $2)`
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Name, data.Service))
 }
 
-// DeletePermission удаляет разрешение из БД
+// DeletePermission удаляет разрешение из БД.
 func (p *PostgreSQL) DeletePermission(ctx context.Context, data *dto.NameService) error {
 	stmt := `DELETE FROM permissions WHERE name = $1 AND service_fk = (SELECT service_id FROM services WHERE name = $2)`
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Name, data.Service))

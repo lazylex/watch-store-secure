@@ -10,7 +10,7 @@ var (
 	ErrNoRowsInResultSet = NewPersistentError("no rows in result set")
 )
 
-// FullPersistentError возвращает полностью заполненную структуру с типом PersistentType
+// FullPersistentError возвращает полностью заполненную структуру с типом PersistentType.
 func FullPersistentError(message, origin string, initialError error) *errors.BaseError {
 	return &errors.BaseError{
 		Type:         persistentType,
@@ -20,7 +20,7 @@ func FullPersistentError(message, origin string, initialError error) *errors.Bas
 	}
 }
 
-// NewPersistentError возвращает структуру ошибки с типом PersistentType и переданным в качестве аргумента сообщением
+// NewPersistentError возвращает структуру ошибки с типом PersistentType и переданным в качестве аргумента сообщением.
 func NewPersistentError(message string) *errors.BaseError {
 	return &errors.BaseError{Type: persistentType, Message: message}
 }

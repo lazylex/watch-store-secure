@@ -14,13 +14,13 @@ import (
 
 const NAMESPACE = "secure"
 
-// Metrics структура, содержащая объекты, реализующие интерфейсы для сбора метрик
+// Metrics структура, содержащая объекты, реализующие интерфейсы для сбора метрик.
 type Metrics struct {
 	Service service.MetricsInterface
 }
 
 // MustCreate возвращает метрики *Metrics или останавливает программу, если не удалось запустить http сервер для
-// работы с Prometheus или занести метрики в регистр
+// работы с Prometheus или занести метрики в регистр.
 func MustCreate(cfg *config.Prometheus) *Metrics {
 	var port = "9323"
 	var url = "/metrics"
@@ -44,7 +44,7 @@ func MustCreate(cfg *config.Prometheus) *Metrics {
 	return metrics
 }
 
-// registerMetrics заносит метрики в регистр и возвращает их. При неудаче возвращает ошибку
+// registerMetrics заносит метрики в регистр и возвращает их. При неудаче возвращает ошибку.
 func registerMetrics() (*Metrics, error) {
 	var err error
 	var loginMetric, authErrMetric, logoutMetric *prometheus.CounterVec
@@ -65,7 +65,7 @@ func registerMetrics() (*Metrics, error) {
 }
 
 // startHTTP запускает http сервер для связи с Prometheus на переданном в функцию порту и url. При неудаче выводит
-// ошибку в лог и останавливает программу
+// ошибку в лог и останавливает программу.
 func startHTTP(url, port string) {
 	go func() {
 		mux := http.NewServeMux()

@@ -9,13 +9,13 @@ import (
 
 const originPlace = "service → "
 
-// adaptErr переводит пришедшую ошибку к структурированной ошибке
+// adaptErr переводит пришедшую ошибку к структурированной ошибке.
 func adaptErr(err error) error {
 	return adaptErrSkipFrames(err, 2)
 }
 
 // adaptErrSkipFrames переводит пришедшую ошибку к структурированной ошибке с учетом последовательности
-// вызова функций
+// вызова функций.
 func adaptErrSkipFrames(err error, skip int) error {
 	var message string
 
@@ -46,7 +46,7 @@ func adaptErrSkipFrames(err error, skip int) error {
 	return service.FullServiceError("", origin, err)
 }
 
-// withOrigin добавляет место генерации ошибки
+// withOrigin добавляет место генерации ошибки.
 func withOrigin(err *errors.BaseError) error {
 	origin := errors.GetFrame(2).Function
 	origin = originPlace + origin[strings.LastIndex(origin, ".")+1:]
@@ -54,12 +54,12 @@ func withOrigin(err *errors.BaseError) error {
 	return err.WithOrigin(origin)
 }
 
-// ErrNotEnabledAccount возвращает ошибку service.ErrNotEnabledAccount с местом генерации ошибки
+// ErrNotEnabledAccount возвращает ошибку service.ErrNotEnabledAccount с местом генерации ошибки.
 func ErrNotEnabledAccount() error {
 	return withOrigin(service.ErrNotEnabledAccount)
 }
 
-// ErrLogout возвращает ошибку service.ErrLogout с местом генерации ошибки
+// ErrLogout возвращает ошибку service.ErrLogout с местом генерации ошибки.
 func ErrLogout() error {
 	return withOrigin(service.ErrLogout)
 }

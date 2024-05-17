@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-// MustCreate возвращает экземпляр *slog.Logger или останавливает программу, если окружение environment указано неверно
+// MustCreate возвращает экземпляр *slog.Logger или останавливает программу, если окружение environment указано неверно.
 func MustCreate(environment, instance string) *slog.Logger {
 	var logger *slog.Logger
 	switch environment {

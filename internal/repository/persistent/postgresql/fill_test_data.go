@@ -1,6 +1,6 @@
 package postgresql
 
-// FillTestData заполняет таблицы БД данными для тестирования и отладки взаимодействия с БД не используя mock
+// FillTestData заполняет таблицы БД данными для тестирования и отладки взаимодействия с БД не используя mock.
 func (p *PostgreSQL) FillTestData() error {
 	stmt := `
 	INSERT INTO services (service_id, name, description)

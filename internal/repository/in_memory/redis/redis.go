@@ -32,7 +32,7 @@ const (
 )
 
 // MustCreate создание структуры с клиентом для взаимодействия с Redis. При ошибке соединения с сервером Redis выводит
-// ошибку в лог и прекращает работу приложения
+// ошибку в лог и прекращает работу приложения.
 func MustCreate(cfg config.Redis, ttl config.TTL) *Redis {
 	client := redis.NewClient(
 		&redis.Options{Addr: cfg.RedisAddress, Username: cfg.RedisUser, Password: cfg.RedisPassword, DB: cfg.RedisDB})
@@ -48,7 +48,7 @@ func MustCreate(cfg config.Redis, ttl config.TTL) *Redis {
 }
 
 // SaveSession сохраняет данные о времени жизни сессии и её пользователе. Переданный токен служит для создания ключа,
-// по которому хранится идентификатор пользователя (хранение осуществляется переданное в TTL количество секунд)
+// по которому хранится идентификатор пользователя (хранение осуществляется переданное в TTL количество секунд).
 func (r *Redis) SaveSession(ctx context.Context, dto *dto.UserIdToken) error {
 	pipe := r.client.Pipeline()
 	pipe.Set(ctx, keySession(dto.Token), dto.UserId.String(), r.ttl.SessionTTL)
@@ -59,7 +59,7 @@ func (r *Redis) SaveSession(ctx context.Context, dto *dto.UserIdToken) error {
 }
 
 // DeleteSession удаляет из памяти данные о привязке токена к UUID пользователя и привязке UUID пользователя к токену
-// сессии
+// сессии.
 func (r *Redis) DeleteSession(ctx context.Context, id uuid.UUID) error {
 	sessionByUUID := keySessionByUUID(id.String())
 	sessionToken, err := r.client.Get(ctx, sessionByUUID).Result()
@@ -71,7 +71,8 @@ func (r *Redis) DeleteSession(ctx context.Context, id uuid.UUID) error {
 	return adaptErr(r.client.Del(ctx, sessionByUUID, session).Err())
 }
 
-// IsSessionActiveByUUID возвращает true, если существует сессия для пользователя (сервиса) с переданным идентификатором
+// IsSessionActiveByUUID возвращает true, если существует сессия для пользователя (сервиса) с переданным
+// идентификатором.
 func (r *Redis) IsSessionActiveByUUID(ctx context.Context, userId uuid.UUID) bool {
 	key := keySessionByUUID(userId.String())
 	if result, err := r.client.Exists(ctx, key).Result(); err != nil {
@@ -81,7 +82,8 @@ func (r *Redis) IsSessionActiveByUUID(ctx context.Context, userId uuid.UUID) boo
 	}
 }
 
-// IsSessionActiveByToken возвращает true, если существует сессия для пользователя (сервиса) с переданным токеном сессии
+// IsSessionActiveByToken возвращает true, если существует сессия для пользователя (сервиса) с переданным токеном
+// сессии.
 func (r *Redis) IsSessionActiveByToken(ctx context.Context, token string) bool {
 	key := keySession(token)
 	if result, err := r.client.Exists(ctx, key).Result(); err != nil {
@@ -91,7 +93,7 @@ func (r *Redis) IsSessionActiveByToken(ctx context.Context, token string) bool {
 	}
 }
 
-// extendSessionLife продлевает жизнь данным по ключам, относящимся к сессии пользователя (сервиса)
+// extendSessionLife продлевает жизнь данным по ключам, относящимся к сессии пользователя (сервиса).
 func (r *Redis) extendSessionLife(ctx context.Context, key string) error {
 	var mUUID string
 	var err error
@@ -108,7 +110,7 @@ func (r *Redis) extendSessionLife(ctx context.Context, key string) error {
 	return adaptErr(err)
 }
 
-// GetUserUUIDFromSession получает UUID пользователя сессии
+// GetUserUUIDFromSession получает UUID пользователя сессии.
 func (r *Redis) GetUserUUIDFromSession(ctx context.Context, sessionToken string) (uuid.UUID, error) {
 	var val []byte
 	var err error
@@ -127,6 +129,7 @@ func (r *Redis) GetUserUUIDFromSession(ctx context.Context, sessionToken string)
 	return parsedUUID, adaptErr(err)
 }
 
+// GetUserIdAndPasswordHash возвращает идентификатор пользователя и хеш его пароля.
 func (r *Redis) GetUserIdAndPasswordHash(ctx context.Context, login loginVO.Login) (dto.UserIdHash, error) {
 	var err error
 	var parsedUUID uuid.UUID
@@ -145,13 +148,14 @@ func (r *Redis) GetUserIdAndPasswordHash(ctx context.Context, login loginVO.Logi
 	return dto.UserIdHash{UserId: parsedUUID, Hash: values[hashField]}, nil
 }
 
+// SetUserIdAndPasswordHash сохраняет идентификатор пользователя и хеш его пароля.
 func (r *Redis) SetUserIdAndPasswordHash(ctx context.Context, data *dto.UserIdLoginHash) {
 	key := keyUserIdAndPasswordHash(data.Login)
 	r.client.HSet(ctx, key, userIdField, data.UserId.String(), hashField, data.Hash)
 	r.client.Expire(ctx, key, r.ttl.UserIdAndPasswordHashTTL)
 }
 
-// GetAccountStateByLogin возвращает состояние учетной записи с переданным логином
+// GetAccountStateByLogin возвращает состояние учетной записи с переданным логином.
 func (r *Redis) GetAccountStateByLogin(ctx context.Context, login loginVO.Login) (account_state.State, error) {
 	var numericVal int
 	var err error
@@ -172,18 +176,18 @@ func (r *Redis) GetAccountStateByLogin(ctx context.Context, login loginVO.Login)
 	return account_state.State(numericVal), nil
 }
 
-// SetAccountState сохраняет состояние аккаунта с переданным логином
+// SetAccountState сохраняет состояние аккаунта с переданным логином.
 func (r *Redis) SetAccountState(ctx context.Context, data *dto.LoginState) error {
 	return adaptErr(r.client.Set(ctx, keyAccountStateByLogin(data.Login), int(data.State), r.ttl.AccountStateTTL).Err())
 }
 
-// SetServicePermissionsNumbersForAccount сохраняет номера разрешений аккаунта для сервиса
+// SetServicePermissionsNumbersForAccount сохраняет номера разрешений аккаунта для сервиса.
 func (r *Redis) SetServicePermissionsNumbersForAccount(ctx context.Context, data *dto.UserIdServicePermNumbers) error {
 	key := keyServicePermissionsNumbers(data.Service, data.UserId)
 	return adaptErr(r.setPermissionsNumbers(ctx, key, data.PermissionNumbers))
 }
 
-// GetServicePermissionsNumbersForAccount возвращает номера всех разрешений аккаунта для сервиса
+// GetServicePermissionsNumbersForAccount возвращает номера всех разрешений аккаунта для сервиса.
 func (r *Redis) GetServicePermissionsNumbersForAccount(ctx context.Context, data *dto.UserIdService) ([]int, error) {
 	key := keyServicePermissionsNumbers(data.Service, data.UserId)
 	if numbers, err := r.getPermissionsNumbers(ctx, key); err != nil {
@@ -194,13 +198,13 @@ func (r *Redis) GetServicePermissionsNumbersForAccount(ctx context.Context, data
 
 }
 
-// SetInstancePermissionsNumbersForAccount сохраняет номера разрешений аккаунта для экземпляра сервиса
+// SetInstancePermissionsNumbersForAccount сохраняет номера разрешений аккаунта для экземпляра сервиса.
 func (r *Redis) SetInstancePermissionsNumbersForAccount(ctx context.Context, data *dto.UserIdInstancePermNumbers) error {
 	key := keyInstancePermissionsNumbers(data.Instance, data.UserId)
 	return adaptErr(r.setPermissionsNumbers(ctx, key, data.PermissionNumbers))
 }
 
-// GetInstancePermissionsNumbersForAccount возвращает номера разрешений аккаунта для экземпляра сервиса
+// GetInstancePermissionsNumbersForAccount возвращает номера разрешений аккаунта для экземпляра сервиса.
 func (r *Redis) GetInstancePermissionsNumbersForAccount(ctx context.Context, data *dto.UserIdInstance) ([]int, error) {
 	key := keyInstancePermissionsNumbers(data.Instance, data.UserId)
 	if numbers, err := r.getPermissionsNumbers(ctx, key); err != nil {
@@ -211,7 +215,7 @@ func (r *Redis) GetInstancePermissionsNumbersForAccount(ctx context.Context, dat
 }
 
 // SetInstanceServiceAndSecret сохраняет название сервиса для экземпляра и секретный ключ для создания подписи
-// JWT-токена
+// JWT-токена.
 func (r *Redis) SetInstanceServiceAndSecret(ctx context.Context, data *dto.NameServiceSecret) error {
 	key := keyInstance(data.Name)
 	if err := r.client.HSet(ctx, key, "service", data.Service, "secret", data.Secret).Err(); err != nil {
@@ -223,7 +227,7 @@ func (r *Redis) SetInstanceServiceAndSecret(ctx context.Context, data *dto.NameS
 	return nil
 }
 
-// GetServiceName возвращает название сервиса по имени его экземпляра
+// GetServiceName возвращает название сервиса по имени его экземпляра.
 func (r *Redis) GetServiceName(ctx context.Context, instanceName string) (string, error) {
 	key := keyInstance(instanceName)
 	result, err := r.client.HGet(ctx, key, "service").Result()
@@ -236,7 +240,7 @@ func (r *Redis) GetServiceName(ctx context.Context, instanceName string) (string
 	return result, nil
 }
 
-// SetInstanceServiceName сохраняет название сервиса для экземпляра
+// SetInstanceServiceName сохраняет название сервиса для экземпляра.
 func (r *Redis) SetInstanceServiceName(ctx context.Context, data *dto.NameService) error {
 	key := keyInstance(data.Name)
 	if err := r.client.HSet(ctx, key, "service", data.Service).Err(); err != nil {
@@ -248,7 +252,7 @@ func (r *Redis) SetInstanceServiceName(ctx context.Context, data *dto.NameServic
 	return nil
 }
 
-// GetInstanceSecret возвращает секретный ключ для экземпляра сервиса
+// GetInstanceSecret возвращает секретный ключ для экземпляра сервиса.
 func (r *Redis) GetInstanceSecret(ctx context.Context, instanceName string) (string, error) {
 	key := keyInstance(instanceName)
 	result, err := r.client.HGet(ctx, key, "secret").Result()
@@ -261,7 +265,7 @@ func (r *Redis) GetInstanceSecret(ctx context.Context, instanceName string) (str
 	return result, nil
 }
 
-// SetInstanceSecret сохраняет секретный ключ экземпляра сервиса, необходимый для создания подписи JWT-токена
+// SetInstanceSecret сохраняет секретный ключ экземпляра сервиса, необходимый для создания подписи JWT-токена.
 func (r *Redis) SetInstanceSecret(ctx context.Context, data *dto.NameSecret) error {
 	key := keyInstance(data.Name)
 	if err := r.client.HSet(ctx, key, "secret", data.Secret).Err(); err != nil {
@@ -273,7 +277,7 @@ func (r *Redis) SetInstanceSecret(ctx context.Context, data *dto.NameSecret) err
 	return nil
 }
 
-// setPermissionsNumbers сохраняет номера разрешений аккаунта по заданному ключу
+// setPermissionsNumbers сохраняет номера разрешений аккаунта по заданному ключу.
 func (r *Redis) setPermissionsNumbers(ctx context.Context, key string, permissionNumbers []int) error {
 
 	numbers := make([]interface{}, len(permissionNumbers))
@@ -289,7 +293,7 @@ func (r *Redis) setPermissionsNumbers(ctx context.Context, key string, permissio
 	return adaptErr(r.client.Expire(ctx, key, r.ttl.PermissionsNumbersTTL).Err())
 }
 
-// getPermissionsNumbers возвращает номера разрешений аккаунта по заданному ключу
+// getPermissionsNumbers возвращает номера разрешений аккаунта по заданному ключу.
 func (r *Redis) getPermissionsNumbers(ctx context.Context, key string) ([]int, error) {
 	if values, err := r.client.SMembers(ctx, key).Result(); err != nil {
 		return []int{}, adaptErr(err)
@@ -306,20 +310,20 @@ func (r *Redis) getPermissionsNumbers(ctx context.Context, key string) ([]int, e
 }
 
 // ExistServicePermissionsNumbersForAccount возвращает true, если в памяти сохранены номера разрешений сервиса для
-// аккаунта
+// аккаунта.
 func (r *Redis) ExistServicePermissionsNumbersForAccount(ctx context.Context, data *dto.UserIdService) bool {
 	key := keyServicePermissionsNumbers(data.Service, data.UserId)
 	return r.existKey(ctx, key)
 }
 
 // ExistInstancePermissionsNumbersForAccount возвращает true, если в памяти сохранены номера разрешений экземпляра для
-// аккаунта
+// аккаунта.
 func (r *Redis) ExistInstancePermissionsNumbersForAccount(ctx context.Context, data *dto.UserIdInstance) bool {
 	key := keyInstancePermissionsNumbers(data.Instance, data.UserId)
 	return r.existKey(ctx, key)
 }
 
-// existKey возвращает true, если по переданному ключу в памяти есть данные
+// existKey возвращает true, если по переданному ключу в памяти есть данные.
 func (r *Redis) existKey(ctx context.Context, key string) bool {
 	if result, err := r.client.Exists(ctx, key).Result(); err != nil {
 		return false

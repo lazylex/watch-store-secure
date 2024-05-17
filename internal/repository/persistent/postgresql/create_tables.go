@@ -2,7 +2,7 @@ package postgresql
 
 import "fmt"
 
-// createNotExistedSchemaAndTables создает схему и таблицы в БД, если они отсутствуют
+// createNotExistedSchemaAndTables создает схему и таблицы в БД, если они отсутствуют.
 func (p *PostgreSQL) createNotExistedSchemaAndTables() error {
 	var stmt string
 	if len(p.schema) > 0 {
@@ -146,7 +146,7 @@ func (p *PostgreSQL) createNotExistedSchemaAndTables() error {
 	return nil
 }
 
-// createTable выполняет переданный в stmt запрос на создание таблицы
+// createTable выполняет переданный в stmt запрос на создание таблицы.
 func (p *PostgreSQL) createTable(stmt string) error {
 	if _, err := p.pool.Exec(stmt); err != nil {
 		return err

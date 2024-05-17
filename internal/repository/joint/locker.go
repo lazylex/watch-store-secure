@@ -19,11 +19,11 @@ type writersLocker struct {
 
 type StateLocker struct {
 	writers map[loginVO.Login]writersLocker
-	// мапа с массивом каналов, куда будут приходить сигналы о возможности чтения данных
+	// Карта с массивом каналов, куда будут приходить сигналы о возможности чтения данных
 	readers map[loginVO.Login][]chan struct{}
 }
 
-// CreateStateLocker конструктор для блокировщика записи/чтения статуса
+// CreateStateLocker конструктор для блокировщика записи/чтения статуса.
 func CreateStateLocker() StateLocker {
 	return StateLocker{
 		writers: make(map[loginVO.Login]writersLocker),
@@ -31,13 +31,13 @@ func CreateStateLocker() StateLocker {
 	}
 }
 
-// Lock блокирует разрешение на запись и чтение статуса для переданного логина
+// Lock блокирует разрешение на запись и чтение статуса для переданного логина.
 func (s *StateLocker) Lock(login loginVO.Login) {
 	s.lock(login) <- struct{}{}
 }
 
 // lock вызывается для получения канала, в который необходимо считать сигнал о разрешении записи. Блокирует
-// разрешение на запись для других писателей
+// разрешение на запись для других писателей.
 func (s *StateLocker) lock(login loginVO.Login) chan struct{} {
 	mutexW.Lock()
 	defer mutexW.Unlock()
@@ -55,7 +55,7 @@ func (s *StateLocker) lock(login loginVO.Login) chan struct{} {
 }
 
 // Unlock вызывается писателем при окончании записи данных. Если писатель был последним в очереди, читателям открывается
-// доступ для чтения данных
+// доступ для чтения данных.
 func (s *StateLocker) Unlock(login loginVO.Login) {
 	if _, ok := s.writers[login]; !ok {
 		s.releaseReaders(login)
@@ -75,7 +75,7 @@ func (s *StateLocker) Unlock(login loginVO.Login) {
 	}
 }
 
-// WantRead задерживает выполнение кода, пока идёт запись статуса для переданного логина
+// WantRead задерживает выполнение кода, пока идёт запись статуса для переданного логина.
 func (s *StateLocker) WantRead(login loginVO.Login) {
 	if c := make(chan struct{}); !s.wantRead(login, c) {
 		<-c
@@ -83,7 +83,7 @@ func (s *StateLocker) WantRead(login loginVO.Login) {
 }
 
 // wantRead возвращает true, если в данных момент не происходит запись статуса для переданного логина и чтение значения
-// статуса разрешено. В противном случае заносит переданный канал в очередь на рассылку сигнала о разрешении на чтение
+// статуса разрешено. В противном случае заносит переданный канал в очередь на рассылку сигнала о разрешении на чтение.
 func (s *StateLocker) wantRead(login loginVO.Login, c chan struct{}) bool {
 	if _, ok := s.writers[login]; !ok {
 		return true
@@ -95,7 +95,7 @@ func (s *StateLocker) wantRead(login loginVO.Login, c chan struct{}) bool {
 	return false
 }
 
-// releaseReaders производит рассылку в каналы сигнала о разрешении на чтение данных
+// releaseReaders производит рассылку в каналы сигнала о разрешении на чтение данных.
 func (s *StateLocker) releaseReaders(login loginVO.Login) {
 	mutexR.Lock()
 	mutexR.Unlock()

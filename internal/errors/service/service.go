@@ -17,7 +17,7 @@ var (
 	ErrEmptyConfig        = NewServiceError("empty config")
 )
 
-// FullServiceError возвращает полностью заполненную структуру с типом JointType
+// FullServiceError возвращает полностью заполненную структуру с типом JointType.
 func FullServiceError(message, origin string, initialError error) *errors.BaseError {
 	return &errors.BaseError{
 		Type:         ErrServiceType,
@@ -27,7 +27,7 @@ func FullServiceError(message, origin string, initialError error) *errors.BaseEr
 	}
 }
 
-// NewServiceError возвращает структуру ошибки с типом JointType и переданным в качестве аргумента сообщением
+// NewServiceError возвращает структуру ошибки с типом JointType и переданным в качестве аргумента сообщением.
 func NewServiceError(message string) *errors.BaseError {
 	return &errors.BaseError{Type: ErrServiceType, Message: message}
 }

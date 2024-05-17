@@ -11,6 +11,7 @@ const (
 	maxLength = 100
 )
 
+// Validate возвращает ошибку, если логин некорректный.
 func (l Login) Validate() error {
 	if len(l) > maxLength {
 		return fmt.Errorf("maximum login length exceeded (%d characters)", maxLength)

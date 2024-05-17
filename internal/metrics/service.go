@@ -2,30 +2,30 @@ package metrics
 
 import "github.com/prometheus/client_golang/prometheus"
 
-// Service структура, содержащая счетчики для метрик, связанных с сервисным слоем
+// Service структура, содержащая счетчики для метрик, связанных с сервисным слоем.
 type Service struct {
 	login               *prometheus.CounterVec // Счетчик успешных входов в систему
 	logout              *prometheus.CounterVec // Счетчик выходов из системы, инициированных пользователей
 	authenticationError *prometheus.CounterVec // Счетчик ошибок входа в систему
 }
 
-// AuthenticationErrorInc увеличивает счетчик ошибок входа в систему
+// AuthenticationErrorInc увеличивает счетчик ошибок входа в систему.
 func (s *Service) AuthenticationErrorInc() {
 	s.authenticationError.With(prometheus.Labels{}).Inc()
 }
 
-// LoginInc увеличивает счетчик успешных входов в систему
+// LoginInc увеличивает счетчик успешных входов в систему.
 func (s *Service) LoginInc() {
 	s.login.With(prometheus.Labels{}).Inc()
 }
 
-// LogoutInc увеличивает счетчик выходов из системы, инициированных пользователей
+// LogoutInc увеличивает счетчик выходов из системы, инициированных пользователей.
 func (s *Service) LogoutInc() {
 	s.logout.With(prometheus.Labels{}).Inc()
 }
 
 // createLoginTotalMetric создает и регистрирует метрику login_total, являющуюся счетчиком залогиненых пользователей
-// (сервисов)
+// (сервисов).
 func createLoginTotalMetric() (*prometheus.CounterVec, error) {
 	var err error
 	login := prometheus.NewCounterVec(prometheus.CounterOpts{
@@ -43,7 +43,7 @@ func createLoginTotalMetric() (*prometheus.CounterVec, error) {
 }
 
 // createLogoutTotalMetric создает и регистрирует метрику logout_total, являющуюся счетчиком вышедших из сеанса (не по
-// таймауту) пользователей (сервисов)
+// таймауту) пользователей (сервисов).
 func createLogoutTotalMetric() (*prometheus.CounterVec, error) {
 	var err error
 	logout := prometheus.NewCounterVec(prometheus.CounterOpts{
@@ -61,7 +61,7 @@ func createLogoutTotalMetric() (*prometheus.CounterVec, error) {
 }
 
 // createAuthenticationErrorTotalMetric создает и регистрирует метрику authentication_error_total, являющуюся счетчиком
-// ошибок логи́на пользователей (сервисов)
+// ошибок логи́на пользователей (сервисов).
 func createAuthenticationErrorTotalMetric() (*prometheus.CounterVec, error) {
 	var err error
 	authErrors := prometheus.NewCounterVec(prometheus.CounterOpts{

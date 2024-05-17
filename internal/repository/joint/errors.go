@@ -10,13 +10,13 @@ import (
 
 const originPlace = "joint → "
 
-// adaptErr переводит пришедшую ошибку к структурированной ошибке Joint
+// adaptErr переводит пришедшую ошибку к структурированной ошибке Joint.
 func adaptErr(err error) error {
 	return adaptErrSkipFrames(err, 2)
 }
 
 // adaptErrSkipFrames переводит пришедшую ошибку к структурированной ошибке Joint с учетом последовательности
-// вызова функций
+// вызова функций.
 func adaptErrSkipFrames(err interface{}, skip int) error {
 	if err == nil {
 		return nil

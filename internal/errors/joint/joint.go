@@ -13,7 +13,7 @@ var (
 	ErrNilRepo            = NewJointError("the repository must be initialized, but it's nil")
 )
 
-// FullJointError возвращает полностью заполненную структуру с типом JointType
+// FullJointError возвращает полностью заполненную структуру с типом JointType.
 func FullJointError(message, origin string, initialError error) *errors.BaseError {
 	return &errors.BaseError{
 		Type:         jointType,
@@ -23,7 +23,7 @@ func FullJointError(message, origin string, initialError error) *errors.BaseErro
 	}
 }
 
-// NewJointError возвращает структуру ошибки с типом JointType и переданным в качестве аргумента сообщением
+// NewJointError возвращает структуру ошибки с типом JointType и переданным в качестве аргумента сообщением.
 func NewJointError(message string) *errors.BaseError {
 	return &errors.BaseError{Type: jointType, Message: message}
 }
