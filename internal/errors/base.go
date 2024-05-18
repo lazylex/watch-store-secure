@@ -1,3 +1,6 @@
+/*
+Package errors: пакет для определения структурированной ошибки.
+*/
 package errors
 
 import (
@@ -5,13 +8,16 @@ import (
 	"runtime"
 )
 
+// BaseError структура базовой ошибки, на основе которой заполняются специализированные ошибки. Реализует интерфейс
+// error.
 type BaseError struct {
-	Type         string
-	Message      string
-	Origin       string
-	InitialError error
+	Type         string // Тип ошибки
+	Message      string // Сообщение ошибки
+	Origin       string // Место возникновения ошибки
+	InitialError error  // Ошибка, повлекшая возникновение текущей ошибки
 }
 
+// Error возвращает текстовое описание ошибки.
 func (b *BaseError) Error() string {
 	var result string
 
@@ -37,6 +43,7 @@ func (b *BaseError) Error() string {
 
 }
 
+// GetFrame возвращает фрейм на переданной глубине вложенности.
 func GetFrame(skipFrames int) runtime.Frame {
 	// We need the frame at index skipFrames+2, since we never want runtime.Callers and getFrame
 	targetFrameIndex := skipFrames + 2
