@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/lazylex/watch-store/secure/internal/adapters/message_broker/kafka"
 	"github.com/lazylex/watch-store/secure/internal/config"
 	"github.com/lazylex/watch-store/secure/internal/logger"
 	prometheusMetrics "github.com/lazylex/watch-store/secure/internal/metrics"
@@ -26,6 +27,10 @@ func main() {
 	repo := joint.MustCreate(inMemoryRepo, persistentRepo)
 	_ = service.MustCreate(metrics.Service, &repo, cfg.Secure)
 
+	if cfg.UseKafka {
+		kafka.MustRun(&cfg.Kafka)
+	}
+
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	signal.Notify(c, os.Kill)
@@ -41,6 +46,3 @@ func clearScreen() {
 	cmd.Stdout = os.Stdout
 	_ = cmd.Run()
 }
-
-// TODO добавить Кафку для публикации информации о перезагрузке сервиса и необходимости повторного входа в систему всех
-// остальных сервисов. Так же, возможно, добавить восстановление сессий из дампа Redis

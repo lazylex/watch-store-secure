@@ -1,6 +1,6 @@
 instance: "secure1"
 env: "local"
-use_kafka: false
+use_kafka: true
 http_server:
   address: "localhost:8159"
   read_timeout: 5s
@@ -17,7 +17,7 @@ persistent_storage:
   query_timeout: 5s
 kafka:
   kafka_brokers: ["localhost:9092"]
-  kafka_topic_update_price: "secure.update-token"
+  kafka_topic_need_update_token: "secure.update-token"
 redis:
   redis_address: "127.0.0.0:6379"
   redis_user: ""
