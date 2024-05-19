@@ -74,9 +74,11 @@ type PersistentStorage struct {
 }
 
 type Kafka struct {
-	Brokers                      []string `yaml:"kafka_brokers" env:"KAFKA_BROKERS"`
-	NeedToUpdateTokenTopic       string   `yaml:"kafka_topic_need_update_token" env:"KAFKA_TOPIC_NEED_UPDATE_TOKEN"`
-	NumberOfRetriesToSendMessage int      `yaml:"kafka_number_of_retries_to_send_message" env:"KAFKA_NUMBER_OF_RETRIES_TO_SEND_MESSAGE"`
+	Brokers                      []string      `yaml:"kafka_brokers" env:"KAFKA_BROKERS"`
+	NeedToUpdateTokenTopic       string        `yaml:"kafka_topic_need_update_token" env:"KAFKA_TOPIC_NEED_UPDATE_TOKEN"`
+	NumberOfRetriesToSendMessage int           `yaml:"kafka_number_of_retries_to_send_message" env:"KAFKA_NUMBER_OF_RETRIES_TO_SEND_MESSAGE"`
+	KafkaTimeBetweenAttempts     time.Duration `yaml:"kafka_time_between_attempts" env:"KAFKA_TIME_BETWEEN_ATTEMPTS" env-required:"true"`
+	KafkaWriteTimeout            time.Duration `yaml:"kafka_write_timeout" env:"KAFKA_WRITE_TIMEOUT" env-required:"true"`
 }
 
 type Prometheus struct {

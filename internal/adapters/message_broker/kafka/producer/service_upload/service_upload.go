@@ -35,12 +35,12 @@ func ServiceUpload(cfg *config.Kafka) {
 	origin := "ServiceUpload"
 
 	for i := 0; i < retries; i++ {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), cfg.KafkaWriteTimeout)
 		defer cancel()
 
 		err = w.WriteMessages(ctx, kafka.Message{Value: []byte("service upload")})
 		if errors.Is(err, kafka.LeaderNotAvailable) || errors.Is(err, context.DeadlineExceeded) {
-			time.Sleep(time.Millisecond * 250)
+			time.Sleep(cfg.KafkaTimeBetweenAttempts)
 			continue
 		}
 
