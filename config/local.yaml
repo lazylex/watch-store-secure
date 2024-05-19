@@ -18,6 +18,7 @@ persistent_storage:
 kafka:
   kafka_brokers: ["localhost:9092"]
   kafka_topic_need_update_token: "secure.update-token"
+  kafka_number_of_retries_to_send_message: 2
 redis:
   redis_address: "127.0.0.0:6379"
   redis_user: ""

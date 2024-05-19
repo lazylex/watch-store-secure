@@ -14,7 +14,11 @@ import (
 // их токены удалены из памяти и, следовательно, их следует запросить заново.
 func ServiceUpload(cfg *config.Kafka) {
 	var err error
-	const retries = 3
+	retries := 3
+
+	if cfg.NumberOfRetriesToSendMessage > 0 {
+		retries = cfg.NumberOfRetriesToSendMessage
+	}
 
 	w := &kafka.Writer{
 		Addr:                   kafka.TCP(cfg.Brokers...),
