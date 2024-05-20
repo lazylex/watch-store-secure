@@ -12,7 +12,7 @@ const minLength = 8
 // Validate возвращает ошибку, если пароль некорректный.
 func (p Password) Validate() error {
 	if len(p) < minLength {
-		return fmt.Errorf("login length must be at least %d characters", minLength)
+		return fmt.Errorf("password length must be at least %d characters", minLength)
 	}
 
 	if strings.ToUpper(string(p)) == string(p) {
