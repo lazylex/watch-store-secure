@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/lazylex/watch-store/secure/internal/adapters/http/server"
 	"github.com/lazylex/watch-store/secure/internal/adapters/message_broker/kafka"
 	"github.com/lazylex/watch-store/secure/internal/config"
 	"github.com/lazylex/watch-store/secure/internal/logger"
@@ -25,7 +26,10 @@ func main() {
 	inMemoryRepo := redis.MustCreate(cfg.Redis, cfg.TTL)
 	persistentRepo := postgresql.MustCreate(cfg.PersistentStorage)
 	repo := joint.MustCreate(inMemoryRepo, persistentRepo)
-	_ = service.MustCreate(metrics.Service, &repo, cfg.Secure)
+	domainService := service.MustCreate(metrics.Service, &repo, cfg.Secure)
+
+	httpServer := server.MustCreate(domainService, &cfg.HttpServer)
+	httpServer.MustRun()
 
 	if cfg.UseKafka {
 		kafka.MustRun(&cfg.Kafka)
@@ -38,6 +42,8 @@ func main() {
 	sig := <-c
 	fmt.Println() // так красивее, если вывод логов производится в стандартный терминал
 	slog.Info(fmt.Sprintf("%s signal received. Shutdown started", sig))
+
+	httpServer.Shutdown()
 	persistentRepo.Close()
 }
 
