@@ -12,6 +12,7 @@ type LoginInterface interface {
 	SaveSession(context.Context, *dto.UserIdToken) error
 	IsSessionActiveByUUID(context.Context, uuid.UUID) bool
 	GetUserUUIDFromSession(ctx context.Context, sessionToken string) (uuid.UUID, error)
+	GetSessionToken(context.Context, uuid.UUID) (string, error)
 	IsSessionActiveByToken(context.Context, string) bool
 	DeleteSession(context.Context, uuid.UUID) error
 	SetUserIdAndPasswordHash(context.Context, *dto.UserIdLoginHash)

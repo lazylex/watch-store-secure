@@ -17,6 +17,7 @@ type ServiceInterface interface {
 type LoginInterface interface {
 	SaveSession(context.Context, *dto.UserIdToken) error
 	DeleteSession(context.Context, uuid.UUID) error
+	GetSessionToken(context.Context, uuid.UUID) (string, error)
 	SetAccountLoginData(context.Context, *dto.UserIdLoginHashState) error
 	GetAccountLoginData(context.Context, login.Login) (dto.UserIdLoginHashState, error)
 	GetUserIdAndPasswordHash(context.Context, login.Login) (dto.UserIdHash, error)

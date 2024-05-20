@@ -71,6 +71,13 @@ func (r *Redis) DeleteSession(ctx context.Context, id uuid.UUID) error {
 	return adaptErr(r.client.Del(ctx, sessionByUUID, session).Err())
 }
 
+// GetSessionToken возвращает токен сессии по идентификатору пользователя.
+func (r *Redis) GetSessionToken(ctx context.Context, id uuid.UUID) (string, error) {
+	sessionByUUID := keySessionByUUID(id.String())
+	sessionToken, err := r.client.Get(ctx, sessionByUUID).Result()
+	return sessionToken, adaptErr(err)
+}
+
 // IsSessionActiveByUUID возвращает true, если существует сессия для пользователя (сервиса) с переданным
 // идентификатором.
 func (r *Redis) IsSessionActiveByUUID(ctx context.Context, userId uuid.UUID) bool {

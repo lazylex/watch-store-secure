@@ -79,7 +79,7 @@ func (r *Repository) SetAccountLoginData(ctx context.Context, data *dto.UserIdLo
 func (r *Repository) GetUserIdAndPasswordHash(ctx context.Context, login loginVO.Login) (dto.UserIdHash, error) {
 	idAndHash, err := r.memory.GetUserIdAndPasswordHash(ctx, login)
 	if err == nil && idAndHash != (dto.UserIdHash{}) {
-		return idAndHash, adaptErr(err)
+		return idAndHash, err
 	}
 	data, errGetData := r.persistent.GetAccountLoginData(ctx, login)
 	if errGetData != nil {
@@ -89,6 +89,12 @@ func (r *Repository) GetUserIdAndPasswordHash(ctx context.Context, login loginVO
 	_ = r.saveToMemoryLoginData(ctx, &data)
 
 	return dto.UserIdHash{UserId: data.UserId, Hash: data.Hash}, nil
+}
+
+// GetSessionToken возвращает токен сессии по идентификатору пользователя.
+func (r *Repository) GetSessionToken(ctx context.Context, id uuid.UUID) (string, error) {
+	token, err := r.memory.GetSessionToken(ctx, id)
+	return token, adaptErr(err)
 }
 
 // SetAccountState устанавливает состояние аккаунта.

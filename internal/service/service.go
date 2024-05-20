@@ -61,26 +61,38 @@ func MustCreate(metrics service.MetricsInterface, repository joint.Interface, cf
 // Login совершает логин пользователя (сервиса) по переданным в dto логину и паролю. Возвращает токен сессии и ошибку.
 func (s *Service) Login(ctx context.Context, data *dto.LoginPassword) (string, error) {
 	var token string
+	var userIdAndHash dto.UserIdHash
 
 	state, err := s.repository.GetAccountState(ctx, data.Login)
+
 	if err != nil {
 		return "", adaptErr(err)
 	}
+
 	if state != account_state.Enabled {
 		return "", ErrNotEnabledAccount()
 	}
 
-	userId, errGetUsr := s.getUserId(ctx, data)
-	if userId == uuid.Nil || errGetUsr != nil {
+	userIdAndHash, err = s.repository.GetUserIdAndPasswordHash(ctx, data.Login)
+	if userIdAndHash.UserId == uuid.Nil || err != nil {
 		s.metrics.AuthenticationErrorInc()
-		return "", adaptErr(errGetUsr)
+		return "", adaptErr(err)
+	}
+
+	if !s.isPasswordCorrect(data.Password, userIdAndHash.Hash) {
+		s.metrics.AuthenticationErrorInc()
+		return "", se.ErrAuthenticationData
+	}
+
+	if token, err = s.repository.GetSessionToken(ctx, userIdAndHash.UserId); err == nil {
+		return token, err
 	}
 
 	if token, err = s.createToken(); err != nil {
 		return "", adaptErr(err)
 	}
 
-	if err = s.repository.SaveSession(ctx, &dto.UserIdToken{Token: token, UserId: userId}); err != nil {
+	if err = s.repository.SaveSession(ctx, &dto.UserIdToken{Token: token, UserId: userIdAndHash.UserId}); err != nil {
 		return "", adaptErr(err)
 	}
 
@@ -212,20 +224,6 @@ func (s *Service) createPasswordHash(pwd password.Password) (string, error) {
 func (s *Service) GetUserUUIDFromSession(ctx context.Context, token string) (uuid.UUID, error) {
 	id, err := s.repository.GetUserUUIDFromSession(ctx, token)
 	return id, adaptErr(err)
-}
-
-// getUserId возвращает uuid пользователя (сервиса).
-func (s *Service) getUserId(ctx context.Context, data *dto.LoginPassword) (uuid.UUID, error) {
-	userIdAndPasswordHash, err := s.repository.GetUserIdAndPasswordHash(ctx, data.Login)
-	if err != nil {
-		return uuid.Nil, adaptErr(err)
-	}
-
-	if !s.isPasswordCorrect(data.Password, userIdAndPasswordHash.Hash) {
-		return uuid.Nil, se.ErrAuthenticationData
-	}
-
-	return userIdAndPasswordHash.UserId, nil
 }
 
 // isPasswordCorrect возвращает true, если пароль соответствует хэшу.
