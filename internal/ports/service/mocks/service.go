@@ -193,6 +193,63 @@ func (mr *MockServiceMockRecorder) CreateToken(arg0, arg1 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateToken", reflect.TypeOf((*MockService)(nil).CreateToken), arg0, arg1)
 }
 
+// DeleteGroup mocks base method.
+func (m *MockService) DeleteGroup(arg0 context.Context, arg1 *dto.NameService) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteGroup", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteGroup indicates an expected call of DeleteGroup.
+func (mr *MockServiceMockRecorder) DeleteGroup(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteGroup", reflect.TypeOf((*MockService)(nil).DeleteGroup), arg0, arg1)
+}
+
+// DeletePermission mocks base method.
+func (m *MockService) DeletePermission(arg0 context.Context, arg1 *dto.NameService) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeletePermission", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeletePermission indicates an expected call of DeletePermission.
+func (mr *MockServiceMockRecorder) DeletePermission(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePermission", reflect.TypeOf((*MockService)(nil).DeletePermission), arg0, arg1)
+}
+
+// DeleteRole mocks base method.
+func (m *MockService) DeleteRole(arg0 context.Context, arg1 *dto.NameService) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteRole", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteRole indicates an expected call of DeleteRole.
+func (mr *MockServiceMockRecorder) DeleteRole(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRole", reflect.TypeOf((*MockService)(nil).DeleteRole), arg0, arg1)
+}
+
+// GetUserUUIDFromSession mocks base method.
+func (m *MockService) GetUserUUIDFromSession(arg0 context.Context, arg1 string) (uuid.UUID, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserUUIDFromSession", arg0, arg1)
+	ret0, _ := ret[0].(uuid.UUID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserUUIDFromSession indicates an expected call of GetUserUUIDFromSession.
+func (mr *MockServiceMockRecorder) GetUserUUIDFromSession(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserUUIDFromSession", reflect.TypeOf((*MockService)(nil).GetUserUUIDFromSession), arg0, arg1)
+}
+
 // Login mocks base method.
 func (m *MockService) Login(arg0 context.Context, arg1 *dto.LoginPassword) (string, error) {
 	m.ctrl.T.Helper()

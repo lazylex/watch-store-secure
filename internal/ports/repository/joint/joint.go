@@ -20,6 +20,7 @@ type LoginInterface interface {
 	SetAccountLoginData(context.Context, *dto.UserIdLoginHashState) error
 	GetAccountLoginData(context.Context, login.Login) (dto.UserIdLoginHashState, error)
 	GetUserIdAndPasswordHash(context.Context, login.Login) (dto.UserIdHash, error)
+	GetUserUUIDFromSession(ctx context.Context, sessionToken string) (uuid.UUID, error)
 	SetAccountState(context.Context, *dto.LoginState) error
 	GetAccountState(context.Context, login.Login) (account_state.State, error)
 }

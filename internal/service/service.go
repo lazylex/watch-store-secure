@@ -208,6 +208,12 @@ func (s *Service) createPasswordHash(pwd password.Password) (string, error) {
 	return string(bytes), nil
 }
 
+// GetUserUUIDFromSession возвращает UUID пользователя, если он вошел в систему
+func (s *Service) GetUserUUIDFromSession(ctx context.Context, token string) (uuid.UUID, error) {
+	id, err := s.repository.GetUserUUIDFromSession(ctx, token)
+	return id, adaptErr(err)
+}
+
 // getUserId возвращает uuid пользователя (сервиса).
 func (s *Service) getUserId(ctx context.Context, data *dto.LoginPassword) (uuid.UUID, error) {
 	userIdAndPasswordHash, err := s.repository.GetUserIdAndPasswordHash(ctx, data.Login)

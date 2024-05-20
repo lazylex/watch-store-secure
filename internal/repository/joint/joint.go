@@ -51,6 +51,12 @@ func (r *Repository) DeleteSession(ctx context.Context, id uuid.UUID) error {
 	return adaptErr(r.memory.DeleteSession(ctx, id))
 }
 
+// GetUserUUIDFromSession получает UUID пользователя сессии.
+func (r *Repository) GetUserUUIDFromSession(ctx context.Context, sessionToken string) (uuid.UUID, error) {
+	id, err := r.memory.GetUserUUIDFromSession(ctx, sessionToken)
+	return id, adaptErr(err)
+}
+
 // SetAccountLoginData сохраняет в постоянном хранилище логин, хеш пароля, статус учетной записи и идентификатор
 // пользователя. В памяти по возможности кеширует статус учетной записи, идентификатор пользователя и хеш пароля.
 func (r *Repository) SetAccountLoginData(ctx context.Context, data *dto.UserIdLoginHashState) error {
