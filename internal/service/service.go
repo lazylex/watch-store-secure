@@ -160,54 +160,69 @@ func (s *Service) CreateAccount(ctx context.Context, data *dto.LoginPassword, op
 }
 
 // assignGroupToAccount привязывает группы к учетной записи.
-func (s *Service) assignGroupToAccount(ctx context.Context, options AccountOptions, userId uuid.UUID, c chan int) {
+func (s *Service) assignGroupToAccount(ctx context.Context, options AccountOptions, userId uuid.UUID, errCountChan chan int) {
 	var errCount int
-	if options.Groups != nil && len(options.Groups) > 0 {
-		for _, group := range options.Groups {
-			if err := s.repository.AssignGroupToAccount(ctx, &dto.UserIdGroupService{
-				UserId:  userId,
-				Group:   group.Name,
-				Service: group.Service,
-			}); err != nil {
-				errCount++
-			}
+
+	if options.Groups == nil || len(options.Groups) == 0 {
+		errCountChan <- 0
+		return
+	}
+
+	for _, group := range options.Groups {
+		if err := s.repository.AssignGroupToAccount(ctx, &dto.UserIdGroupService{
+			Group:   group.Name,
+			Service: group.Service,
+			UserId:  userId,
+		}); err != nil {
+			errCount++
 		}
 	}
-	c <- errCount
+
+	errCountChan <- errCount
 }
 
 // assignRoleToAccount привязывает роли к учетной записи.
-func (s *Service) assignRoleToAccount(ctx context.Context, options AccountOptions, userId uuid.UUID, c chan int) {
+func (s *Service) assignRoleToAccount(ctx context.Context, options AccountOptions, userId uuid.UUID, errCountChan chan int) {
 	var errCount int
-	if options.Roles != nil && len(options.Roles) > 0 {
-		for _, role := range options.Roles {
-			if err := s.repository.AssignRoleToAccount(ctx, &dto.UserIdRoleService{
-				UserId:  userId,
-				Role:    role.Name,
-				Service: role.Service,
-			}); err != nil {
-				errCount++
-			}
+
+	if options.Roles == nil || len(options.Roles) == 0 {
+		errCountChan <- 0
+		return
+	}
+
+	for _, role := range options.Roles {
+		if err := s.repository.AssignRoleToAccount(ctx, &dto.UserIdRoleService{
+			UserId:  userId,
+			Role:    role.Name,
+			Service: role.Service,
+		}); err != nil {
+			errCount++
 		}
 	}
-	c <- errCount
+
+	errCountChan <- errCount
 }
 
 // assignInstancePermissionsToAccount привязывает разрешения учетной записи к конкретному экземпляру.
-func (s *Service) assignInstancePermissionsToAccount(ctx context.Context, options AccountOptions, userId uuid.UUID, c chan int) {
+func (s *Service) assignInstancePermissionsToAccount(ctx context.Context, options AccountOptions, userId uuid.UUID, errCountChan chan int) {
 	var errCount int
-	if options.InstancePermissions != nil && len(options.InstancePermissions) > 0 {
-		for _, inst := range options.InstancePermissions {
-			if err := s.repository.AssignInstancePermissionToAccount(ctx, &dto.UserIdInstancePermission{
-				UserId:     userId,
-				Instance:   inst.Instance,
-				Permission: inst.Permission,
-			}); err != nil {
-				errCount++
-			}
+
+	if options.InstancePermissions == nil || len(options.InstancePermissions) == 0 {
+		errCountChan <- 0
+		return
+	}
+
+	for _, inst := range options.InstancePermissions {
+		if err := s.repository.AssignInstancePermissionToAccount(ctx, &dto.UserIdInstancePermission{
+			UserId:     userId,
+			Instance:   inst.Instance,
+			Permission: inst.Permission,
+		}); err != nil {
+			errCount++
 		}
 	}
-	c <- errCount
+
+	errCountChan <- errCount
 }
 
 // createPasswordHash создаёт хэш пароля.
