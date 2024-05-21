@@ -13,11 +13,13 @@ import (
 	"time"
 )
 
+// Handler структура для обработки http-запросов.
 type Handler struct {
-	service      *service.Service
-	queryTimeout time.Duration
+	service      *service.Service // Объект, реализующий логику сервиса
+	queryTimeout time.Duration    // Допустимый таймаут для обработки запроса
 }
 
+// New возвращает структуру с обработчиками http-запросов.
 func New(domainService *service.Service, timeout time.Duration) *Handler {
 	return &Handler{service: domainService, queryTimeout: timeout}
 }
@@ -74,6 +76,8 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte(fmt.Sprintf("{\"token\":\"%s\"}", token)))
 }
 
+// allowedOnlyMethod принимает разрешенный метод и, если запрос ему не соответствует, записывает в заголовок информацию
+// о разрешенном методе, статус http.StatusMethodNotAllowed и возвращает false.
 func allowedOnlyMethod(method string, w http.ResponseWriter, r *http.Request) bool {
 	if r.Method != method {
 		w.Header().Set("Allow", method)
