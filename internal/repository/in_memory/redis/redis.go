@@ -119,11 +119,11 @@ func (r *Redis) extendSessionLife(ctx context.Context, key string) error {
 
 // GetUserUUIDFromSession получает UUID пользователя сессии.
 func (r *Redis) GetUserUUIDFromSession(ctx context.Context, sessionToken string) (uuid.UUID, error) {
-	var val []byte
+	var val string
 	var err error
 	var parsedUUID uuid.UUID
 	key := keySession(sessionToken)
-	if val, err = r.client.Get(ctx, key).Bytes(); err != nil {
+	if val, err = r.client.Get(ctx, key).Result(); err != nil {
 		return uuid.Nil, adaptErr(err)
 	}
 
@@ -131,7 +131,7 @@ func (r *Redis) GetUserUUIDFromSession(ctx context.Context, sessionToken string)
 		_ = r.extendSessionLife(ctx, key)
 	}(r, ctx, key)
 
-	parsedUUID, err = uuid.FromBytes(val)
+	parsedUUID, err = uuid.Parse(val)
 
 	return parsedUUID, adaptErr(err)
 }
