@@ -20,5 +20,12 @@ func (l Login) Validate() error {
 		return fmt.Errorf("login length must be at least %d characters", minLength)
 	}
 
+	// RFC 7617 'Basic' HTTP Authentication Scheme September 2015 запрещает использование двоеточия в логине
+	for _, c := range l {
+		if c == ':' {
+			return fmt.Errorf("login should not contain ':' character")
+		}
+	}
+
 	return nil
 }

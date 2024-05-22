@@ -51,13 +51,13 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	authData := strings.Split(string(decodedBytes), ":")
-	if len(authData) != 2 {
+	if len(authData) < 2 {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
 	userLogin := login.Login(authData[0])
-	pwd := password.Password(authData[1])
+	pwd := password.Password(strings.Join(authData[1:], ":"))
 
 	if userLogin.Validate() != nil || pwd.Validate() != nil {
 		w.WriteHeader(http.StatusUnauthorized)
