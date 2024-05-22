@@ -2,14 +2,12 @@ package handlers
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/login"
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/password"
 	"github.com/lazylex/watch-store/secure/internal/dto"
 	"github.com/lazylex/watch-store/secure/internal/service"
 	"net/http"
-	"strings"
 	"time"
 )
 
@@ -30,36 +28,20 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	const prefix = "Basic "
+	var ok bool
+	var err error
+	var token, username, pwd string
 
-	var (
-		decodedBytes []byte
-		err          error
-		token        string
-	)
-
-	auth := r.Header.Get("Authorization")
-	if len(auth) < len(prefix) {
+	if username, pwd, ok = r.BasicAuth(); !ok {
 		w.Header().Set("WWW-Authenticate", "Basic realm=\"secure\"")
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
-	if decodedBytes, err = base64.StdEncoding.DecodeString(auth[len(prefix):]); err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
+	userLogin := login.Login(username)
+	userPassword := password.Password(pwd)
 
-	authData := strings.Split(string(decodedBytes), ":")
-	if len(authData) < 2 {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	userLogin := login.Login(authData[0])
-	pwd := password.Password(strings.Join(authData[1:], ":"))
-
-	if userLogin.Validate() != nil || pwd.Validate() != nil {
+	if userLogin.Validate() != nil || userPassword.Validate() != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -67,7 +49,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), h.queryTimeout)
 	defer cancel()
 
-	if token, err = h.service.Login(ctx, &dto.LoginPassword{Login: userLogin, Password: pwd}); err != nil {
+	if token, err = h.service.Login(ctx, &dto.LoginPassword{Login: userLogin, Password: userPassword}); err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
