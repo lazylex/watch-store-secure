@@ -44,6 +44,8 @@ func MustCreate(domainService *service.Service, cfg *config.HttpServer, m *metri
 	// TODO заменить задержку с 10 секунд на чтение из конфигурации
 	h := handlers.New(domainService, 10*time.Second)
 	router.AssignPathToHandler("/login", server.mux, h.Login)
+	router.AssignPathToHandler("/logout", server.mux, h.Logout)
+	router.AssignPathToHandler("/", server.mux, h.Index)
 
 	tokenMiddleware := token_checker.New(domainService)
 	metricsMiddleware := requestMetrics.New(m)

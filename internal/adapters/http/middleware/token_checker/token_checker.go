@@ -43,5 +43,7 @@ func (t *TokenChecker) Checker(next http.Handler) http.Handler {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
+
+		next.ServeHTTP(w, req)
 	})
 }

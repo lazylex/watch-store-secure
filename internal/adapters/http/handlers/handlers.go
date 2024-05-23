@@ -7,7 +7,6 @@ import (
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/password"
 	"github.com/lazylex/watch-store/secure/internal/dto"
 	"github.com/lazylex/watch-store/secure/internal/service"
-	"log/slog"
 	"net/http"
 	"time"
 )
@@ -59,8 +58,17 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte(fmt.Sprintf("{\"token\":\"%s\"}", token)))
 }
 
+// Index обработчик для несуществующих страниц.
+func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
+	}
+}
+
+// Logout производит выход из учетной записи.
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
-	slog.Debug("Here")
+	// TODO implement
 }
 
 // allowedOnlyMethod принимает разрешенный метод и, если запрос ему не соответствует, записывает в заголовок информацию
