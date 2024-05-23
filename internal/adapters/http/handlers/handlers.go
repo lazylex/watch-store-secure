@@ -7,6 +7,7 @@ import (
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/password"
 	"github.com/lazylex/watch-store/secure/internal/dto"
 	"github.com/lazylex/watch-store/secure/internal/service"
+	"log/slog"
 	"net/http"
 	"time"
 )
@@ -56,6 +57,10 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write([]byte(fmt.Sprintf("{\"token\":\"%s\"}", token)))
+}
+
+func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
+	slog.Debug("Here")
 }
 
 // allowedOnlyMethod принимает разрешенный метод и, если запрос ему не соответствует, записывает в заголовок информацию

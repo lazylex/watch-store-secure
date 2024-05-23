@@ -4,8 +4,11 @@ import (
 	"context"
 	"errors"
 	"github.com/lazylex/watch-store/secure/internal/adapters/http/handlers"
+	requestMetrics "github.com/lazylex/watch-store/secure/internal/adapters/http/middleware/request_metrics"
 	"github.com/lazylex/watch-store/secure/internal/adapters/http/middleware/token_checker"
+	"github.com/lazylex/watch-store/secure/internal/adapters/http/router"
 	"github.com/lazylex/watch-store/secure/internal/config"
+	"github.com/lazylex/watch-store/secure/internal/metrics"
 	"github.com/lazylex/watch-store/secure/internal/service"
 	"log/slog"
 	"net/http"
@@ -16,7 +19,6 @@ import (
 // Server структура для обработки http-запросов к приложению.
 type Server struct {
 	cfg     *config.HttpServer // Конфигурация http сервера
-	paths   []string           // Зарегистрированные шаблоны адресов
 	srv     *http.Server       // Структура с параметрами сервера
 	mux     *http.ServeMux     // Мультиплексор http запросов
 	service *service.Service   // Структура, реализующая логику приложения
@@ -24,8 +26,8 @@ type Server struct {
 
 // MustCreate возвращает готовый к запуску http-сервер (запуск осуществляется функцией MustRun). Если какой-либо из
 // переданных параметров равен nil, работа приложения завершается.
-func MustCreate(domainService *service.Service, cfg *config.HttpServer) *Server {
-	if domainService == nil || cfg == nil {
+func MustCreate(domainService *service.Service, cfg *config.HttpServer, m *metrics.Metrics) *Server {
+	if domainService == nil || cfg == nil || m == nil {
 		slog.Error("domain service or cfg is nil")
 		os.Exit(1)
 	}
@@ -41,27 +43,15 @@ func MustCreate(domainService *service.Service, cfg *config.HttpServer) *Server 
 	}
 	// TODO заменить задержку с 10 секунд на чтение из конфигурации
 	h := handlers.New(domainService, 10*time.Second)
-	server.assignPathToHandler("/login", h.Login)
+	router.AssignPathToHandler("/login", server.mux, h.Login)
 
 	tokenMiddleware := token_checker.New(domainService)
+	metricsMiddleware := requestMetrics.New(m)
+
 	server.srv.Handler = tokenMiddleware.Checker(server.mux)
-
+	server.srv.Handler = metricsMiddleware.BeforeHandle(server.srv.Handler)
+	server.srv.Handler = metricsMiddleware.AfterHandle(server.srv.Handler)
 	return server
-}
-
-// assignPathToHandler проверяет, не прикреплен ли уже переданный первым аргументом функции адрес к какому-либо
-// обработчику. Если прикреплен, то выполнение функции прекращается, чтобы не вызвать панику в http.HandleFunc. При
-// нормальном выполнении, добавляет пусть к списку используемых и прикрепляет его к переданному вторым аргументом
-// обработчику.
-func (s *Server) assignPathToHandler(path string, handler func(http.ResponseWriter, *http.Request)) {
-	for _, v := range s.paths {
-		if v == path {
-			return
-		}
-	}
-
-	s.paths = append(s.paths, path)
-	s.mux.HandleFunc(path, handler)
 }
 
 // MustRun производит запуск сервера в отдельной go-рутине. В случае ошибки останавливает работу приложения.

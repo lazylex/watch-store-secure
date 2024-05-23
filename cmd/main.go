@@ -28,7 +28,7 @@ func main() {
 	repo := joint.MustCreate(inMemoryRepo, persistentRepo)
 	domainService := service.MustCreate(metrics.Service, &repo, cfg.Secure)
 
-	httpServer := server.MustCreate(domainService, &cfg.HttpServer)
+	httpServer := server.MustCreate(domainService, &cfg.HttpServer, metrics)
 	httpServer.MustRun()
 
 	if cfg.UseKafka {
