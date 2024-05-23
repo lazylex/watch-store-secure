@@ -13,15 +13,23 @@ import (
 	"time"
 )
 
+// Server структура для обработки http-запросов к приложению.
 type Server struct {
-	cfg     *config.HttpServer
-	paths   []string
-	srv     *http.Server
-	mux     *http.ServeMux
-	service *service.Service
+	cfg     *config.HttpServer // Конфигурация http сервера
+	paths   []string           // Зарегистрированные шаблоны адресов
+	srv     *http.Server       // Структура с параметрами сервера
+	mux     *http.ServeMux     // Мультиплексор http запросов
+	service *service.Service   // Структура, реализующая логику приложения
 }
 
+// MustCreate возвращает готовый к запуску http-сервер (запуск осуществляется функцией MustRun). Если какой-либо из
+// переданных параметров равен nil, работа приложения завершается.
 func MustCreate(domainService *service.Service, cfg *config.HttpServer) *Server {
+	if domainService == nil || cfg == nil {
+		slog.Error("domain service or cfg is nil")
+		os.Exit(1)
+	}
+
 	mux := http.NewServeMux()
 	server := &Server{mux: mux, service: domainService, cfg: cfg}
 	server.srv = &http.Server{
