@@ -61,14 +61,14 @@ func (p *PostgreSQL) FillTestData() error {
 	INSERT INTO group_roles (role_fk, group_fk)
 	VALUES (1, 1),
 		   (2, 1);
-	
+-- 	Пароли Password_1, Password_2, Password_3:
 	INSERT INTO accounts (account_id, uuid, login, pwd_hash, state)
 	VALUES (1, '0eca778b-d090-441a-bf29-be4f525f0b70', 'Камила Валиева',
-			'$2a$14$IFAdmu0DP1PdOY3Is72zV.egTN.S9JaeuqRT0hadNvhTfwxuMRNbG', 1),
+			'$2a$14$Ne17rB21.iXHWug6wuB80ethQ.vWrViWXpPFpUotkA8pkxAGqyAj2', 1),
 		   (2, '67249938-2743-442b-ad31-547c96274938', 'Алина Загитова',
-			'$2a$14$xzS0lqHtX6vDD6zSK4Xo3eZIeqwdBXpOrDx34XERau9Ouhf0HxG8i', 1),
+			'$2a$14$AIdOFdy1oMbExcRLRAq1Ju2cljtk96n20n4GaY14ZiYv0pFV1lOdS', 1),
 		   (3, '0acd9223-64de-4d21-8e18-2f3d61c9d5f7', 'Анна Щербакова',
-			'$2a$14$ZkvAk8oY8iag.PVYHwHm4OR6K0BIG85dnPaEI8F0QOUXtBrE0hQIG', 1);
+			'$2a$14$h0HKab7NHV8JHwCjUmwf9eVc.3k4d5jOoFutLudk1BwR2p3dYXTeS', 1);
 	
 	INSERT INTO account_groups (account_fk, group_fk)
 	VALUES (1, 1),
