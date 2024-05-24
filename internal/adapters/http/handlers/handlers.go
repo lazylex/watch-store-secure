@@ -6,6 +6,7 @@ import (
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/login"
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/password"
 	"github.com/lazylex/watch-store/secure/internal/dto"
+	v "github.com/lazylex/watch-store/secure/internal/helpers/constants/various"
 	"github.com/lazylex/watch-store/secure/internal/service"
 	"net/http"
 	"time"
@@ -68,7 +69,25 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 
 // Logout производит выход из учетной записи.
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
-	// TODO implement
+	if !allowedOnlyMethod(http.MethodGet, w, r) {
+		return
+	}
+
+	// Проверка на существование токена содержится в middleware, поэтому в этом месте она опускается.
+	token := r.Header.Get("Authorization")[len(v.BearerTokenPrefix):]
+
+	ctx := context.Background()
+
+	id, err := h.service.GetUserUUIDFromSession(ctx, token)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if err = h.service.Logout(ctx, id); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 // allowedOnlyMethod принимает разрешенный метод и, если запрос ему не соответствует, записывает в заголовок информацию

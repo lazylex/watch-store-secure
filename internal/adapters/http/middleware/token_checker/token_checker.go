@@ -2,15 +2,13 @@ package token_checker
 
 import (
 	"context"
+	v "github.com/lazylex/watch-store/secure/internal/helpers/constants/various"
 	"github.com/lazylex/watch-store/secure/internal/service"
 	"net/http"
 	"strings"
 )
 
-const (
-	tokenPrefix = "Bearer "
-	loginURI    = "/login"
-)
+const loginURI = "/login"
 
 // TokenChecker структура, содержащая доступ к сервисной логике.
 type TokenChecker struct {
@@ -34,12 +32,12 @@ func (t *TokenChecker) Checker(next http.Handler) http.Handler {
 
 		authHeader := req.Header.Get("Authorization")
 
-		if len(authHeader) == 0 || !strings.HasPrefix(authHeader, tokenPrefix) {
+		if len(authHeader) == 0 || !strings.HasPrefix(authHeader, v.BearerTokenPrefix) {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
-		if _, err := t.service.GetUserUUIDFromSession(context.Background(), authHeader[len(tokenPrefix):]); err != nil {
+		if _, err := t.service.GetUserUUIDFromSession(context.Background(), authHeader[len(v.BearerTokenPrefix):]); err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
