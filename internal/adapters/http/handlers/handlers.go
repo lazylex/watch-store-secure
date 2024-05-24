@@ -2,15 +2,20 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/login"
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/password"
 	"github.com/lazylex/watch-store/secure/internal/dto"
+	serviceErr "github.com/lazylex/watch-store/secure/internal/errors/service"
 	v "github.com/lazylex/watch-store/secure/internal/helpers/constants/various"
 	"github.com/lazylex/watch-store/secure/internal/service"
 	"net/http"
 	"time"
 )
+
+// Проверка на существование токена содержится в middleware, поэтому в обработчиках она опускается.
 
 // Handler структура для обработки http-запросов.
 type Handler struct {
@@ -73,7 +78,6 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Проверка на существование токена содержится в middleware, поэтому в этом месте она опускается.
 	token := r.Header.Get("Authorization")[len(v.BearerTokenPrefix):]
 
 	ctx := context.Background()
@@ -88,6 +92,48 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+}
+
+// GetTokenWithPermissions возвращает JWT-токен, содержащий информацию о разрешениях для переданного экземпляра
+// приложения.
+func (h *Handler) GetTokenWithPermissions(w http.ResponseWriter, r *http.Request) {
+	if !allowedOnlyMethod(http.MethodGet, w, r) {
+		return
+	}
+
+	var (
+		err   error
+		token string
+		id    uuid.UUID
+	)
+
+	instance := r.FormValue("instance")
+
+	if len(instance) == 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	token = r.Header.Get("Authorization")[len(v.BearerTokenPrefix):]
+
+	ctx := context.Background()
+
+	if id, err = h.service.GetUserUUIDFromSession(ctx, token); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if token, err = h.service.CreateToken(ctx, &dto.UserIdInstance{UserId: id, Instance: instance}); err != nil {
+		if errors.Is(err, serviceErr.ErrEmptyResult) {
+			w.WriteHeader(http.StatusNoContent)
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write([]byte(fmt.Sprintf("{\"jwt-token\":\"%s\"}", token)))
 }
 
 // allowedOnlyMethod принимает разрешенный метод и, если запрос ему не соответствует, записывает в заголовок информацию

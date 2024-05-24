@@ -15,6 +15,7 @@ var (
 	ErrNilMetrics         = NewServiceError("metrics can't be nil")
 	ErrNilRepo            = NewServiceError("repository can't be nil")
 	ErrEmptyConfig        = NewServiceError("empty config")
+	ErrEmptyResult        = NewServiceError("empty result")
 )
 
 // FullServiceError возвращает полностью заполненную структуру с типом JointType.

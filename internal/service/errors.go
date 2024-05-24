@@ -34,6 +34,8 @@ func adaptErrSkipFrames(err error, skip int) error {
 			return service.ErrAlreadyExist.WithOrigin(be.Origin)
 		case message == joint.ErrDataNotSaved.Message:
 			return service.ErrNothingWasChanged.WithOrigin(be.Origin)
+		case message == joint.ErrEmptyResult.Message:
+			return service.ErrEmptyResult.WithOrigin(be.Origin)
 		}
 
 		if be.Type == service.ErrServiceType {
