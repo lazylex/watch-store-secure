@@ -7,6 +7,7 @@ http_server:
   write_timeout: 10s
   idle_timeout: 60s
   shutdown_timeout: 15s
+  request_timeout: 50s
 persistent_storage:
   database_login: "lex"
   database_password: "python"

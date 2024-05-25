@@ -13,7 +13,6 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"time"
 )
 
 // Server структура для обработки http-запросов к приложению.
@@ -41,8 +40,8 @@ func MustCreate(domainService *service.Service, cfg *config.HttpServer, m *metri
 		WriteTimeout: server.cfg.WriteTimeout,
 		IdleTimeout:  server.cfg.IdleTimeout,
 	}
-	// TODO заменить задержку с 10 секунд на чтение из конфигурации
-	h := handlers.New(domainService, 10*time.Second)
+
+	h := handlers.New(domainService, cfg.RequestTimeout)
 	router.AssignPathToHandler("/login", server.mux, h.Login)
 	router.AssignPathToHandler("/logout", server.mux, h.Logout)
 	router.AssignPathToHandler("/get-token", server.mux, h.GetTokenWithPermissions)

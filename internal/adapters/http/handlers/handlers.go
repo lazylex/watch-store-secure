@@ -80,7 +80,8 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 
 	token := r.Header.Get("Authorization")[len(v.BearerTokenPrefix):]
 
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(r.Context(), h.queryTimeout)
+	defer cancel()
 
 	id, err := h.service.GetUserUUIDFromSession(ctx, token)
 	if err != nil {
@@ -116,7 +117,8 @@ func (h *Handler) GetTokenWithPermissions(w http.ResponseWriter, r *http.Request
 
 	token = r.Header.Get("Authorization")[len(v.BearerTokenPrefix):]
 
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(r.Context(), h.queryTimeout)
+	defer cancel()
 
 	if id, err = h.service.GetUserUUIDFromSession(ctx, token); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
