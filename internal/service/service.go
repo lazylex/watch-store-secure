@@ -89,15 +89,11 @@ func (s *Service) Login(ctx context.Context, data *dto.LoginPassword) (string, e
 		compare <- struct{}{}
 	}(&passwordCorrect)
 
-	wait := true
-	for wait {
-		select {
-		case <-ctx.Done():
-			return "", ctx.Err()
-		case <-compare:
-			wait = false
-			close(compare)
-		}
+	select {
+	case <-ctx.Done():
+		return "", ctx.Err()
+	case <-compare:
+		close(compare)
 	}
 
 	if !passwordCorrect {
