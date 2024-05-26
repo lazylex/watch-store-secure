@@ -60,8 +60,11 @@ func MustCreate(metrics service.MetricsInterface, repository joint.Interface, cf
 
 // Login совершает логин пользователя (сервиса) по переданным в dto логину и паролю. Возвращает токен сессии и ошибку.
 func (s *Service) Login(ctx context.Context, data *dto.LoginPassword) (string, error) {
-	var token string
-	var userIdAndHash dto.UserIdHash
+	var (
+		token           string
+		passwordCorrect bool
+		userIdAndHash   dto.UserIdHash
+	)
 
 	state, err := s.repository.GetAccountState(ctx, data.Login)
 
@@ -79,7 +82,25 @@ func (s *Service) Login(ctx context.Context, data *dto.LoginPassword) (string, e
 		return "", adaptErr(err)
 	}
 
-	if !s.isPasswordCorrect(data.Password, userIdAndHash.Hash) {
+	compare := make(chan struct{})
+
+	go func(correct *bool) {
+		*correct = bcrypt.CompareHashAndPassword([]byte(userIdAndHash.Hash), []byte(data.Password)) == nil
+		compare <- struct{}{}
+	}(&passwordCorrect)
+
+	wait := true
+	for wait {
+		select {
+		case <-ctx.Done():
+			return "", ctx.Err()
+		case <-compare:
+			wait = false
+			close(compare)
+		}
+	}
+
+	if !passwordCorrect {
 		s.metrics.AuthenticationErrorInc()
 		return "", se.ErrAuthenticationData
 	}
@@ -239,11 +260,6 @@ func (s *Service) createPasswordHash(pwd password.Password) (string, error) {
 func (s *Service) GetUserUUIDFromSession(ctx context.Context, token string) (uuid.UUID, error) {
 	id, err := s.repository.GetUserUUIDFromSession(ctx, token)
 	return id, adaptErr(err)
-}
-
-// isPasswordCorrect возвращает true, если пароль соответствует хэшу.
-func (s *Service) isPasswordCorrect(pwd password.Password, hash string) bool {
-	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(pwd)) == nil
 }
 
 // createToken создает токен сессии для идентификации аутентифицированного пользователя (сервиса).

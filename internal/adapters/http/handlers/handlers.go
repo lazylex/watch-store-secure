@@ -56,7 +56,12 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	if token, err = h.service.Login(ctx, &dto.LoginPassword{Login: userLogin, Password: userPassword}); err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
+		if errors.Is(err, context.DeadlineExceeded) {
+			w.WriteHeader(http.StatusRequestTimeout)
+		} else {
+			w.WriteHeader(http.StatusUnauthorized)
+		}
+
 		return
 	}
 
