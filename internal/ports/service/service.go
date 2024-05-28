@@ -26,4 +26,5 @@ type Service interface {
 	common.RBACDeleteInterface
 
 	CreateToken(context.Context, *dto.UserIdInstance) (string, error)
+	GetServiceNumberedPermissions(context.Context, string) (*[]dto.NameNumber, error)
 }

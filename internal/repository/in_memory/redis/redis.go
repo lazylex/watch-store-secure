@@ -284,6 +284,18 @@ func (r *Redis) SetInstanceSecret(ctx context.Context, data *dto.NameSecret) err
 	return nil
 }
 
+func (r *Redis) SetServiceNumberedPermissions(context.Context, string, *[]dto.NameNumber) error {
+	// TODO implement
+	slog.Debug("SetServiceNumberedPermissions not implemented")
+	return nil
+}
+
+func (r *Redis) GetServiceNumberedPermissions(context.Context, string) (*[]dto.NameNumber, error) {
+	// TODO implement
+	slog.Debug("GetServiceNumberedPermissions not implemented")
+	return nil, nil
+}
+
 // setPermissionsNumbers сохраняет номера разрешений аккаунта по заданному ключу.
 func (r *Redis) setPermissionsNumbers(ctx context.Context, key string, permissionNumbers []int) error {
 

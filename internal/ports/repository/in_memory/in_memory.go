@@ -30,6 +30,9 @@ type RBACInterface interface {
 
 	ExistInstancePermissionsNumbersForAccount(context.Context, *dto.UserIdInstance) bool
 	ExistServicePermissionsNumbersForAccount(context.Context, *dto.UserIdService) bool
+
+	SetServiceNumberedPermissions(context.Context, string, *[]dto.NameNumber) error
+	GetServiceNumberedPermissions(context.Context, string) (*[]dto.NameNumber, error)
 }
 
 type InstanceInterface interface {

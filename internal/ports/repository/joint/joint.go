@@ -45,4 +45,5 @@ type Interface interface {
 	RBACInterface
 	GetInstanceSecret(context.Context, string) (string, error)
 	GetServiceName(context.Context, string) (string, error)
+	GetServiceNumberedPermissions(context.Context, string) (*[]dto.NameNumber, error)
 }

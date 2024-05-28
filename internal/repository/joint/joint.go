@@ -265,6 +265,26 @@ func (r *Repository) GetServicePermissionsNumbersForAccount(ctx context.Context,
 	return numbers, adaptErr(err)
 }
 
+// GetServiceNumberedPermissions возвращает номера и названия разрешений сервиса.
+func (r *Repository) GetServiceNumberedPermissions(ctx context.Context, serviceName string) (*[]dto.NameNumber, error) {
+	var err error
+	var result *[]dto.NameNumber
+
+	if result, err = r.memory.GetServiceNumberedPermissions(ctx, serviceName); err == nil && result != nil && len(*result) != 0 {
+		return result, nil
+	}
+
+	if result, err = r.persistent.GetServiceNumberedPermissions(ctx, serviceName); err != nil {
+		return nil, adaptErr(err)
+	}
+
+	go func() {
+		_ = r.memory.SetServiceNumberedPermissions(ctx, serviceName, result)
+	}()
+
+	return result, nil
+}
+
 // getServicePermissionsNumbersForAccountFromPersistentWithSaveToMemory возвращает номера разрешений аккаунта для
 // сервиса и кеширует их в память.
 func (r *Repository) getServicePermissionsNumbersForAccountFromPersistentWithSaveToMemory(ctx context.Context, data *dto.UserIdService) ([]int, error) {

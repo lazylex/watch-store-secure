@@ -382,3 +382,9 @@ func (s *Service) CreateToken(ctx context.Context, data *dto.UserIdInstance) (st
 
 	return token.SignedString([]byte(secret))
 }
+
+// GetServiceNumberedPermissions возвращает пары номер разрешения/название разрешения для сервиса.
+func (s *Service) GetServiceNumberedPermissions(ctx context.Context, serviceName string) (*[]dto.NameNumber, error) {
+	result, err := s.repository.GetServiceNumberedPermissions(ctx, serviceName)
+	return result, adaptErr(err)
+}
