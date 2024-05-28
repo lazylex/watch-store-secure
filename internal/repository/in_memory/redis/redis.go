@@ -190,13 +190,13 @@ func (r *Redis) SetAccountState(ctx context.Context, data *dto.LoginState) error
 
 // SetServicePermissionsNumbersForAccount сохраняет номера разрешений аккаунта для сервиса.
 func (r *Redis) SetServicePermissionsNumbersForAccount(ctx context.Context, data *dto.UserIdServicePermNumbers) error {
-	key := keyServicePermissionsNumbers(data.Service, data.UserId)
+	key := keyServicePermissionsNumbersForUser(data.Service, data.UserId)
 	return adaptErr(r.setPermissionsNumbers(ctx, key, data.PermissionNumbers))
 }
 
 // GetServicePermissionsNumbersForAccount возвращает номера всех разрешений аккаунта для сервиса.
 func (r *Redis) GetServicePermissionsNumbersForAccount(ctx context.Context, data *dto.UserIdService) ([]int, error) {
-	key := keyServicePermissionsNumbers(data.Service, data.UserId)
+	key := keyServicePermissionsNumbersForUser(data.Service, data.UserId)
 	if numbers, err := r.getPermissionsNumbers(ctx, key); err != nil {
 		return []int{}, adaptErr(err)
 	} else {
@@ -284,16 +284,52 @@ func (r *Redis) SetInstanceSecret(ctx context.Context, data *dto.NameSecret) err
 	return nil
 }
 
-func (r *Redis) SetServiceNumberedPermissions(context.Context, string, *[]dto.NameNumber) error {
-	// TODO implement
-	slog.Debug("SetServiceNumberedPermissions not implemented")
-	return nil
+// SetServiceNumberedPermissions сохраняет в памяти все возможные разрешения сервиса в хеше, где ключами служат номера
+// этих разрешений.
+func (r *Redis) SetServiceNumberedPermissions(ctx context.Context, serviceName string, data *[]dto.NameNumber) error {
+	key := keyServicePermissionsNumbers(serviceName)
+
+	keysAndValues := make([]interface{}, 2*len(*data))
+
+	i := 0
+	for _, v := range *data {
+		keysAndValues[i] = v.Number
+		keysAndValues[i+1] = v.Name
+		i += 2
+	}
+
+	if err := r.client.HSet(ctx, key, keysAndValues...).Err(); err != nil {
+		return adaptErr(err)
+	}
+
+	return adaptErr(r.client.Expire(ctx, key, r.ttl.PermissionsNumbersTTL).Err())
 }
 
-func (r *Redis) GetServiceNumberedPermissions(context.Context, string) (*[]dto.NameNumber, error) {
-	// TODO implement
-	slog.Debug("GetServiceNumberedPermissions not implemented")
-	return nil, nil
+// GetServiceNumberedPermissions возвращает из в памяти все возможные разрешения сервиса.
+func (r *Redis) GetServiceNumberedPermissions(ctx context.Context, serviceName string) (*[]dto.NameNumber, error) {
+	var err error
+	var number int
+	var keysAndValues map[string]string
+
+	key := keyServicePermissionsNumbers(serviceName)
+	defer r.client.Expire(ctx, key, r.ttl.PermissionsNumbersTTL)
+
+	if keysAndValues, err = r.client.HGetAll(ctx, key).Result(); err != nil {
+		return nil, adaptErr(err)
+	}
+
+	result := make([]dto.NameNumber, 0, len(keysAndValues))
+
+	for k, v := range keysAndValues {
+		if number, err = strconv.Atoi(k); err == nil {
+			result = append(result, dto.NameNumber{
+				Name:   v,
+				Number: number,
+			})
+		}
+	}
+
+	return &result, nil
 }
 
 // setPermissionsNumbers сохраняет номера разрешений аккаунта по заданному ключу.
@@ -331,7 +367,7 @@ func (r *Redis) getPermissionsNumbers(ctx context.Context, key string) ([]int, e
 // ExistServicePermissionsNumbersForAccount возвращает true, если в памяти сохранены номера разрешений сервиса для
 // аккаунта.
 func (r *Redis) ExistServicePermissionsNumbersForAccount(ctx context.Context, data *dto.UserIdService) bool {
-	key := keyServicePermissionsNumbers(data.Service, data.UserId)
+	key := keyServicePermissionsNumbersForUser(data.Service, data.UserId)
 	return r.existKey(ctx, key)
 }
 

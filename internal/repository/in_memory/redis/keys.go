@@ -8,13 +8,14 @@ import (
 )
 
 const (
-	prefixSession                    = "s"
-	prefixSessionByUUID              = "si"
-	prefixServicePermissionsNumbers  = "spn"
-	prefixInstancePermissionsNumbers = "ipn"
-	prefixUuidHash                   = "uh"
-	prefixAccountState               = "as"
-	prefixInstance                   = "i"
+	prefixSession                          = "s"
+	prefixSessionByUUID                    = "si"
+	prefixServicePermissionsNumbers        = "spn"
+	prefixServicePermissionsNumbersForUser = "spn4u"
+	prefixInstancePermissionsNumbers       = "ipn"
+	prefixUuidHash                         = "uh"
+	prefixAccountState                     = "as"
+	prefixInstance                         = "i"
 )
 
 // keySession ключ для получения UUID пользователя сессии.
@@ -27,10 +28,15 @@ func keySessionByUUID(userID string) string {
 	return fmt.Sprintf("%s:%s", prefixSessionByUUID, userID)
 }
 
-// keyServicePermissionsNumbers ключ для получения списка разрешений сервиса service для пользователя (сервиса) с UUID
-// равным id.
-func keyServicePermissionsNumbers(service string, id uuid.UUID) string {
-	return fmt.Sprintf("%s:%s:%s", prefixServicePermissionsNumbers, service, id.String())
+// keyServicePermissionsNumbersForUser ключ для получения списка разрешений сервиса service для пользователя (сервиса) с
+// UUID равным id.
+func keyServicePermissionsNumbersForUser(service string, id uuid.UUID) string {
+	return fmt.Sprintf("%s:%s:%s", prefixServicePermissionsNumbersForUser, service, id.String())
+}
+
+// keyServicePermissionsNumbers ключ для получения нумерованного списка всех возможных разрешений сервиса.
+func keyServicePermissionsNumbers(service string) string {
+	return fmt.Sprintf("%s:%s", prefixServicePermissionsNumbers, service)
 }
 
 // keyInstancePermissionsNumbers ключ для получения списка разрешений экземпляра для пользователя (сервиса) с UUID
