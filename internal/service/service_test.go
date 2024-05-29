@@ -28,8 +28,8 @@ func TestService_Login(t *testing.T) {
 
 	idHash := dto.UserIdHash{UserId: uuid.New(), Hash: `$2a$14$YSZzgtT8U7a6WKLrvhyCxe4f5Cc.Gnpj/gLlIt1QrOwBGm6Uo16dm`}
 
-	repo.EXPECT().GetAccountState(ctx, loginData.Login).Times(1).Return(account_state.State(account_state.Enabled), nil)
-	repo.EXPECT().GetUserIdAndPasswordHash(ctx, loginData.Login).Times(1).Return(idHash, nil)
+	repo.EXPECT().AccountState(ctx, loginData.Login).Times(1).Return(account_state.State(account_state.Enabled), nil)
+	repo.EXPECT().UserIdAndPasswordHash(ctx, loginData.Login).Times(1).Return(idHash, nil)
 	repo.EXPECT().SaveSession(ctx, gomock.Any()).Times(1).Return(nil)
 	metrics.EXPECT().LoginInc().AnyTimes()
 	token, err := s.Login(ctx, &loginData)
@@ -45,7 +45,7 @@ func TestService_LoginErrGetAccountState(t *testing.T) {
 	metrics := mockservice.NewMockMetricsInterface(controller)
 	s := MustCreate(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
 
-	repo.EXPECT().GetAccountState(ctx, loginData.Login).Times(1).Return(account_state.State(0), joint.ErrEmptyResult)
+	repo.EXPECT().AccountState(ctx, loginData.Login).Times(1).Return(account_state.State(0), joint.ErrEmptyResult)
 
 	token, err := s.Login(ctx, &loginData)
 
@@ -61,7 +61,7 @@ func TestService_LoginErrNotEnabledAccount(t *testing.T) {
 	metrics := mockservice.NewMockMetricsInterface(controller)
 	s := MustCreate(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
 
-	repo.EXPECT().GetAccountState(ctx, loginData.Login).Times(1).Return(account_state.State(account_state.Disabled), nil)
+	repo.EXPECT().AccountState(ctx, loginData.Login).Times(1).Return(account_state.State(account_state.Disabled), nil)
 
 	token, err := s.Login(ctx, &loginData)
 
@@ -79,8 +79,8 @@ func TestService_LoginErrGetUserId(t *testing.T) {
 
 	idHash := dto.UserIdHash{UserId: uuid.Nil, Hash: `$2a$14$YSZzgtT8U7a6WKLrvhyCxe4f5Cc.Gnpj/gLlIt1QrOwBGm6Uo16dm`}
 
-	repo.EXPECT().GetAccountState(ctx, loginData.Login).Times(1).Return(account_state.State(account_state.Enabled), nil)
-	repo.EXPECT().GetUserIdAndPasswordHash(ctx, loginData.Login).Times(1).Return(idHash, nil)
+	repo.EXPECT().AccountState(ctx, loginData.Login).Times(1).Return(account_state.State(account_state.Enabled), nil)
+	repo.EXPECT().UserIdAndPasswordHash(ctx, loginData.Login).Times(1).Return(idHash, nil)
 
 	metrics.EXPECT().AuthenticationErrorInc().Times(1)
 	token, err := s.Login(ctx, &loginData)
@@ -98,8 +98,8 @@ func TestService_LoginErrDataNotSaved(t *testing.T) {
 
 	idHash := dto.UserIdHash{UserId: uuid.New(), Hash: `$2a$14$YSZzgtT8U7a6WKLrvhyCxe4f5Cc.Gnpj/gLlIt1QrOwBGm6Uo16dm`}
 
-	repo.EXPECT().GetAccountState(ctx, loginData.Login).Times(1).Return(account_state.State(account_state.Enabled), nil)
-	repo.EXPECT().GetUserIdAndPasswordHash(ctx, loginData.Login).Times(1).Return(idHash, nil)
+	repo.EXPECT().AccountState(ctx, loginData.Login).Times(1).Return(account_state.State(account_state.Enabled), nil)
+	repo.EXPECT().UserIdAndPasswordHash(ctx, loginData.Login).Times(1).Return(idHash, nil)
 	repo.EXPECT().SaveSession(ctx, gomock.Any()).Times(1).Return(joint.ErrDataNotSaved)
 
 	token, err := s.Login(ctx, &loginData)
@@ -115,8 +115,8 @@ func TestService_LoginErrGetUserIdAndPasswordHash(t *testing.T) {
 	metrics := mockservice.NewMockMetricsInterface(controller)
 	s := MustCreate(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
 
-	repo.EXPECT().GetAccountState(ctx, loginData.Login).Times(1).Return(account_state.State(account_state.Enabled), nil)
-	repo.EXPECT().GetUserIdAndPasswordHash(ctx, loginData.Login).Times(1).Return(dto.UserIdHash{}, joint.ErrEmptyResult)
+	repo.EXPECT().AccountState(ctx, loginData.Login).Times(1).Return(account_state.State(account_state.Enabled), nil)
+	repo.EXPECT().UserIdAndPasswordHash(ctx, loginData.Login).Times(1).Return(dto.UserIdHash{}, joint.ErrEmptyResult)
 	metrics.EXPECT().AuthenticationErrorInc().Times(1)
 
 	token, err := s.Login(ctx, &loginData)
@@ -132,8 +132,8 @@ func TestService_LoginIncorrectPassword(t *testing.T) {
 	metrics := mockservice.NewMockMetricsInterface(controller)
 	s := MustCreate(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14})
 
-	repo.EXPECT().GetAccountState(ctx, loginData.Login).Times(1).Return(account_state.State(account_state.Enabled), nil)
-	repo.EXPECT().GetUserIdAndPasswordHash(ctx, loginData.Login).Times(1).Return(dto.UserIdHash{Hash: "incorrect pwd"}, nil)
+	repo.EXPECT().AccountState(ctx, loginData.Login).Times(1).Return(account_state.State(account_state.Enabled), nil)
+	repo.EXPECT().UserIdAndPasswordHash(ctx, loginData.Login).Times(1).Return(dto.UserIdHash{Hash: "incorrect pwd"}, nil)
 	metrics.EXPECT().AuthenticationErrorInc().Times(1)
 
 	token, err := s.Login(ctx, &loginData)
@@ -584,10 +584,10 @@ func TestService_CreateToken(t *testing.T) {
 	metrics := mockservice.NewMockMetricsInterface(controller)
 	s := MustCreate(metrics, repo, config.Secure{LoginTokenLength: 24, PasswordCreationCost: 14, TokenTTL: 168 * time.Hour})
 
-	repo.EXPECT().GetInstanceSecret(ctx, gomock.Any()).Times(1).Return("secret", nil)
-	repo.EXPECT().GetInstancePermissionsNumbersForAccount(ctx, gomock.Any()).Times(1).Return([]int{1}, nil)
-	repo.EXPECT().GetServiceName(ctx, gomock.Any()).Times(1).Return("", nil)
-	repo.EXPECT().GetServicePermissionsNumbersForAccount(ctx, gomock.Any()).Times(1).Return([]int{4, 6}, nil)
+	repo.EXPECT().InstanceSecret(ctx, gomock.Any()).Times(1).Return("secret", nil)
+	repo.EXPECT().InstancePermissionsNumbersForAccount(ctx, gomock.Any()).Times(1).Return([]int{1}, nil)
+	repo.EXPECT().ServiceName(ctx, gomock.Any()).Times(1).Return("", nil)
+	repo.EXPECT().ServicePermissionsNumbersForAccount(ctx, gomock.Any()).Times(1).Return([]int{4, 6}, nil)
 	token, err := s.CreateToken(ctx, &dto.UserIdInstance{UserId: uuid.Nil, Instance: ""})
 	if len(token) == 0 || err != nil {
 		t.Fail()
