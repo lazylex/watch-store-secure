@@ -66,7 +66,7 @@ func (s *Service) Login(ctx context.Context, data *dto.LoginPassword) (string, e
 		userIdAndHash   dto.UserIdHash
 	)
 
-	state, err := s.repository.GetAccountState(ctx, data.Login)
+	state, err := s.repository.AccountState(ctx, data.Login)
 
 	if err != nil {
 		return "", adaptErr(err)
@@ -76,7 +76,7 @@ func (s *Service) Login(ctx context.Context, data *dto.LoginPassword) (string, e
 		return "", ErrNotEnabledAccount()
 	}
 
-	userIdAndHash, err = s.repository.GetUserIdAndPasswordHash(ctx, data.Login)
+	userIdAndHash, err = s.repository.UserIdAndPasswordHash(ctx, data.Login)
 	if userIdAndHash.UserId == uuid.Nil || err != nil {
 		s.metrics.AuthenticationErrorInc()
 		return "", adaptErr(err)
@@ -101,7 +101,7 @@ func (s *Service) Login(ctx context.Context, data *dto.LoginPassword) (string, e
 		return "", se.ErrAuthenticationData
 	}
 
-	if token, err = s.repository.GetSessionToken(ctx, userIdAndHash.UserId); err == nil {
+	if token, err = s.repository.SessionToken(ctx, userIdAndHash.UserId); err == nil {
 		return token, err
 	}
 
@@ -252,9 +252,9 @@ func (s *Service) createPasswordHash(pwd password.Password) (string, error) {
 	return string(bytes), nil
 }
 
-// GetUserUUIDFromSession возвращает UUID пользователя, если он вошел в систему
-func (s *Service) GetUserUUIDFromSession(ctx context.Context, token string) (uuid.UUID, error) {
-	id, err := s.repository.GetUserUUIDFromSession(ctx, token)
+// UserUUIDFromSession возвращает UUID пользователя, если он вошел в систему
+func (s *Service) UserUUIDFromSession(ctx context.Context, token string) (uuid.UUID, error) {
+	id, err := s.repository.UserUUIDFromSession(ctx, token)
 	return id, adaptErr(err)
 }
 
@@ -346,19 +346,19 @@ func (s *Service) CreateToken(ctx context.Context, data *dto.UserIdInstance) (st
 	var permissions1, permissions2 []int
 	var serviceName, secret string
 
-	if secret, err = s.repository.GetInstanceSecret(ctx, data.Instance); err != nil {
+	if secret, err = s.repository.InstanceSecret(ctx, data.Instance); err != nil {
 		return "", adaptErr(err)
 	}
 
-	if permissions1, err = s.repository.GetInstancePermissionsNumbersForAccount(ctx, data); err != nil {
+	if permissions1, err = s.repository.InstancePermissionsNumbersForAccount(ctx, data); err != nil {
 		return "", adaptErr(err)
 	}
 
-	if serviceName, err = s.repository.GetServiceName(ctx, data.Instance); err != nil {
+	if serviceName, err = s.repository.ServiceName(ctx, data.Instance); err != nil {
 		return "", adaptErr(err)
 	}
 
-	if permissions2, err = s.repository.GetServicePermissionsNumbersForAccount(ctx,
+	if permissions2, err = s.repository.ServicePermissionsNumbersForAccount(ctx,
 		&dto.UserIdService{UserId: data.UserId, Service: serviceName}); err != nil {
 		return "", adaptErr(err)
 	}
@@ -383,8 +383,8 @@ func (s *Service) CreateToken(ctx context.Context, data *dto.UserIdInstance) (st
 	return token.SignedString([]byte(secret))
 }
 
-// GetServiceNumberedPermissions возвращает пары номер разрешения/название разрешения для сервиса.
-func (s *Service) GetServiceNumberedPermissions(ctx context.Context, serviceName string) (*[]dto.NameNumber, error) {
-	result, err := s.repository.GetServiceNumberedPermissions(ctx, serviceName)
+// ServiceNumberedPermissions возвращает пары номер разрешения/название разрешения для сервиса.
+func (s *Service) ServiceNumberedPermissions(ctx context.Context, serviceName string) (*[]dto.NameNumber, error) {
+	result, err := s.repository.ServiceNumberedPermissions(ctx, serviceName)
 	return result, adaptErr(err)
 }

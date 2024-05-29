@@ -32,7 +32,7 @@ func adaptErrSkipFrames(err interface{}, skip int) error {
 	}
 
 	if len(origin) == 0 {
-		origin = errors.GetFrame(skip).Function
+		origin = errors.Frame(skip).Function
 		origin = originPlace + origin[strings.LastIndex(origin, ".")+1:]
 	}
 

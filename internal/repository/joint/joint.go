@@ -51,9 +51,9 @@ func (r *Repository) DeleteSession(ctx context.Context, id uuid.UUID) error {
 	return adaptErr(r.memory.DeleteSession(ctx, id))
 }
 
-// GetUserUUIDFromSession получает UUID пользователя сессии.
-func (r *Repository) GetUserUUIDFromSession(ctx context.Context, sessionToken string) (uuid.UUID, error) {
-	id, err := r.memory.GetUserUUIDFromSession(ctx, sessionToken)
+// UserUUIDFromSession получает UUID пользователя сессии.
+func (r *Repository) UserUUIDFromSession(ctx context.Context, sessionToken string) (uuid.UUID, error) {
+	id, err := r.memory.UserUUIDFromSession(ctx, sessionToken)
 	return id, adaptErr(err)
 }
 
@@ -75,13 +75,13 @@ func (r *Repository) SetAccountLoginData(ctx context.Context, data *dto.UserIdLo
 	return nil
 }
 
-// GetUserIdAndPasswordHash возвращает идентификатор пользователя и хеш его пароля.
-func (r *Repository) GetUserIdAndPasswordHash(ctx context.Context, login loginVO.Login) (dto.UserIdHash, error) {
-	idAndHash, err := r.memory.GetUserIdAndPasswordHash(ctx, login)
+// UserIdAndPasswordHash возвращает идентификатор пользователя и хеш его пароля.
+func (r *Repository) UserIdAndPasswordHash(ctx context.Context, login loginVO.Login) (dto.UserIdHash, error) {
+	idAndHash, err := r.memory.UserIdAndPasswordHash(ctx, login)
 	if err == nil && idAndHash != (dto.UserIdHash{}) {
 		return idAndHash, err
 	}
-	data, errGetData := r.persistent.GetAccountLoginData(ctx, login)
+	data, errGetData := r.persistent.AccountLoginData(ctx, login)
 	if errGetData != nil {
 		return dto.UserIdHash{}, adaptErr(errGetData)
 	}
@@ -91,9 +91,9 @@ func (r *Repository) GetUserIdAndPasswordHash(ctx context.Context, login loginVO
 	return dto.UserIdHash{UserId: data.UserId, Hash: data.Hash}, nil
 }
 
-// GetSessionToken возвращает токен сессии по идентификатору пользователя.
-func (r *Repository) GetSessionToken(ctx context.Context, id uuid.UUID) (string, error) {
-	token, err := r.memory.GetSessionToken(ctx, id)
+// SessionToken возвращает токен сессии по идентификатору пользователя.
+func (r *Repository) SessionToken(ctx context.Context, id uuid.UUID) (string, error) {
+	token, err := r.memory.SessionToken(ctx, id)
 	return token, adaptErr(err)
 }
 
@@ -109,40 +109,40 @@ func (r *Repository) SetAccountState(ctx context.Context, data *dto.LoginState) 
 	return adaptErr(r.memory.SetAccountState(ctx, data))
 }
 
-// GetAccountState получает состояние учетной записи пользователя (сервиса).
-func (r *Repository) GetAccountState(ctx context.Context, login loginVO.Login) (account_state.State, error) {
+// AccountState получает состояние учетной записи пользователя (сервиса).
+func (r *Repository) AccountState(ctx context.Context, login loginVO.Login) (account_state.State, error) {
 	var data dto.UserIdLoginHashState
 	var err error
 	var state account_state.State
 
 	r.stateLocker.WantRead(login)
 
-	if state, err = r.memory.GetAccountStateByLogin(ctx, login); err == nil {
+	if state, err = r.memory.AccountStateByLogin(ctx, login); err == nil {
 		return state, adaptErr(err)
 	}
 
-	if data, err = r.GetAccountLoginData(ctx, login); err != nil {
+	if data, err = r.AccountLoginData(ctx, login); err != nil {
 		return 0, adaptErr(err)
 	}
 
 	return data.State, nil
 }
 
-// GetAccountLoginData возвращает данные учетной записи по логину.
-func (r *Repository) GetAccountLoginData(ctx context.Context, login loginVO.Login) (dto.UserIdLoginHashState, error) {
+// AccountLoginData возвращает данные учетной записи по логину.
+func (r *Repository) AccountLoginData(ctx context.Context, login loginVO.Login) (dto.UserIdLoginHashState, error) {
 	var loginData dto.UserIdLoginHashState
 	var idAndHash dto.UserIdHash
 	var state account_state.State
 	var err, errState, errHash error
 
-	state, errState = r.memory.GetAccountStateByLogin(ctx, login)
-	idAndHash, errHash = r.memory.GetUserIdAndPasswordHash(ctx, login)
+	state, errState = r.memory.AccountStateByLogin(ctx, login)
+	idAndHash, errHash = r.memory.UserIdAndPasswordHash(ctx, login)
 
 	if errState == nil && errHash == nil {
 		return dto.UserIdLoginHashState{Login: login, UserId: idAndHash.UserId, Hash: idAndHash.Hash, State: state}, nil
 	}
 
-	if loginData, err = r.persistent.GetAccountLoginData(ctx, login); err != nil {
+	if loginData, err = r.persistent.AccountLoginData(ctx, login); err != nil {
 		return dto.UserIdLoginHashState{}, adaptErr(err)
 	}
 
@@ -222,7 +222,7 @@ func (r *Repository) AssignInstancePermissionToAccount(ctx context.Context, data
 		return adaptErr(err)
 	}
 
-	if number, err = r.persistent.GetPermissionNumber(ctx, data.Permission, data.Instance); err != nil {
+	if number, err = r.persistent.PermissionNumber(ctx, data.Permission, data.Instance); err != nil {
 		return adaptErr(joint.ErrCacheSavedData)
 	}
 
@@ -247,34 +247,34 @@ func (r *Repository) AssignPermissionToGroup(ctx context.Context, data *dto.Grou
 	return adaptErr(r.persistent.AssignPermissionToGroup(ctx, data))
 }
 
-// GetServicePermissionsForAccount возвращает название, номер и описание разрешений аккаунта для сервиса.
-func (r *Repository) GetServicePermissionsForAccount(ctx context.Context, data *dto.UserIdService) ([]dto.NameNumberDescription, error) {
-	permissions, err := r.persistent.GetServicePermissionsForAccount(ctx, data)
+// ServicePermissionsForAccount возвращает название, номер и описание разрешений аккаунта для сервиса.
+func (r *Repository) ServicePermissionsForAccount(ctx context.Context, data *dto.UserIdService) ([]dto.NameNumberDescription, error) {
+	permissions, err := r.persistent.ServicePermissionsForAccount(ctx, data)
 	return permissions, adaptErr(err)
 }
 
-// GetServicePermissionsNumbersForAccount возвращает номера разрешений аккаунта для сервиса.
-func (r *Repository) GetServicePermissionsNumbersForAccount(ctx context.Context, data *dto.UserIdService) ([]int, error) {
+// ServicePermissionsNumbersForAccount возвращает номера разрешений аккаунта для сервиса.
+func (r *Repository) ServicePermissionsNumbersForAccount(ctx context.Context, data *dto.UserIdService) ([]int, error) {
 	var numbers []int
 	var err error
 
-	if numbers, err = r.memory.GetServicePermissionsNumbersForAccount(ctx, data); err != nil || len(numbers) == 0 {
-		numbers, err = r.getServicePermissionsNumbersForAccountFromPersistentWithSaveToMemory(ctx, data)
+	if numbers, err = r.memory.ServicePermissionsNumbersForAccount(ctx, data); err != nil || len(numbers) == 0 {
+		numbers, err = r.servicePermissionsNumbersForAccountFromPersistentWithSaveToMemory(ctx, data)
 	}
 
 	return numbers, adaptErr(err)
 }
 
-// GetServiceNumberedPermissions возвращает номера и названия разрешений сервиса.
-func (r *Repository) GetServiceNumberedPermissions(ctx context.Context, serviceName string) (*[]dto.NameNumber, error) {
+// ServiceNumberedPermissions возвращает номера и названия разрешений сервиса.
+func (r *Repository) ServiceNumberedPermissions(ctx context.Context, serviceName string) (*[]dto.NameNumber, error) {
 	var err error
 	var result *[]dto.NameNumber
 
-	if result, err = r.memory.GetServiceNumberedPermissions(ctx, serviceName); err == nil && result != nil && len(*result) != 0 {
+	if result, err = r.memory.ServiceNumberedPermissions(ctx, serviceName); err == nil && result != nil && len(*result) != 0 {
 		return result, nil
 	}
 
-	if result, err = r.persistent.GetServiceNumberedPermissions(ctx, serviceName); err != nil {
+	if result, err = r.persistent.ServiceNumberedPermissions(ctx, serviceName); err != nil {
 		return nil, adaptErr(err)
 	}
 
@@ -285,13 +285,13 @@ func (r *Repository) GetServiceNumberedPermissions(ctx context.Context, serviceN
 	return result, nil
 }
 
-// getServicePermissionsNumbersForAccountFromPersistentWithSaveToMemory возвращает номера разрешений аккаунта для
-// сервиса и кеширует их в память.
-func (r *Repository) getServicePermissionsNumbersForAccountFromPersistentWithSaveToMemory(ctx context.Context, data *dto.UserIdService) ([]int, error) {
+// servicePermissionsNumbersForAccountFromPersistentWithSaveToMemory возвращает номера разрешений аккаунта для сервиса и
+// кеширует их в память.
+func (r *Repository) servicePermissionsNumbersForAccountFromPersistentWithSaveToMemory(ctx context.Context, data *dto.UserIdService) ([]int, error) {
 	var numbers []int
 	var err error
 
-	if numbers, err = r.persistent.GetServicePermissionsNumbersForAccount(ctx, data); err == nil && len(numbers) > 0 {
+	if numbers, err = r.persistent.ServicePermissionsNumbersForAccount(ctx, data); err == nil && len(numbers) > 0 {
 		go func() {
 			_ = r.memory.SetServicePermissionsNumbersForAccount(ctx, &dto.UserIdServicePermNumbers{
 				UserId:            data.UserId,
@@ -304,28 +304,28 @@ func (r *Repository) getServicePermissionsNumbersForAccountFromPersistentWithSav
 	return numbers, adaptErr(err)
 }
 
-// GetInstancePermissionsNumbersForAccount возвращает номера разрешений аккаунта для экземпляра сервиса.
-func (r *Repository) GetInstancePermissionsNumbersForAccount(ctx context.Context, data *dto.UserIdInstance) ([]int, error) {
+// InstancePermissionsNumbersForAccount возвращает номера разрешений аккаунта для экземпляра сервиса.
+func (r *Repository) InstancePermissionsNumbersForAccount(ctx context.Context, data *dto.UserIdInstance) ([]int, error) {
 	var numbers []int
 	var err error
 
-	if numbers, err = r.memory.GetInstancePermissionsNumbersForAccount(ctx, data); err != nil || len(numbers) == 0 {
-		numbers, err = r.getInstancePermissionsNumbersForAccountFromPersistentWithSaveToMemory(ctx, data)
+	if numbers, err = r.memory.InstancePermissionsNumbersForAccount(ctx, data); err != nil || len(numbers) == 0 {
+		numbers, err = r.instancePermissionsNumbersForAccountFromPersistentWithSaveToMemory(ctx, data)
 	}
 
 	return numbers, adaptErr(err)
 }
 
-// GetServiceName возвращает название сервиса переданного экземпляра.
-func (r *Repository) GetServiceName(ctx context.Context, instanceName string) (string, error) {
+// ServiceName возвращает название сервиса переданного экземпляра.
+func (r *Repository) ServiceName(ctx context.Context, instanceName string) (string, error) {
 	var name string
 	var err error
 
-	if name, err = r.memory.GetServiceName(ctx, instanceName); err == nil {
+	if name, err = r.memory.ServiceName(ctx, instanceName); err == nil {
 		return name, nil
 	}
 
-	if name, err = r.persistent.GetServiceName(ctx, instanceName); err != nil {
+	if name, err = r.persistent.ServiceName(ctx, instanceName); err != nil {
 		return "", adaptErr(err)
 	}
 
@@ -336,22 +336,22 @@ func (r *Repository) GetServiceName(ctx context.Context, instanceName string) (s
 	return name, nil
 }
 
-// GetServicesNames возвращает список названий всех сервисов.
-func (r *Repository) GetServicesNames(ctx context.Context) ([]string, error) {
-	result, err := r.persistent.GetServicesNames(ctx)
+// ServicesNames возвращает список названий всех сервисов.
+func (r *Repository) ServicesNames(ctx context.Context) ([]string, error) {
+	result, err := r.persistent.ServicesNames(ctx)
 	return result, adaptErr(err)
 }
 
-// GetInstanceSecret возвращает строку, необходимую для подписи токена, предназначенного для взаимодействия с
+// InstanceSecret возвращает строку, необходимую для подписи токена, предназначенного для взаимодействия с
 // соответствующим экземпляром сервиса.
-func (r *Repository) GetInstanceSecret(ctx context.Context, name string) (string, error) {
+func (r *Repository) InstanceSecret(ctx context.Context, name string) (string, error) {
 	var secret string
 	var err error
-	if secret, err = r.memory.GetInstanceSecret(ctx, name); err == nil {
+	if secret, err = r.memory.InstanceSecret(ctx, name); err == nil {
 		return secret, nil
 	}
 
-	if secret, err = r.persistent.GetInstanceSecret(ctx, name); err != nil {
+	if secret, err = r.persistent.InstanceSecret(ctx, name); err != nil {
 		return "", adaptErr(err)
 	}
 
@@ -377,13 +377,13 @@ func (r *Repository) DeletePermission(ctx context.Context, data *dto.NameService
 	return adaptErr(r.persistent.DeletePermission(ctx, data))
 }
 
-// getInstancePermissionsNumbersForAccountFromPersistentWithSaveToMemory возвращает номера разрешений аккаунта для
+// instancePermissionsNumbersForAccountFromPersistentWithSaveToMemory возвращает номера разрешений аккаунта для
 // экземпляра сервиса и кеширует их в память.
-func (r *Repository) getInstancePermissionsNumbersForAccountFromPersistentWithSaveToMemory(ctx context.Context, data *dto.UserIdInstance) ([]int, error) {
+func (r *Repository) instancePermissionsNumbersForAccountFromPersistentWithSaveToMemory(ctx context.Context, data *dto.UserIdInstance) ([]int, error) {
 	var numbers []int
 	var err error
 
-	if numbers, err = r.persistent.GetInstancePermissionsNumbersForAccount(ctx, data); err == nil && len(numbers) > 0 {
+	if numbers, err = r.persistent.InstancePermissionsNumbersForAccount(ctx, data); err == nil && len(numbers) > 0 {
 		go func() {
 			_ = r.memory.SetInstancePermissionsNumbersForAccount(ctx, &dto.UserIdInstancePermNumbers{
 				UserId:            data.UserId,
@@ -404,7 +404,7 @@ func (r *Repository) saveToMemoryLoginData(ctx context.Context, data *dto.UserId
 
 // refreshAccountPermissions обновляет кеш разрешений
 func (r *Repository) refreshAccountPermissions(ctx context.Context, data *dto.UserIdService) {
-	if servicePerm, err := r.persistent.GetServicePermissionsNumbersForAccount(ctx, data); err == nil {
+	if servicePerm, err := r.persistent.ServicePermissionsNumbersForAccount(ctx, data); err == nil {
 		_ = r.memory.SetServicePermissionsNumbersForAccount(ctx, &dto.UserIdServicePermNumbers{
 			UserId:            data.UserId,
 			Service:           data.Service,
@@ -423,18 +423,18 @@ func (r *Repository) makeDataCache() {
 	}()
 
 	ctx := context.Background()
-	enabledAccountsLogins, err := r.persistent.GetAccountsLoginsByState(ctx, account_state.Enabled)
+	enabledAccountsLogins, err := r.persistent.AccountsLoginsByState(ctx, account_state.Enabled)
 	if err != nil {
 		slog.Error(err.Error())
 	} else {
-		c := make(chan struct{}, r.persistent.GetMaxConnections()/2)
+		c := make(chan struct{}, r.persistent.MaxConnections()/2)
 		defer close(c)
 
 		for _, login := range enabledAccountsLogins {
 			c <- struct{}{}
 
 			go func(login loginVO.Login) {
-				if _, err = r.GetAccountLoginData(ctx, login); err != nil {
+				if _, err = r.AccountLoginData(ctx, login); err != nil {
 					slog.Error(err.Error())
 				}
 			}(login)
@@ -445,9 +445,9 @@ func (r *Repository) makeDataCache() {
 
 	var services []string
 
-	if services, err = r.GetServicesNames(ctx); err == nil {
+	if services, err = r.ServicesNames(ctx); err == nil {
 		for _, service := range services {
-			_, _ = r.GetServiceNumberedPermissions(ctx, service)
+			_, _ = r.ServiceNumberedPermissions(ctx, service)
 		}
 	}
 }

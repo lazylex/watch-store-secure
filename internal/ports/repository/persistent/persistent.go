@@ -10,10 +10,10 @@ import (
 
 type LoginInterface interface {
 	SetAccountState(context.Context, *dto.LoginState) error
-	GetAccountLoginData(context.Context, login.Login) (dto.UserIdLoginHashState, error)
+	AccountLoginData(context.Context, login.Login) (dto.UserIdLoginHashState, error)
 	SetAccountLoginData(context.Context, *dto.UserIdLoginHashState) error
 
-	GetAccountsLoginsByState(context.Context, account_state.State) ([]login.Login, error)
+	AccountsLoginsByState(context.Context, account_state.State) ([]login.Login, error)
 }
 
 type RBACInterface interface {
@@ -29,14 +29,14 @@ type RBACInterface interface {
 	AssignPermissionToRole(context.Context, *dto.PermissionRoleService) error
 	AssignPermissionToGroup(context.Context, *dto.GroupPermissionService) error
 
-	GetInstancePermissionsForAccount(context.Context, *dto.UserIdInstance) ([]dto.NameNumberDescription, error)
-	GetInstancePermissionsNumbersForAccount(context.Context, *dto.UserIdInstance) ([]int, error)
+	InstancePermissionsForAccount(context.Context, *dto.UserIdInstance) ([]dto.NameNumberDescription, error)
+	InstancePermissionsNumbersForAccount(context.Context, *dto.UserIdInstance) ([]int, error)
 
-	GetServicePermissionsForAccount(context.Context, *dto.UserIdService) ([]dto.NameNumberDescription, error)
-	GetServicePermissionsNumbersForAccount(context.Context, *dto.UserIdService) ([]int, error)
+	ServicePermissionsForAccount(context.Context, *dto.UserIdService) ([]dto.NameNumberDescription, error)
+	ServicePermissionsNumbersForAccount(context.Context, *dto.UserIdService) ([]int, error)
 
-	GetPermissionNumber(ctx context.Context, permission string, instance string) (int, error)
-	GetServiceNumberedPermissions(context.Context, string) (*[]dto.NameNumber, error)
+	PermissionNumber(ctx context.Context, permission string, instance string) (int, error)
+	ServiceNumberedPermissions(context.Context, string) (*[]dto.NameNumber, error)
 
 	DeleteRole(context.Context, *dto.NameService) error
 	DeleteGroup(context.Context, *dto.NameService) error
@@ -47,9 +47,9 @@ type Interface interface {
 	LoginInterface
 	joint.ServiceInterface
 	RBACInterface
-	GetServiceName(context.Context, string) (string, error)
-	GetServicesNames(context.Context) ([]string, error)
-	GetInstanceSecret(context.Context, string) (string, error)
-	GetMaxConnections() int
+	ServiceName(context.Context, string) (string, error)
+	ServicesNames(context.Context) ([]string, error)
+	InstanceSecret(context.Context, string) (string, error)
+	MaxConnections() int
 	Close()
 }

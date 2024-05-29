@@ -19,7 +19,7 @@ func adaptErrSkipFrames(err error, skip int) error {
 	if err == nil {
 		return nil
 	}
-	origin := errors.GetFrame(skip).Function
+	origin := errors.Frame(skip).Function
 	origin = originPlace + origin[strings.LastIndex(origin, ".")+1:]
 
 	return in_memory.FullInMemoryError("", origin, err)
@@ -27,7 +27,7 @@ func adaptErrSkipFrames(err error, skip int) error {
 
 // withOrigin добавляет место генерации ошибки.
 func withOrigin(err *errors.BaseError) error {
-	origin := errors.GetFrame(2).Function
+	origin := errors.Frame(2).Function
 	origin = originPlace + origin[strings.LastIndex(origin, ".")+1:]
 
 	return err.WithOrigin(origin)

@@ -103,10 +103,10 @@ func (mr *MockLoginInterfaceMockRecorder) DeleteSession(arg0, arg1 interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSession", reflect.TypeOf((*MockLoginInterface)(nil).DeleteSession), arg0, arg1)
 }
 
-// GetAccountLoginData mocks base method.
-func (m *MockLoginInterface) GetAccountLoginData(arg0 context.Context, arg1 login.Login) (dto.UserIdLoginHashState, error) {
+// AccountLoginData mocks base method.
+func (m *MockLoginInterface) AccountLoginData(arg0 context.Context, arg1 login.Login) (dto.UserIdLoginHashState, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAccountLoginData", arg0, arg1)
+	ret := m.ctrl.Call(m, "AccountLoginData", arg0, arg1)
 	ret0, _ := ret[0].(dto.UserIdLoginHashState)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -115,13 +115,13 @@ func (m *MockLoginInterface) GetAccountLoginData(arg0 context.Context, arg1 logi
 // GetAccountLoginData indicates an expected call of GetAccountLoginData.
 func (mr *MockLoginInterfaceMockRecorder) GetAccountLoginData(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountLoginData", reflect.TypeOf((*MockLoginInterface)(nil).GetAccountLoginData), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AccountLoginData", reflect.TypeOf((*MockLoginInterface)(nil).AccountLoginData), arg0, arg1)
 }
 
 // GetAccountState mocks base method.
-func (m *MockLoginInterface) GetAccountState(arg0 context.Context, arg1 login.Login) (account_state.State, error) {
+func (m *MockLoginInterface) AccountState(arg0 context.Context, arg1 login.Login) (account_state.State, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAccountState", arg0, arg1)
+	ret := m.ctrl.Call(m, "AccountState", arg0, arg1)
 	ret0, _ := ret[0].(account_state.State)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -130,13 +130,13 @@ func (m *MockLoginInterface) GetAccountState(arg0 context.Context, arg1 login.Lo
 // GetAccountState indicates an expected call of GetAccountState.
 func (mr *MockLoginInterfaceMockRecorder) GetAccountState(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountState", reflect.TypeOf((*MockLoginInterface)(nil).GetAccountState), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AccountState", reflect.TypeOf((*MockLoginInterface)(nil).AccountState), arg0, arg1)
 }
 
 // GetSessionToken mocks base method.
-func (m *MockLoginInterface) GetSessionToken(arg0 context.Context, arg1 uuid.UUID) (string, error) {
+func (m *MockLoginInterface) SessionToken(arg0 context.Context, arg1 uuid.UUID) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSessionToken", arg0, arg1)
+	ret := m.ctrl.Call(m, "SessionToken", arg0, arg1)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -145,13 +145,13 @@ func (m *MockLoginInterface) GetSessionToken(arg0 context.Context, arg1 uuid.UUI
 // GetSessionToken indicates an expected call of GetSessionToken.
 func (mr *MockLoginInterfaceMockRecorder) GetSessionToken(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSessionToken", reflect.TypeOf((*MockLoginInterface)(nil).GetSessionToken), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SessionToken", reflect.TypeOf((*MockLoginInterface)(nil).SessionToken), arg0, arg1)
 }
 
-// GetUserIdAndPasswordHash mocks base method.
-func (m *MockLoginInterface) GetUserIdAndPasswordHash(arg0 context.Context, arg1 login.Login) (dto.UserIdHash, error) {
+// UserIdAndPasswordHash mocks base method.
+func (m *MockLoginInterface) UserIdAndPasswordHash(arg0 context.Context, arg1 login.Login) (dto.UserIdHash, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserIdAndPasswordHash", arg0, arg1)
+	ret := m.ctrl.Call(m, "UserIdAndPasswordHash", arg0, arg1)
 	ret0, _ := ret[0].(dto.UserIdHash)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -160,13 +160,13 @@ func (m *MockLoginInterface) GetUserIdAndPasswordHash(arg0 context.Context, arg1
 // GetUserIdAndPasswordHash indicates an expected call of GetUserIdAndPasswordHash.
 func (mr *MockLoginInterfaceMockRecorder) GetUserIdAndPasswordHash(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserIdAndPasswordHash", reflect.TypeOf((*MockLoginInterface)(nil).GetUserIdAndPasswordHash), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserIdAndPasswordHash", reflect.TypeOf((*MockLoginInterface)(nil).UserIdAndPasswordHash), arg0, arg1)
 }
 
-// GetUserUUIDFromSession mocks base method.
-func (m *MockLoginInterface) GetUserUUIDFromSession(ctx context.Context, sessionToken string) (uuid.UUID, error) {
+// UserUUIDFromSession mocks base method.
+func (m *MockLoginInterface) UserUUIDFromSession(ctx context.Context, sessionToken string) (uuid.UUID, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserUUIDFromSession", ctx, sessionToken)
+	ret := m.ctrl.Call(m, "UserUUIDFromSession", ctx, sessionToken)
 	ret0, _ := ret[0].(uuid.UUID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -175,7 +175,7 @@ func (m *MockLoginInterface) GetUserUUIDFromSession(ctx context.Context, session
 // GetUserUUIDFromSession indicates an expected call of GetUserUUIDFromSession.
 func (mr *MockLoginInterfaceMockRecorder) GetUserUUIDFromSession(ctx, sessionToken interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserUUIDFromSession", reflect.TypeOf((*MockLoginInterface)(nil).GetUserUUIDFromSession), ctx, sessionToken)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserUUIDFromSession", reflect.TypeOf((*MockLoginInterface)(nil).UserUUIDFromSession), ctx, sessionToken)
 }
 
 // SaveSession mocks base method.
@@ -412,9 +412,9 @@ func (mr *MockRBACInterfaceMockRecorder) DeleteRole(arg0, arg1 interface{}) *gom
 }
 
 // GetInstancePermissionsNumbersForAccount mocks base method.
-func (m *MockRBACInterface) GetInstancePermissionsNumbersForAccount(arg0 context.Context, arg1 *dto.UserIdInstance) ([]int, error) {
+func (m *MockRBACInterface) InstancePermissionsNumbersForAccount(arg0 context.Context, arg1 *dto.UserIdInstance) ([]int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetInstancePermissionsNumbersForAccount", arg0, arg1)
+	ret := m.ctrl.Call(m, "InstancePermissionsNumbersForAccount", arg0, arg1)
 	ret0, _ := ret[0].([]int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -423,13 +423,13 @@ func (m *MockRBACInterface) GetInstancePermissionsNumbersForAccount(arg0 context
 // GetInstancePermissionsNumbersForAccount indicates an expected call of GetInstancePermissionsNumbersForAccount.
 func (mr *MockRBACInterfaceMockRecorder) GetInstancePermissionsNumbersForAccount(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetInstancePermissionsNumbersForAccount", reflect.TypeOf((*MockRBACInterface)(nil).GetInstancePermissionsNumbersForAccount), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InstancePermissionsNumbersForAccount", reflect.TypeOf((*MockRBACInterface)(nil).InstancePermissionsNumbersForAccount), arg0, arg1)
 }
 
 // GetServicePermissionsForAccount mocks base method.
-func (m *MockRBACInterface) GetServicePermissionsForAccount(arg0 context.Context, arg1 *dto.UserIdService) ([]dto.NameNumberDescription, error) {
+func (m *MockRBACInterface) ServicePermissionsForAccount(arg0 context.Context, arg1 *dto.UserIdService) ([]dto.NameNumberDescription, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetServicePermissionsForAccount", arg0, arg1)
+	ret := m.ctrl.Call(m, "ServicePermissionsForAccount", arg0, arg1)
 	ret0, _ := ret[0].([]dto.NameNumberDescription)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -438,13 +438,13 @@ func (m *MockRBACInterface) GetServicePermissionsForAccount(arg0 context.Context
 // GetServicePermissionsForAccount indicates an expected call of GetServicePermissionsForAccount.
 func (mr *MockRBACInterfaceMockRecorder) GetServicePermissionsForAccount(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetServicePermissionsForAccount", reflect.TypeOf((*MockRBACInterface)(nil).GetServicePermissionsForAccount), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ServicePermissionsForAccount", reflect.TypeOf((*MockRBACInterface)(nil).ServicePermissionsForAccount), arg0, arg1)
 }
 
 // GetServicePermissionsNumbersForAccount mocks base method.
-func (m *MockRBACInterface) GetServicePermissionsNumbersForAccount(arg0 context.Context, arg1 *dto.UserIdService) ([]int, error) {
+func (m *MockRBACInterface) ServicePermissionsNumbersForAccount(arg0 context.Context, arg1 *dto.UserIdService) ([]int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetServicePermissionsNumbersForAccount", arg0, arg1)
+	ret := m.ctrl.Call(m, "ServicePermissionsNumbersForAccount", arg0, arg1)
 	ret0, _ := ret[0].([]int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -453,7 +453,7 @@ func (m *MockRBACInterface) GetServicePermissionsNumbersForAccount(arg0 context.
 // GetServicePermissionsNumbersForAccount indicates an expected call of GetServicePermissionsNumbersForAccount.
 func (mr *MockRBACInterfaceMockRecorder) GetServicePermissionsNumbersForAccount(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetServicePermissionsNumbersForAccount", reflect.TypeOf((*MockRBACInterface)(nil).GetServicePermissionsNumbersForAccount), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ServicePermissionsNumbersForAccount", reflect.TypeOf((*MockRBACInterface)(nil).ServicePermissionsNumbersForAccount), arg0, arg1)
 }
 
 // MockInterface is a mock of Interface interface.
@@ -689,10 +689,10 @@ func (mr *MockInterfaceMockRecorder) DeleteSession(arg0, arg1 interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSession", reflect.TypeOf((*MockInterface)(nil).DeleteSession), arg0, arg1)
 }
 
-// GetAccountLoginData mocks base method.
-func (m *MockInterface) GetAccountLoginData(arg0 context.Context, arg1 login.Login) (dto.UserIdLoginHashState, error) {
+// AccountLoginData mocks base method.
+func (m *MockInterface) AccountLoginData(arg0 context.Context, arg1 login.Login) (dto.UserIdLoginHashState, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAccountLoginData", arg0, arg1)
+	ret := m.ctrl.Call(m, "AccountLoginData", arg0, arg1)
 	ret0, _ := ret[0].(dto.UserIdLoginHashState)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -701,13 +701,13 @@ func (m *MockInterface) GetAccountLoginData(arg0 context.Context, arg1 login.Log
 // GetAccountLoginData indicates an expected call of GetAccountLoginData.
 func (mr *MockInterfaceMockRecorder) GetAccountLoginData(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountLoginData", reflect.TypeOf((*MockInterface)(nil).GetAccountLoginData), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AccountLoginData", reflect.TypeOf((*MockInterface)(nil).AccountLoginData), arg0, arg1)
 }
 
 // GetAccountState mocks base method.
-func (m *MockInterface) GetAccountState(arg0 context.Context, arg1 login.Login) (account_state.State, error) {
+func (m *MockInterface) AccountState(arg0 context.Context, arg1 login.Login) (account_state.State, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAccountState", arg0, arg1)
+	ret := m.ctrl.Call(m, "AccountState", arg0, arg1)
 	ret0, _ := ret[0].(account_state.State)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -716,13 +716,13 @@ func (m *MockInterface) GetAccountState(arg0 context.Context, arg1 login.Login) 
 // GetAccountState indicates an expected call of GetAccountState.
 func (mr *MockInterfaceMockRecorder) GetAccountState(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountState", reflect.TypeOf((*MockInterface)(nil).GetAccountState), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AccountState", reflect.TypeOf((*MockInterface)(nil).AccountState), arg0, arg1)
 }
 
 // GetInstancePermissionsNumbersForAccount mocks base method.
-func (m *MockInterface) GetInstancePermissionsNumbersForAccount(arg0 context.Context, arg1 *dto.UserIdInstance) ([]int, error) {
+func (m *MockInterface) InstancePermissionsNumbersForAccount(arg0 context.Context, arg1 *dto.UserIdInstance) ([]int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetInstancePermissionsNumbersForAccount", arg0, arg1)
+	ret := m.ctrl.Call(m, "InstancePermissionsNumbersForAccount", arg0, arg1)
 	ret0, _ := ret[0].([]int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -731,13 +731,13 @@ func (m *MockInterface) GetInstancePermissionsNumbersForAccount(arg0 context.Con
 // GetInstancePermissionsNumbersForAccount indicates an expected call of GetInstancePermissionsNumbersForAccount.
 func (mr *MockInterfaceMockRecorder) GetInstancePermissionsNumbersForAccount(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetInstancePermissionsNumbersForAccount", reflect.TypeOf((*MockInterface)(nil).GetInstancePermissionsNumbersForAccount), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InstancePermissionsNumbersForAccount", reflect.TypeOf((*MockInterface)(nil).InstancePermissionsNumbersForAccount), arg0, arg1)
 }
 
 // GetInstanceSecret mocks base method.
 func (m *MockInterface) GetInstanceSecret(arg0 context.Context, arg1 string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetInstanceSecret", arg0, arg1)
+	ret := m.ctrl.Call(m, "InstanceSecret", arg0, arg1)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -746,13 +746,13 @@ func (m *MockInterface) GetInstanceSecret(arg0 context.Context, arg1 string) (st
 // GetInstanceSecret indicates an expected call of GetInstanceSecret.
 func (mr *MockInterfaceMockRecorder) GetInstanceSecret(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetInstanceSecret", reflect.TypeOf((*MockInterface)(nil).GetInstanceSecret), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InstanceSecret", reflect.TypeOf((*MockInterface)(nil).GetInstanceSecret), arg0, arg1)
 }
 
 // GetServiceName mocks base method.
 func (m *MockInterface) GetServiceName(arg0 context.Context, arg1 string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetServiceName", arg0, arg1)
+	ret := m.ctrl.Call(m, "ServiceName", arg0, arg1)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -761,13 +761,13 @@ func (m *MockInterface) GetServiceName(arg0 context.Context, arg1 string) (strin
 // GetServiceName indicates an expected call of GetServiceName.
 func (mr *MockInterfaceMockRecorder) GetServiceName(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetServiceName", reflect.TypeOf((*MockInterface)(nil).GetServiceName), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ServiceName", reflect.TypeOf((*MockInterface)(nil).GetServiceName), arg0, arg1)
 }
 
 // GetServicePermissionsForAccount mocks base method.
-func (m *MockInterface) GetServicePermissionsForAccount(arg0 context.Context, arg1 *dto.UserIdService) ([]dto.NameNumberDescription, error) {
+func (m *MockInterface) ServicePermissionsForAccount(arg0 context.Context, arg1 *dto.UserIdService) ([]dto.NameNumberDescription, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetServicePermissionsForAccount", arg0, arg1)
+	ret := m.ctrl.Call(m, "ServicePermissionsForAccount", arg0, arg1)
 	ret0, _ := ret[0].([]dto.NameNumberDescription)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -776,13 +776,13 @@ func (m *MockInterface) GetServicePermissionsForAccount(arg0 context.Context, ar
 // GetServicePermissionsForAccount indicates an expected call of GetServicePermissionsForAccount.
 func (mr *MockInterfaceMockRecorder) GetServicePermissionsForAccount(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetServicePermissionsForAccount", reflect.TypeOf((*MockInterface)(nil).GetServicePermissionsForAccount), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ServicePermissionsForAccount", reflect.TypeOf((*MockInterface)(nil).ServicePermissionsForAccount), arg0, arg1)
 }
 
 // GetServicePermissionsNumbersForAccount mocks base method.
-func (m *MockInterface) GetServicePermissionsNumbersForAccount(arg0 context.Context, arg1 *dto.UserIdService) ([]int, error) {
+func (m *MockInterface) ServicePermissionsNumbersForAccount(arg0 context.Context, arg1 *dto.UserIdService) ([]int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetServicePermissionsNumbersForAccount", arg0, arg1)
+	ret := m.ctrl.Call(m, "ServicePermissionsNumbersForAccount", arg0, arg1)
 	ret0, _ := ret[0].([]int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -791,13 +791,13 @@ func (m *MockInterface) GetServicePermissionsNumbersForAccount(arg0 context.Cont
 // GetServicePermissionsNumbersForAccount indicates an expected call of GetServicePermissionsNumbersForAccount.
 func (mr *MockInterfaceMockRecorder) GetServicePermissionsNumbersForAccount(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetServicePermissionsNumbersForAccount", reflect.TypeOf((*MockInterface)(nil).GetServicePermissionsNumbersForAccount), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ServicePermissionsNumbersForAccount", reflect.TypeOf((*MockInterface)(nil).ServicePermissionsNumbersForAccount), arg0, arg1)
 }
 
 // GetSessionToken mocks base method.
-func (m *MockInterface) GetSessionToken(arg0 context.Context, arg1 uuid.UUID) (string, error) {
+func (m *MockInterface) SessionToken(arg0 context.Context, arg1 uuid.UUID) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSessionToken", arg0, arg1)
+	ret := m.ctrl.Call(m, "SessionToken", arg0, arg1)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -806,13 +806,13 @@ func (m *MockInterface) GetSessionToken(arg0 context.Context, arg1 uuid.UUID) (s
 // GetSessionToken indicates an expected call of GetSessionToken.
 func (mr *MockInterfaceMockRecorder) GetSessionToken(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSessionToken", reflect.TypeOf((*MockInterface)(nil).GetSessionToken), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SessionToken", reflect.TypeOf((*MockInterface)(nil).SessionToken), arg0, arg1)
 }
 
-// GetUserIdAndPasswordHash mocks base method.
-func (m *MockInterface) GetUserIdAndPasswordHash(arg0 context.Context, arg1 login.Login) (dto.UserIdHash, error) {
+// UserIdAndPasswordHash mocks base method.
+func (m *MockInterface) UserIdAndPasswordHash(arg0 context.Context, arg1 login.Login) (dto.UserIdHash, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserIdAndPasswordHash", arg0, arg1)
+	ret := m.ctrl.Call(m, "UserIdAndPasswordHash", arg0, arg1)
 	ret0, _ := ret[0].(dto.UserIdHash)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -821,13 +821,13 @@ func (m *MockInterface) GetUserIdAndPasswordHash(arg0 context.Context, arg1 logi
 // GetUserIdAndPasswordHash indicates an expected call of GetUserIdAndPasswordHash.
 func (mr *MockInterfaceMockRecorder) GetUserIdAndPasswordHash(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserIdAndPasswordHash", reflect.TypeOf((*MockInterface)(nil).GetUserIdAndPasswordHash), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserIdAndPasswordHash", reflect.TypeOf((*MockInterface)(nil).UserIdAndPasswordHash), arg0, arg1)
 }
 
-// GetUserUUIDFromSession mocks base method.
-func (m *MockInterface) GetUserUUIDFromSession(ctx context.Context, sessionToken string) (uuid.UUID, error) {
+// UserUUIDFromSession mocks base method.
+func (m *MockInterface) UserUUIDFromSession(ctx context.Context, sessionToken string) (uuid.UUID, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserUUIDFromSession", ctx, sessionToken)
+	ret := m.ctrl.Call(m, "UserUUIDFromSession", ctx, sessionToken)
 	ret0, _ := ret[0].(uuid.UUID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -836,7 +836,7 @@ func (m *MockInterface) GetUserUUIDFromSession(ctx context.Context, sessionToken
 // GetUserUUIDFromSession indicates an expected call of GetUserUUIDFromSession.
 func (mr *MockInterfaceMockRecorder) GetUserUUIDFromSession(ctx, sessionToken interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserUUIDFromSession", reflect.TypeOf((*MockInterface)(nil).GetUserUUIDFromSession), ctx, sessionToken)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserUUIDFromSession", reflect.TypeOf((*MockInterface)(nil).UserUUIDFromSession), ctx, sessionToken)
 }
 
 // SaveSession mocks base method.

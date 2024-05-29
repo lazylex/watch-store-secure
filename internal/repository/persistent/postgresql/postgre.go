@@ -90,13 +90,13 @@ func (p *PostgreSQL) DropCurrentTestSchema() {
 	}
 }
 
-// GetMaxConnections возвращает максимальное количество подключений к БД.
-func (p *PostgreSQL) GetMaxConnections() int {
+// MaxConnections возвращает максимальное количество подключений к БД.
+func (p *PostgreSQL) MaxConnections() int {
 	return p.maxConnections
 }
 
-// GetAccountLoginData возвращает необходимые для процесса входа в систему данные пользователя (сервиса).
-func (p *PostgreSQL) GetAccountLoginData(ctx context.Context, login loginVO.Login) (dto.UserIdLoginHashState, error) {
+// AccountLoginData возвращает необходимые для процесса входа в систему данные пользователя (сервиса).
+func (p *PostgreSQL) AccountLoginData(ctx context.Context, login loginVO.Login) (dto.UserIdLoginHashState, error) {
 	result := dto.UserIdLoginHashState{Login: login}
 	stmt := `SELECT uuid, pwd_hash, state FROM accounts WHERE login = $1;`
 	row := p.pool.QueryRowEx(ctx, stmt, nil, login)
@@ -318,8 +318,8 @@ func (p *PostgreSQL) AssignPermissionToGroup(ctx context.Context, data *dto.Grou
 	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Service, data.Group, data.Permission))
 }
 
-// GetInstancePermissionsForAccount возвращает название, номер и описание разрешений аккаунта для экземпляра сервиса.
-func (p *PostgreSQL) GetInstancePermissionsForAccount(ctx context.Context, data *dto.UserIdInstance) ([]dto.NameNumberDescription, error) {
+// InstancePermissionsForAccount возвращает название, номер и описание разрешений аккаунта для экземпляра сервиса.
+func (p *PostgreSQL) InstancePermissionsForAccount(ctx context.Context, data *dto.UserIdInstance) ([]dto.NameNumberDescription, error) {
 	cte := `WITH account_cte AS
 			(SELECT account_id
 			FROM accounts
@@ -365,8 +365,8 @@ func (p *PostgreSQL) GetInstancePermissionsForAccount(ctx context.Context, data 
 	return result, nil
 }
 
-// GetInstancePermissionsNumbersForAccount возвращает номера разрешений аккаунта для экземпляра сервиса.
-func (p *PostgreSQL) GetInstancePermissionsNumbersForAccount(ctx context.Context, data *dto.UserIdInstance) ([]int, error) {
+// InstancePermissionsNumbersForAccount возвращает номера разрешений аккаунта для экземпляра сервиса.
+func (p *PostgreSQL) InstancePermissionsNumbersForAccount(ctx context.Context, data *dto.UserIdInstance) ([]int, error) {
 	cte := `WITH account_cte AS
 			(SELECT account_id
 			FROM accounts
@@ -410,9 +410,9 @@ func (p *PostgreSQL) GetInstancePermissionsNumbersForAccount(ctx context.Context
 	return result, nil
 }
 
-// GetServicePermissionsForAccount возвращает название, номер и описание разрешений аккаунта для сервиса (без разрешений
+// ServicePermissionsForAccount возвращает название, номер и описание разрешений аккаунта для сервиса (без разрешений
 // для экземпляра).
-func (p *PostgreSQL) GetServicePermissionsForAccount(ctx context.Context, data *dto.UserIdService) ([]dto.NameNumberDescription, error) {
+func (p *PostgreSQL) ServicePermissionsForAccount(ctx context.Context, data *dto.UserIdService) ([]dto.NameNumberDescription, error) {
 	cte := `WITH
 			account_cte AS
 			(SELECT account_id
@@ -483,9 +483,9 @@ func (p *PostgreSQL) GetServicePermissionsForAccount(ctx context.Context, data *
 	return result, nil
 }
 
-// GetServicePermissionsNumbersForAccount возвращает номера разрешений аккаунта для сервиса (без разрешений для
+// ServicePermissionsNumbersForAccount возвращает номера разрешений аккаунта для сервиса (без разрешений для
 // экземпляра).
-func (p *PostgreSQL) GetServicePermissionsNumbersForAccount(ctx context.Context, data *dto.UserIdService) ([]int, error) {
+func (p *PostgreSQL) ServicePermissionsNumbersForAccount(ctx context.Context, data *dto.UserIdService) ([]int, error) {
 	cte := `WITH
 			account_cte AS
 			(SELECT account_id
@@ -564,8 +564,8 @@ func (p *PostgreSQL) GetServicePermissionsNumbersForAccount(ctx context.Context,
 	return result, nil
 }
 
-// GetPermissionNumber возвращает номер разрешения для заданного экземпляра сервиса.
-func (p *PostgreSQL) GetPermissionNumber(ctx context.Context, name, instance string) (int, error) {
+// PermissionNumber возвращает номер разрешения для заданного экземпляра сервиса.
+func (p *PostgreSQL) PermissionNumber(ctx context.Context, name, instance string) (int, error) {
 	var number int
 	stmt := `	SELECT number
 				FROM permissions
@@ -583,8 +583,8 @@ func (p *PostgreSQL) GetPermissionNumber(ctx context.Context, name, instance str
 	return number, nil
 }
 
-// GetServiceNumberedPermissions возвращает пары разрешение/номер разрешения для сервиса.
-func (p *PostgreSQL) GetServiceNumberedPermissions(ctx context.Context, serviceName string) (*[]dto.NameNumber, error) {
+// ServiceNumberedPermissions возвращает пары разрешение/номер разрешения для сервиса.
+func (p *PostgreSQL) ServiceNumberedPermissions(ctx context.Context, serviceName string) (*[]dto.NameNumber, error) {
 	stmt := `	SELECT number, name
 				FROM permissions
 				WHERE service_fk = (SELECT service_id
@@ -619,8 +619,8 @@ func (p *PostgreSQL) GetServiceNumberedPermissions(ctx context.Context, serviceN
 	return &result, nil
 }
 
-// GetAccountsLoginsByState возвращает список логинов пользователей с переданным функции состоянием.
-func (p *PostgreSQL) GetAccountsLoginsByState(ctx context.Context, state account_state.State) ([]loginVO.Login, error) {
+// AccountsLoginsByState возвращает список логинов пользователей с переданным функции состоянием.
+func (p *PostgreSQL) AccountsLoginsByState(ctx context.Context, state account_state.State) ([]loginVO.Login, error) {
 	stmt := `SELECT login FROM accounts WHERE state = $1`
 
 	rows, err := p.pool.QueryEx(ctx, stmt, nil, state)
@@ -645,9 +645,9 @@ func (p *PostgreSQL) GetAccountsLoginsByState(ctx context.Context, state account
 	return result, nil
 }
 
-// GetInstanceSecret возвращает строку, необходимую для подписи токена, предназначенного для взаимодействия с
+// InstanceSecret возвращает строку, необходимую для подписи токена, предназначенного для взаимодействия с
 // соответствующим экземпляром сервиса.
-func (p *PostgreSQL) GetInstanceSecret(ctx context.Context, name string) (string, error) {
+func (p *PostgreSQL) InstanceSecret(ctx context.Context, name string) (string, error) {
 	var secret string
 	stmt := `SELECT secret FROM instances WHERE name = $1`
 
@@ -659,8 +659,8 @@ func (p *PostgreSQL) GetInstanceSecret(ctx context.Context, name string) (string
 	return secret, nil
 }
 
-// GetServiceName возвращает название сервиса переданного экземпляра.
-func (p *PostgreSQL) GetServiceName(ctx context.Context, instanceName string) (string, error) {
+// ServiceName возвращает название сервиса переданного экземпляра.
+func (p *PostgreSQL) ServiceName(ctx context.Context, instanceName string) (string, error) {
 	var name string
 	stmt := `	SELECT name
 				FROM services
@@ -676,8 +676,8 @@ func (p *PostgreSQL) GetServiceName(ctx context.Context, instanceName string) (s
 	return name, nil
 }
 
-// GetServicesNames возвращает названия всех сервисов в БД.
-func (p *PostgreSQL) GetServicesNames(ctx context.Context) ([]string, error) {
+// ServicesNames возвращает названия всех сервисов в БД.
+func (p *PostgreSQL) ServicesNames(ctx context.Context) ([]string, error) {
 	stmt := `SELECT name FROM services`
 
 	rows, err := p.pool.QueryEx(ctx, stmt, nil)

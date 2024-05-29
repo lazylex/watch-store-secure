@@ -238,7 +238,7 @@ func (mr *MockServiceMockRecorder) DeleteRole(arg0, arg1 interface{}) *gomock.Ca
 // GetUserUUIDFromSession mocks base method.
 func (m *MockService) GetUserUUIDFromSession(arg0 context.Context, arg1 string) (uuid.UUID, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserUUIDFromSession", arg0, arg1)
+	ret := m.ctrl.Call(m, "UserUUIDFromSession", arg0, arg1)
 	ret0, _ := ret[0].(uuid.UUID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -247,7 +247,7 @@ func (m *MockService) GetUserUUIDFromSession(arg0 context.Context, arg1 string) 
 // GetUserUUIDFromSession indicates an expected call of GetUserUUIDFromSession.
 func (mr *MockServiceMockRecorder) GetUserUUIDFromSession(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserUUIDFromSession", reflect.TypeOf((*MockService)(nil).GetUserUUIDFromSession), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserUUIDFromSession", reflect.TypeOf((*MockService)(nil).GetUserUUIDFromSession), arg0, arg1)
 }
 
 // Login mocks base method.

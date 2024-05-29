@@ -13,7 +13,7 @@ type Service interface {
 	Login(context.Context, *dto.LoginPassword) (string, error)
 	Logout(context.Context, uuid.UUID) error
 
-	GetUserUUIDFromSession(context.Context, string) (uuid.UUID, error)
+	UserUUIDFromSession(context.Context, string) (uuid.UUID, error)
 
 	CreateAccount(context.Context, *dto.LoginPassword, service.AccountOptions) (uuid.UUID, error)
 
@@ -26,5 +26,5 @@ type Service interface {
 	common.RBACDeleteInterface
 
 	CreateToken(context.Context, *dto.UserIdInstance) (string, error)
-	GetServiceNumberedPermissions(context.Context, string) (*[]dto.NameNumber, error)
+	ServiceNumberedPermissions(context.Context, string) (*[]dto.NameNumber, error)
 }

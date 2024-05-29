@@ -44,8 +44,8 @@ func MustCreate(domainService *service.Service, cfg *config.HttpServer, m *metri
 	h := handlers.New(domainService, cfg.RequestTimeout)
 	router.AssignPathToHandler("/login", server.mux, h.Login)
 	router.AssignPathToHandler("/logout", server.mux, h.Logout)
-	router.AssignPathToHandler("/get-token", server.mux, h.GetTokenWithPermissions)
-	router.AssignPathToHandler("/get-numbered-permissions", server.mux, h.GetServiceNumberedPermissions)
+	router.AssignPathToHandler("/get-token", server.mux, h.TokenWithPermissions)
+	router.AssignPathToHandler("/get-numbered-permissions", server.mux, h.ServiceNumberedPermissions)
 	router.AssignPathToHandler("/", server.mux, h.Index)
 
 	tokenMiddleware := token_checker.New(domainService)

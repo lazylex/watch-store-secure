@@ -12,7 +12,7 @@ const originPlace = "postgresql → "
 // processExecResult возвращает ошибку ErrZeroRowsAffected, если при выполнении запроса не было затронуто ни одной
 // строки. В противном случае возвращает ошибку, адаптированную под структуру ошибки errors.Persistent.
 func (p *PostgreSQL) processExecResult(commandTag pgx.CommandTag, err error) error {
-	origin := errors.GetFrame(2).Function
+	origin := errors.Frame(2).Function
 	origin = originPlace + origin[strings.LastIndex(origin, ".")+1:]
 	if err != nil && strings.HasPrefix(err.Error(), "ERROR: duplicate key value violates unique constraint") {
 		return persistent.ErrDuplicateKeyValue.WithOrigin(origin)
@@ -36,7 +36,7 @@ func adaptErrSkipFrames(err error, skip int) error {
 	if err == nil {
 		return nil
 	}
-	origin := errors.GetFrame(skip).Function
+	origin := errors.Frame(skip).Function
 	origin = originPlace + origin[strings.LastIndex(origin, ".")+1:]
 	if strings.HasPrefix(err.Error(), "ERROR: duplicate key value violates unique constraint") {
 		return persistent.ErrDuplicateKeyValue.WithOrigin(origin)

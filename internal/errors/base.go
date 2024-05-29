@@ -43,8 +43,8 @@ func (b *BaseError) Error() string {
 
 }
 
-// GetFrame возвращает фрейм на переданной глубине вложенности.
-func GetFrame(skipFrames int) runtime.Frame {
+// Frame возвращает фрейм на переданной глубине вложенности.
+func Frame(skipFrames int) runtime.Frame {
 	// We need the frame at index skipFrames+2, since we never want runtime.Callers and getFrame
 	targetFrameIndex := skipFrames + 2
 

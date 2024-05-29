@@ -89,7 +89,7 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), h.queryTimeout)
 	defer cancel()
 
-	id, err := h.service.GetUserUUIDFromSession(ctx, token)
+	id, err := h.service.UserUUIDFromSession(ctx, token)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -101,9 +101,8 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// GetTokenWithPermissions возвращает JWT-токен, содержащий информацию о разрешениях для переданного экземпляра
-// приложения.
-func (h *Handler) GetTokenWithPermissions(w http.ResponseWriter, r *http.Request) {
+// TokenWithPermissions возвращает JWT-токен, содержащий информацию о разрешениях для переданного экземпляра приложения.
+func (h *Handler) TokenWithPermissions(w http.ResponseWriter, r *http.Request) {
 	if !allowedOnlyMethod(http.MethodGet, w, r) {
 		return
 	}
@@ -126,7 +125,7 @@ func (h *Handler) GetTokenWithPermissions(w http.ResponseWriter, r *http.Request
 	ctx, cancel := context.WithTimeout(r.Context(), h.queryTimeout)
 	defer cancel()
 
-	if id, err = h.service.GetUserUUIDFromSession(ctx, token); err != nil {
+	if id, err = h.service.UserUUIDFromSession(ctx, token); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -144,7 +143,7 @@ func (h *Handler) GetTokenWithPermissions(w http.ResponseWriter, r *http.Request
 	_, _ = w.Write([]byte(fmt.Sprintf("{\"jwt-token\":\"%s\"}", token)))
 }
 
-// GetServiceNumberedPermissions возвращает JSON с названиями и номерами разрешений для переданного в параметре service
+// ServiceNumberedPermissions возвращает JSON с названиями и номерами разрешений для переданного в параметре service
 // сервиса. При отсутствии разрешений возвращает статус http.StatusNoContent.
 // Пример возвращаемого функцией JSON:
 //
@@ -160,7 +159,7 @@ func (h *Handler) GetTokenWithPermissions(w http.ResponseWriter, r *http.Request
 //	},
 //
 // ]
-func (h *Handler) GetServiceNumberedPermissions(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) ServiceNumberedPermissions(w http.ResponseWriter, r *http.Request) {
 	if !allowedOnlyMethod(http.MethodGet, w, r) {
 		return
 	}
@@ -173,7 +172,7 @@ func (h *Handler) GetServiceNumberedPermissions(w http.ResponseWriter, r *http.R
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	numberedPermissions, err := h.service.GetServiceNumberedPermissions(ctx, serviceName)
+	numberedPermissions, err := h.service.ServiceNumberedPermissions(ctx, serviceName)
 	if err != nil {
 		if errors.Is(err, serviceErr.ErrEmptyResult) {
 			w.WriteHeader(http.StatusNoContent)

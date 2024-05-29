@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/google/uuid"
-	"github.com/lazylex/watch-store/secure/internal/config"
+	storageConfig "github.com/lazylex/watch-store/secure/internal/config"
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/account_state"
 	"github.com/lazylex/watch-store/secure/internal/dto"
 	"github.com/lazylex/watch-store/secure/internal/errors/persistent"
@@ -17,14 +17,14 @@ import (
 
 const configFilename = "local.yaml"
 
-var baseConfig config.PersistentStorage
+var baseConfig storageConfig.PersistentStorage
 
-// getConfig возвращает конфигурацию для подключения к БД. Файл с конфигурацией должен лежать в каталоге config.
+// config возвращает конфигурацию для подключения к БД. Файл с конфигурацией должен лежать в каталоге config.
 // Название файла конфигурации указано в константе configFilename в этом тестовом файле
-func getConfig() config.PersistentStorage {
+func config() storageConfig.PersistentStorage {
 	var configPath string
 	var err error
-	var cfg config.PersistentStorage
+	var cfg storageConfig.PersistentStorage
 
 	if len(baseConfig.DatabaseAddress) == 0 {
 		if configPath, err = filepath.Abs("../../../.."); err != nil {
@@ -37,7 +37,7 @@ func getConfig() config.PersistentStorage {
 			os.Exit(1)
 		}
 
-		cfg = config.MustLoad().PersistentStorage
+		cfg = storageConfig.MustLoad().PersistentStorage
 		baseConfig = cfg
 	} else {
 		cfg = baseConfig
@@ -46,15 +46,15 @@ func getConfig() config.PersistentStorage {
 	return cfg
 }
 
-// getPostgreSQL возвращает ссылку на готовую для работы с БД структуру PostgreSQL
-func getPostgreSQL() *PostgreSQL {
-	cfg := getConfig()
+// postgreSQL возвращает ссылку на готовую для работы с БД структуру PostgreSQL
+func postgreSQL() *PostgreSQL {
+	cfg := config()
 	return MustCreateForTest(cfg)
 }
 
 func TestPostgreSQL_SetAndGetAccountLoginData(t *testing.T) {
 	var err error
-	p := getPostgreSQL()
+	p := postgreSQL()
 	defer p.DropCurrentTestSchema()
 	ctx := context.Background()
 
@@ -70,24 +70,24 @@ func TestPostgreSQL_SetAndGetAccountLoginData(t *testing.T) {
 		t.Fatal()
 	}
 
-	dataFromDB, errGet := p.GetAccountLoginData(ctx, data.Login)
+	dataFromDB, errGet := p.AccountLoginData(ctx, data.Login)
 	if errGet != nil || data != dataFromDB {
 		t.Fail()
 	}
 }
 
 func TestPostgreSQL_ErrGetAccountLoginData(t *testing.T) {
-	p := getPostgreSQL()
+	p := postgreSQL()
 	defer p.DropCurrentTestSchema()
 
-	if _, err := p.GetAccountLoginData(context.Background(), "non-existent user"); !errors.Is(err, persistent.ErrNoRowsInResultSet) {
+	if _, err := p.AccountLoginData(context.Background(), "non-existent user"); !errors.Is(err, persistent.ErrNoRowsInResultSet) {
 		t.Fail()
 	}
 }
 
 func TestPostgreSQL_ErrCreateConnection(t *testing.T) {
 	if os.Getenv("BE_CRASHER") == "1" {
-		cfg := getConfig()
+		cfg := config()
 		cfg.DatabaseName = ""
 		MustCreate(cfg)
 		return
@@ -102,7 +102,7 @@ func TestPostgreSQL_ErrCreateConnection(t *testing.T) {
 }
 
 func TestPostgreSQL_CreateService(t *testing.T) {
-	p := getPostgreSQL()
+	p := postgreSQL()
 	defer p.DropCurrentTestSchema()
 	data := dto.NameDescription{
 		Name:        "test_service",
@@ -114,7 +114,7 @@ func TestPostgreSQL_CreateService(t *testing.T) {
 }
 
 func TestPostgreSQL_ErrCreateDuplicateService(t *testing.T) {
-	p := getPostgreSQL()
+	p := postgreSQL()
 	defer p.DropCurrentTestSchema()
 	data := dto.NameDescription{
 		Name:        "test_service",
@@ -129,7 +129,7 @@ func TestPostgreSQL_ErrCreateDuplicateService(t *testing.T) {
 }
 
 func TestPostgreSQL_BigTest(t *testing.T) {
-	p := getPostgreSQL()
+	p := postgreSQL()
 	defer p.DropCurrentTestSchema()
 	ctx := context.Background()
 
@@ -199,7 +199,7 @@ func TestPostgreSQL_BigTest(t *testing.T) {
 		t.Fatal()
 	}
 
-	if permissions, err := p.GetServicePermissionsForAccount(ctx, &dto.UserIdService{
+	if permissions, err := p.ServicePermissionsForAccount(ctx, &dto.UserIdService{
 		UserId:  userId,
 		Service: "service1",
 	}); err != nil {
@@ -210,7 +210,7 @@ func TestPostgreSQL_BigTest(t *testing.T) {
 		}
 	}
 
-	if perm, err := p.GetInstancePermissionsForAccount(ctx, &dto.UserIdInstance{
+	if perm, err := p.InstancePermissionsForAccount(ctx, &dto.UserIdInstance{
 		UserId:   userId,
 		Instance: "instance1",
 	}); len(perm) > 0 || err != nil {
@@ -233,21 +233,21 @@ func TestPostgreSQL_BigTest(t *testing.T) {
 		t.Fatal()
 	}
 
-	if perm, err := p.GetInstancePermissionsForAccount(ctx, &dto.UserIdInstance{
+	if perm, err := p.InstancePermissionsForAccount(ctx, &dto.UserIdInstance{
 		UserId:   userId,
 		Instance: "instance1",
 	}); len(perm) != 1 || err != nil {
 		t.Fatal()
 	}
 
-	if numbers, err := p.GetInstancePermissionsNumbersForAccount(ctx, &dto.UserIdInstance{
+	if numbers, err := p.InstancePermissionsNumbersForAccount(ctx, &dto.UserIdInstance{
 		UserId:   userId,
 		Instance: "instance1",
 	}); err != nil || len(numbers) != 1 || numbers[0] != 3 {
 		t.Fatal()
 	}
 
-	if numbers, err := p.GetServicePermissionsNumbersForAccount(ctx, &dto.UserIdService{
+	if numbers, err := p.ServicePermissionsNumbersForAccount(ctx, &dto.UserIdService{
 		UserId:  userId,
 		Service: "service1",
 	}); err != nil || len(numbers) != 2 {
@@ -258,20 +258,20 @@ func TestPostgreSQL_BigTest(t *testing.T) {
 		t.Fatal()
 	}
 
-	if logins, err := p.GetAccountsLoginsByState(ctx, account_state.Enabled); err != nil || len(logins) != 0 {
+	if logins, err := p.AccountsLoginsByState(ctx, account_state.Enabled); err != nil || len(logins) != 0 {
 		t.Fatal()
 	}
 
-	if logins, err := p.GetAccountsLoginsByState(ctx, account_state.Disabled); err != nil || len(logins) != 1 || logins[0] != "test_user" {
+	if logins, err := p.AccountsLoginsByState(ctx, account_state.Disabled); err != nil || len(logins) != 1 || logins[0] != "test_user" {
 		t.Fatal()
 	}
 
-	if p.GetMaxConnections() != p.maxConnections {
+	if p.MaxConnections() != p.maxConnections {
 		slog.Error("Вообще бесполезная проверка, но так покрытие тестами полнее")
 		t.Fatal()
 	}
 
-	if number, err := p.GetPermissionNumber(ctx, "perm3", "instance1"); err != nil || number != 3 {
+	if number, err := p.PermissionNumber(ctx, "perm3", "instance1"); err != nil || number != 3 {
 		t.Fatal()
 	}
 

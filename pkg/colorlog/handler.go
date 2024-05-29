@@ -59,16 +59,16 @@ var (
 	currentBackColor = ansiBackgroundBlack
 )
 
-// getTextColor возвращает текущий цвет для текста
-func getTextColor(inverted bool) string {
+// textColor возвращает текущий цвет для текста
+func textColor(inverted bool) string {
 	if inverted {
 		return ansiTextBlack
 	}
 	return ansiTextWhite
 }
 
-// getBackColor возвращает текущий цвет для фона
-func getBackColor(inverted bool) string {
+// backColor возвращает текущий цвет для фона
+func backColor(inverted bool) string {
 	if inverted {
 		return ansiBackgroundDarkGray
 	}
@@ -355,7 +355,7 @@ func (h *handler) appendAttr(buf *buffer, attr slog.Attr, groupsPrefix string, g
 		h.appendTintError(buf, err, groupsPrefix)
 		buf.WriteByte(' ')
 	} else {
-		buf.WriteString(getBackColor(buf.inverted))
+		buf.WriteString(backColor(buf.inverted))
 		h.appendKey(buf, attr.Key, groupsPrefix)
 		h.appendValue(buf, attr.Value, true)
 		buf.WriteByte(' ')
@@ -373,7 +373,7 @@ func (h *handler) appendKey(buf *buffer, key, groups string) {
 }
 
 func (h *handler) appendValue(buf *buffer, v slog.Value, quote bool) {
-	buf.WriteString(getTextColor(buf.Inverse()))
+	buf.WriteString(textColor(buf.Inverse()))
 	switch v.Kind() {
 	case slog.KindString:
 		appendString(buf, v.String(), quote)

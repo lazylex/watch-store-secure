@@ -1,7 +1,6 @@
 package token_checker
 
 import (
-	"context"
 	v "github.com/lazylex/watch-store/secure/internal/helpers/constants/various"
 	"github.com/lazylex/watch-store/secure/internal/service"
 	"net/http"
@@ -37,7 +36,7 @@ func (t *TokenChecker) Checker(next http.Handler) http.Handler {
 			return
 		}
 
-		if _, err := t.service.GetUserUUIDFromSession(context.Background(), authHeader[len(v.BearerTokenPrefix):]); err != nil {
+		if _, err := t.service.UserUUIDFromSession(req.Context(), authHeader[len(v.BearerTokenPrefix):]); err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
