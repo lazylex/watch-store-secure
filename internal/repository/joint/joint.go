@@ -336,6 +336,12 @@ func (r *Repository) GetServiceName(ctx context.Context, instanceName string) (s
 	return name, nil
 }
 
+// GetServicesNames возвращает список названий всех сервисов.
+func (r *Repository) GetServicesNames(ctx context.Context) ([]string, error) {
+	result, err := r.persistent.GetServicesNames(ctx)
+	return result, adaptErr(err)
+}
+
 // GetInstanceSecret возвращает строку, необходимую для подписи токена, предназначенного для взаимодействия с
 // соответствующим экземпляром сервиса.
 func (r *Repository) GetInstanceSecret(ctx context.Context, name string) (string, error) {
@@ -409,7 +415,6 @@ func (r *Repository) refreshAccountPermissions(ctx context.Context, data *dto.Us
 
 // makeDataCache считывает все данные (которые возможно кешировать) из постоянного хранилища в хранилище в памяти.
 func (r *Repository) makeDataCache() {
-	slog.Debug(adaptErr(fmt.Errorf("data caching is not fully implemented")).Error())
 	slog.Info("data caching has started")
 	start := time.Now()
 	defer func() {
@@ -435,6 +440,14 @@ func (r *Repository) makeDataCache() {
 			}(login)
 
 			<-c
+		}
+	}
+
+	var services []string
+
+	if services, err = r.GetServicesNames(ctx); err == nil {
+		for _, service := range services {
+			_, _ = r.GetServiceNumberedPermissions(ctx, service)
 		}
 	}
 }

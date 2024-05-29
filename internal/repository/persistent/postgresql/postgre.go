@@ -671,6 +671,32 @@ func (p *PostgreSQL) GetServiceName(ctx context.Context, instanceName string) (s
 	return name, nil
 }
 
+// GetServicesNames возвращает названия всех сервисов в БД.
+func (p *PostgreSQL) GetServicesNames(ctx context.Context) ([]string, error) {
+	stmt := `SELECT name FROM services`
+
+	rows, err := p.pool.QueryEx(ctx, stmt, nil)
+	defer rows.Close()
+
+	if err != nil {
+		return nil, adaptErr(err)
+	}
+
+	result := make([]string, 0)
+
+	var name string
+
+	for rows.Next() {
+		if err = rows.Scan(&name); err != nil {
+			return result, adaptErr(err)
+		}
+		result = append(result, name)
+
+	}
+
+	return result, nil
+}
+
 // DeleteRole удаляет роль из БД.
 func (p *PostgreSQL) DeleteRole(ctx context.Context, data *dto.NameService) error {
 	stmt := `DELETE FROM roles WHERE name = $1 AND service_fk = (SELECT service_id FROM services WHERE name = $2)`

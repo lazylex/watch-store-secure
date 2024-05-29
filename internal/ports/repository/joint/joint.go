@@ -46,4 +46,5 @@ type Interface interface {
 	GetInstanceSecret(context.Context, string) (string, error)
 	GetServiceName(context.Context, string) (string, error)
 	GetServiceNumberedPermissions(context.Context, string) (*[]dto.NameNumber, error)
+	GetServicesNames(context.Context) ([]string, error)
 }

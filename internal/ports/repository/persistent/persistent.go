@@ -48,6 +48,7 @@ type Interface interface {
 	joint.ServiceInterface
 	RBACInterface
 	GetServiceName(context.Context, string) (string, error)
+	GetServicesNames(context.Context) ([]string, error)
 	GetInstanceSecret(context.Context, string) (string, error)
 	GetMaxConnections() int
 	Close()
