@@ -8,6 +8,7 @@ import (
 	"github.com/lazylex/watch-store/secure/internal/domain/value_objects/account_state"
 	loginVO "github.com/lazylex/watch-store/secure/internal/domain/value_objects/login"
 	"github.com/lazylex/watch-store/secure/internal/dto"
+	"github.com/lazylex/watch-store/secure/internal/errors/persistent"
 	"log/slog"
 	"math/rand"
 	"os"
@@ -609,6 +610,10 @@ func (p *PostgreSQL) GetServiceNumberedPermissions(ctx context.Context, serviceN
 
 		result = append(result, dto.NameNumber{Name: name, Number: number})
 
+	}
+
+	if len(result) == 0 {
+		return &result, persistent.ErrNoRowsInResultSet
 	}
 
 	return &result, nil

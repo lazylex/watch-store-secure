@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
@@ -141,6 +142,53 @@ func (h *Handler) GetTokenWithPermissions(w http.ResponseWriter, r *http.Request
 
 	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write([]byte(fmt.Sprintf("{\"jwt-token\":\"%s\"}", token)))
+}
+
+// GetServiceNumberedPermissions возвращает JSON с названиями и номерами разрешений для переданного в параметре service
+// сервиса. При отсутствии разрешений возвращает статус http.StatusNoContent.
+// Пример возвращаемого функцией JSON:
+//
+// [
+//
+//	{
+//		"name": "удалять данные",
+//		"number": 1
+//	},
+//	{
+//		"name": "добавлять данные",
+//		"number": 5
+//	},
+//
+// ]
+func (h *Handler) GetServiceNumberedPermissions(w http.ResponseWriter, r *http.Request) {
+	if !allowedOnlyMethod(http.MethodGet, w, r) {
+		return
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), h.queryTimeout)
+	defer cancel()
+
+	serviceName := r.FormValue("service")
+
+	if len(serviceName) == 0 {
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	numberedPermissions, err := h.service.GetServiceNumberedPermissions(ctx, serviceName)
+	if err != nil {
+		if errors.Is(err, serviceErr.ErrEmptyResult) {
+			w.WriteHeader(http.StatusNoContent)
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if answer, err := json.Marshal(numberedPermissions); err == nil {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write(answer)
+	} else {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
 // allowedOnlyMethod принимает разрешенный метод и, если запрос ему не соответствует, записывает в заголовок информацию
