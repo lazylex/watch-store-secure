@@ -29,7 +29,7 @@ func New(domainService *service.Service, timeout time.Duration) *Handler {
 	return &Handler{service: domainService, queryTimeout: timeout}
 }
 
-// Login производит вход в учетную запись и возвращает в JSON токен сессии(по ключу token).Тип авторизации - Basic Auth.
+// Login производит вход в учетную запись и возвращает в JSON токен сессии(по ключу token). Тип авторизации - Basic Auth.
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	if !allowedOnlyMethod(http.MethodPost, w, r) {
 		return

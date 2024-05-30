@@ -283,7 +283,7 @@ func (s *Service) CreateGroup(ctx context.Context, data *dto.NameServiceDescript
 	return adaptErr(s.repository.CreateGroup(ctx, data))
 }
 
-// RegisterInstance регистрирует название экземпляра сервиса и его секретный ключ. При существуещем экземпляре -
+// RegisterInstance регистрирует название экземпляра сервиса и его секретный ключ. При существующем экземпляре -
 // обновляет о нём данные.
 func (s *Service) RegisterInstance(ctx context.Context, data *dto.NameServiceSecret) error {
 	return adaptErr(s.repository.CreateOrUpdateInstance(ctx, data))

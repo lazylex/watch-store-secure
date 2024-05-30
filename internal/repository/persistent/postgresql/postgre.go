@@ -19,9 +19,9 @@ const testSchemaPrefix = "test_schema_"
 
 // PostgreSQL структура, хранящая пул соединений, их максимальное количество и текущую схему базы данных.
 type PostgreSQL struct {
-	pool           *pgx.ConnPool // пул соединений
-	maxConnections int           // максимально доступное количество соединений с БД
-	schema         string        // схема базы данных
+	pool           *pgx.ConnPool // Пул соединений
+	maxConnections int           // Максимально доступное количество соединений с БД
+	schema         string        // Схема базы данных
 }
 
 // MustCreate возвращает структуру для взаимодействия с базой данных в СУБД PostgreSQL. В случае ошибки завершает
