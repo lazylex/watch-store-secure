@@ -3,6 +3,7 @@ package token_checker
 import (
 	v "github.com/lazylex/watch-store/secure/internal/helpers/constants/various"
 	"github.com/lazylex/watch-store/secure/internal/service"
+	"log/slog"
 	"net/http"
 	"strings"
 )
@@ -28,16 +29,18 @@ func (t *TokenChecker) Checker(next http.Handler) http.Handler {
 			next.ServeHTTP(w, req)
 			return
 		}
-
+		log := slog.Default().With("remote address", req.RemoteAddr)
 		authHeader := req.Header.Get("Authorization")
 
 		if len(authHeader) == 0 || !strings.HasPrefix(authHeader, v.BearerTokenPrefix) {
 			w.WriteHeader(http.StatusUnauthorized)
+			log.Warn("token checker middleware: empty or incorrect token")
 			return
 		}
 
 		if _, err := t.service.UserUUIDFromSession(req.Context(), authHeader[len(v.BearerTokenPrefix):]); err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
+			log.Warn("token checker middleware: invalid token")
 			return
 		}
 
