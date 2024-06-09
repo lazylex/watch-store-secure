@@ -12,6 +12,7 @@ import (
 	serviceErr "github.com/lazylex/watch-store/secure/internal/errors/service"
 	v "github.com/lazylex/watch-store/secure/internal/helpers/constants/various"
 	"github.com/lazylex/watch-store/secure/internal/service"
+	"log/slog"
 	"net/http"
 	"time"
 )
@@ -38,6 +39,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	var ok bool
 	var err error
 	var token, username, pwd string
+	var log = slog.Default().With("remote address", r.RemoteAddr)
 
 	if username, pwd, ok = r.BasicAuth(); !ok {
 		w.Header().Set("WWW-Authenticate", "Basic realm=\"secure\"")
@@ -50,6 +52,8 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	if userLogin.Validate() != nil || userPassword.Validate() != nil {
 		w.WriteHeader(http.StatusUnauthorized)
+		log.Warn("unable to validate username or password")
+
 		return
 	}
 
@@ -59,8 +63,10 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	if token, err = h.service.Login(ctx, &dto.LoginPassword{Login: userLogin, Password: userPassword}); err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			w.WriteHeader(http.StatusRequestTimeout)
+			log.Warn("request timed out")
 		} else {
 			w.WriteHeader(http.StatusUnauthorized)
+			log.Warn("unable to login")
 		}
 
 		return
@@ -68,12 +74,15 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write([]byte(fmt.Sprintf("{\"token\":\"%s\"}", token)))
+
+	log.Info("successfully logged in")
 }
 
 // Index обработчик для несуществующих страниц.
 func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
+		slog.Default().With("remote address", r.RemoteAddr).With("request url", r.RequestURI).Warn("page not found")
 		return
 	}
 }
@@ -84,6 +93,7 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log := slog.Default().With("remote address", r.RemoteAddr)
 	token := r.Header.Get("Authorization")[len(v.BearerTokenPrefix):]
 
 	ctx, cancel := context.WithTimeout(r.Context(), h.queryTimeout)
@@ -92,13 +102,17 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	id, err := h.service.UserUUIDFromSession(ctx, token)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		log.Warn("unable to get user uuid from session")
 		return
 	}
 
 	if err = h.service.Logout(ctx, id); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		log.Warn("unable to logout")
 		return
 	}
+
+	log.Info("successfully logout")
 }
 
 // TokenWithPermissions возвращает JWT-токен, содержащий информацию о разрешениях для переданного экземпляра приложения.
@@ -111,12 +125,14 @@ func (h *Handler) TokenWithPermissions(w http.ResponseWriter, r *http.Request) {
 		err   error
 		token string
 		id    uuid.UUID
+		log   = slog.Default().With("remote address", r.RemoteAddr)
 	)
 
 	instance := r.FormValue("instance")
 
 	if len(instance) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
+		log.Warn("unable to get instance")
 		return
 	}
 
@@ -127,20 +143,25 @@ func (h *Handler) TokenWithPermissions(w http.ResponseWriter, r *http.Request) {
 
 	if id, err = h.service.UserUUIDFromSession(ctx, token); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		slog.Warn("unable to get user uuid from session")
 		return
 	}
 
 	if token, err = h.service.CreateToken(ctx, &dto.UserIdInstance{UserId: id, Instance: instance}); err != nil {
 		if errors.Is(err, serviceErr.ErrEmptyResult) {
 			w.WriteHeader(http.StatusNoContent)
+			slog.Warn("no token for return")
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
+			slog.Warn("error create token")
 		}
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write([]byte(fmt.Sprintf("{\"jwt-token\":\"%s\"}", token)))
+
+	log.Info("sent jwt-token")
 }
 
 // ServiceNumberedPermissions возвращает JSON с названиями и номерами разрешений для переданного в параметре service
@@ -163,6 +184,14 @@ func (h *Handler) ServiceNumberedPermissions(w http.ResponseWriter, r *http.Requ
 	if !allowedOnlyMethod(http.MethodGet, w, r) {
 		return
 	}
+
+	var (
+		answer              []byte
+		numberedPermissions *[]dto.NameNumber
+		err                 error
+		log                 = slog.Default().With("remote address", r.RemoteAddr)
+	)
+
 	ctx, cancel := context.WithTimeout(r.Context(), h.queryTimeout)
 	defer cancel()
 
@@ -170,23 +199,29 @@ func (h *Handler) ServiceNumberedPermissions(w http.ResponseWriter, r *http.Requ
 
 	if len(serviceName) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
+		log.Warn("unable to get service")
 	}
 
-	numberedPermissions, err := h.service.ServiceNumberedPermissions(ctx, serviceName)
+	numberedPermissions, err = h.service.ServiceNumberedPermissions(ctx, serviceName)
 	if err != nil {
 		if errors.Is(err, serviceErr.ErrEmptyResult) {
 			w.WriteHeader(http.StatusNoContent)
+			log.Warn("no service numbered permissions")
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
+			log.Warn("error get numbered permissions")
 		}
 		return
 	}
 
-	if answer, err := json.Marshal(numberedPermissions); err == nil {
+	if answer, err = json.Marshal(numberedPermissions); err == nil {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write(answer)
+		log.Info("numbered service permits have been sent")
+
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
+		log.Warn("unable to marshal numbered permissions")
 	}
 }
 
@@ -196,6 +231,7 @@ func allowedOnlyMethod(method string, w http.ResponseWriter, r *http.Request) bo
 	if r.Method != method {
 		w.Header().Set("Allow", method)
 		w.WriteHeader(http.StatusMethodNotAllowed)
+		slog.Default().With("remote address", r.RemoteAddr).With("request url", r.RequestURI).Warn("method not allowed")
 		return false
 	}
 
