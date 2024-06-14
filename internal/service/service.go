@@ -366,11 +366,11 @@ func (s *Service) CreateToken(ctx context.Context, data *dto.UserIdInstance) (st
 	permissions1 = append(permissions1, permissions2...)
 	permissions2 = permissions2[:0]
 
-	unique := make(map[int]bool, len(permissions1)/2)
+	unique := make(map[int]struct{}, len(permissions1)/2)
 
 	for _, v := range permissions1 {
 		if _, ok := unique[v]; !ok {
-			unique[v] = true
+			unique[v] = struct{}{}
 			permissions2 = append(permissions2, v)
 		}
 	}
