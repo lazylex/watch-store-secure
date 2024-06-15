@@ -66,6 +66,8 @@ func (r *Repository) SetAccountLoginData(ctx context.Context, data *dto.UserIdLo
 		return adaptErr(err)
 	}
 
+	ctx = context.Background()
+
 	if err = r.memory.SetAccountState(ctx, &dto.LoginState{Login: data.Login, State: data.State}); err != nil {
 		return adaptErr(err)
 	}
@@ -86,7 +88,7 @@ func (r *Repository) UserIdAndPasswordHash(ctx context.Context, login loginVO.Lo
 		return dto.UserIdHash{}, adaptErr(errGetData)
 	}
 
-	_ = r.saveToMemoryLoginData(ctx, &data)
+	_ = r.saveToMemoryLoginData(context.Background(), &data)
 
 	return dto.UserIdHash{UserId: data.UserId, Hash: data.Hash}, nil
 }
@@ -146,7 +148,7 @@ func (r *Repository) AccountLoginData(ctx context.Context, login loginVO.Login) 
 		return dto.UserIdLoginHashState{}, adaptErr(err)
 	}
 
-	_ = r.saveToMemoryLoginData(ctx, &loginData)
+	_ = r.saveToMemoryLoginData(context.Background(), &loginData)
 
 	return loginData, nil
 }
@@ -177,7 +179,7 @@ func (r *Repository) CreateOrUpdateInstance(ctx context.Context, data *dto.NameS
 		return adaptErr(err)
 	}
 
-	if err := r.memory.SetInstanceServiceAndSecret(ctx, data); err != nil {
+	if err := r.memory.SetInstanceServiceAndSecret(context.Background(), data); err != nil {
 		return adaptErr(joint.ErrCacheSavedData)
 	}
 
@@ -196,7 +198,7 @@ func (r *Repository) AssignRoleToAccount(ctx context.Context, data *dto.UserIdRo
 		UserId:  data.UserId,
 		Service: data.Service,
 	}) {
-		r.refreshAccountPermissions(ctx, &dto.UserIdService{UserId: data.UserId, Service: data.Service})
+		r.refreshAccountPermissions(context.Background(), &dto.UserIdService{UserId: data.UserId, Service: data.Service})
 	}
 	return adaptErr(err)
 }
@@ -208,7 +210,7 @@ func (r *Repository) AssignGroupToAccount(ctx context.Context, data *dto.UserIdG
 		UserId:  data.UserId,
 		Service: data.Service,
 	}) {
-		r.refreshAccountPermissions(ctx, &dto.UserIdService{UserId: data.UserId, Service: data.Service})
+		r.refreshAccountPermissions(context.Background(), &dto.UserIdService{UserId: data.UserId, Service: data.Service})
 	}
 	return adaptErr(err)
 }
@@ -226,7 +228,7 @@ func (r *Repository) AssignInstancePermissionToAccount(ctx context.Context, data
 		return adaptErr(joint.ErrCacheSavedData)
 	}
 
-	if err = r.memory.SetInstancePermissionsNumbersForAccount(ctx, &dto.UserIdInstancePermNumbers{
+	if err = r.memory.SetInstancePermissionsNumbersForAccount(context.Background(), &dto.UserIdInstancePermNumbers{
 		UserId:            data.UserId,
 		Instance:          data.Instance,
 		PermissionNumbers: []int{number},
@@ -279,7 +281,7 @@ func (r *Repository) ServiceNumberedPermissions(ctx context.Context, serviceName
 	}
 
 	go func() {
-		_ = r.memory.SetServiceNumberedPermissions(ctx, serviceName, result)
+		_ = r.memory.SetServiceNumberedPermissions(context.Background(), serviceName, result)
 	}()
 
 	return result, nil
@@ -293,7 +295,7 @@ func (r *Repository) servicePermissionsNumbersForAccountFromPersistentWithSaveTo
 
 	if numbers, err = r.persistent.ServicePermissionsNumbersForAccount(ctx, data); err == nil && len(numbers) > 0 {
 		go func() {
-			_ = r.memory.SetServicePermissionsNumbersForAccount(ctx, &dto.UserIdServicePermNumbers{
+			_ = r.memory.SetServicePermissionsNumbersForAccount(context.Background(), &dto.UserIdServicePermNumbers{
 				UserId:            data.UserId,
 				Service:           data.Service,
 				PermissionNumbers: numbers,
@@ -330,7 +332,7 @@ func (r *Repository) ServiceName(ctx context.Context, instanceName string) (stri
 	}
 
 	defer func() {
-		_ = r.memory.SetInstanceServiceName(ctx, &dto.NameService{Name: instanceName, Service: name})
+		_ = r.memory.SetInstanceServiceName(context.Background(), &dto.NameService{Name: instanceName, Service: name})
 	}()
 
 	return name, nil
@@ -356,7 +358,7 @@ func (r *Repository) InstanceSecret(ctx context.Context, name string) (string, e
 	}
 
 	defer func() {
-		_ = r.memory.SetInstanceSecret(ctx, &dto.NameSecret{Name: name, Secret: secret})
+		_ = r.memory.SetInstanceSecret(context.Background(), &dto.NameSecret{Name: name, Secret: secret})
 	}()
 
 	return secret, err
@@ -385,7 +387,7 @@ func (r *Repository) instancePermissionsNumbersForAccountFromPersistentWithSaveT
 
 	if numbers, err = r.persistent.InstancePermissionsNumbersForAccount(ctx, data); err == nil && len(numbers) > 0 {
 		go func() {
-			_ = r.memory.SetInstancePermissionsNumbersForAccount(ctx, &dto.UserIdInstancePermNumbers{
+			_ = r.memory.SetInstancePermissionsNumbersForAccount(context.Background(), &dto.UserIdInstancePermNumbers{
 				UserId:            data.UserId,
 				Instance:          data.Instance,
 				PermissionNumbers: numbers,
@@ -405,7 +407,7 @@ func (r *Repository) saveToMemoryLoginData(ctx context.Context, data *dto.UserId
 // refreshAccountPermissions обновляет кеш разрешений
 func (r *Repository) refreshAccountPermissions(ctx context.Context, data *dto.UserIdService) {
 	if servicePerm, err := r.persistent.ServicePermissionsNumbersForAccount(ctx, data); err == nil {
-		_ = r.memory.SetServicePermissionsNumbersForAccount(ctx, &dto.UserIdServicePermNumbers{
+		_ = r.memory.SetServicePermissionsNumbersForAccount(context.Background(), &dto.UserIdServicePermNumbers{
 			UserId:            data.UserId,
 			Service:           data.Service,
 			PermissionNumbers: servicePerm,
