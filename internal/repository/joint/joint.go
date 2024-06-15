@@ -66,8 +66,6 @@ func (r *Repository) SetAccountLoginData(ctx context.Context, data *dto.UserIdLo
 		return adaptErr(err)
 	}
 
-	ctx = context.Background()
-
 	if err = r.memory.SetAccountState(ctx, &dto.LoginState{Login: data.Login, State: data.State}); err != nil {
 		return adaptErr(err)
 	}
@@ -88,7 +86,9 @@ func (r *Repository) UserIdAndPasswordHash(ctx context.Context, login loginVO.Lo
 		return dto.UserIdHash{}, adaptErr(errGetData)
 	}
 
-	_ = r.saveToMemoryLoginData(context.Background(), &data)
+	go func() {
+		_ = r.saveToMemoryLoginData(context.Background(), &data)
+	}()
 
 	return dto.UserIdHash{UserId: data.UserId, Hash: data.Hash}, nil
 }
@@ -148,7 +148,9 @@ func (r *Repository) AccountLoginData(ctx context.Context, login loginVO.Login) 
 		return dto.UserIdLoginHashState{}, adaptErr(err)
 	}
 
-	_ = r.saveToMemoryLoginData(context.Background(), &loginData)
+	go func() {
+		_ = r.saveToMemoryLoginData(context.Background(), &loginData)
+	}()
 
 	return loginData, nil
 }
@@ -179,7 +181,7 @@ func (r *Repository) CreateOrUpdateInstance(ctx context.Context, data *dto.NameS
 		return adaptErr(err)
 	}
 
-	if err := r.memory.SetInstanceServiceAndSecret(context.Background(), data); err != nil {
+	if err := r.memory.SetInstanceServiceAndSecret(ctx, data); err != nil {
 		return adaptErr(joint.ErrCacheSavedData)
 	}
 
@@ -198,7 +200,10 @@ func (r *Repository) AssignRoleToAccount(ctx context.Context, data *dto.UserIdRo
 		UserId:  data.UserId,
 		Service: data.Service,
 	}) {
-		r.refreshAccountPermissions(context.Background(), &dto.UserIdService{UserId: data.UserId, Service: data.Service})
+		go func() {
+			r.refreshAccountPermissions(context.Background(), &dto.UserIdService{UserId: data.UserId, Service: data.Service})
+		}()
+
 	}
 	return adaptErr(err)
 }
@@ -210,7 +215,9 @@ func (r *Repository) AssignGroupToAccount(ctx context.Context, data *dto.UserIdG
 		UserId:  data.UserId,
 		Service: data.Service,
 	}) {
-		r.refreshAccountPermissions(context.Background(), &dto.UserIdService{UserId: data.UserId, Service: data.Service})
+		go func() {
+			r.refreshAccountPermissions(context.Background(), &dto.UserIdService{UserId: data.UserId, Service: data.Service})
+		}()
 	}
 	return adaptErr(err)
 }
@@ -228,7 +235,7 @@ func (r *Repository) AssignInstancePermissionToAccount(ctx context.Context, data
 		return adaptErr(joint.ErrCacheSavedData)
 	}
 
-	if err = r.memory.SetInstancePermissionsNumbersForAccount(context.Background(), &dto.UserIdInstancePermNumbers{
+	if err = r.memory.SetInstancePermissionsNumbersForAccount(ctx, &dto.UserIdInstancePermNumbers{
 		UserId:            data.UserId,
 		Instance:          data.Instance,
 		PermissionNumbers: []int{number},
