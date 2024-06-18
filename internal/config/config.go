@@ -112,10 +112,10 @@ type Secure struct {
 // содержится в переменной окружения SECURE_CONFIG_PATH. Для переопределения конфигурационных значений можно
 // использовать переменных окружения (описанные в структурах данных в этом файле).
 func MustLoad() *Config {
-	flag.Parse()
-
 	var configPath = flag.String("config", "", "путь к файлу конфигурации")
 	var cfg Config
+
+	flag.Parse()
 
 	if *configPath == "" {
 		*configPath = os.Getenv("SECURE_CONFIG_PATH")
