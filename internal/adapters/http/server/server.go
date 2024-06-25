@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/lazylex/watch-store/secure/internal/adapters/http/handlers"
+	"github.com/lazylex/watch-store/secure/internal/adapters/http/middleware/recoverer"
 	requestMetrics "github.com/lazylex/watch-store/secure/internal/adapters/http/middleware/request_metrics"
 	"github.com/lazylex/watch-store/secure/internal/adapters/http/middleware/token_checker"
 	"github.com/lazylex/watch-store/secure/internal/adapters/http/router"
@@ -54,6 +55,8 @@ func MustCreate(domainService *service.Service, cfg *config.HttpServer, m *metri
 	server.srv.Handler = tokenMiddleware.Checker(server.mux)
 	server.srv.Handler = metricsMiddleware.BeforeHandle(server.srv.Handler)
 	server.srv.Handler = metricsMiddleware.AfterHandle(server.srv.Handler)
+	server.srv.Handler = recoverer.Recoverer(server.srv.Handler)
+
 	return server
 }
 
