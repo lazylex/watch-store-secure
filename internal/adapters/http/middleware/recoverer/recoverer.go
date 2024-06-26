@@ -12,17 +12,7 @@ func Recoverer(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if rvr := recover(); rvr != nil && rvr != http.ErrAbortHandler {
-				log := slog.Default().With("origin", "recoverer middleware")
-
-				switch t := rvr.(type) {
-				case error:
-					log.Warn(t.Error())
-				case string:
-					log.Warn(t)
-				default:
-					log.Warn(fmt.Sprint(rvr))
-				}
-
+				writeToLog(rvr)
 				w.WriteHeader(http.StatusInternalServerError)
 			}
 		}()
@@ -31,4 +21,18 @@ func Recoverer(next http.Handler) http.Handler {
 	}
 
 	return http.HandlerFunc(fn)
+}
+
+// writeToLog записывает в лог причину паники.
+func writeToLog(rvr any) {
+	log := slog.Default().With("origin", "recovery middleware")
+
+	switch t := rvr.(type) {
+	case error:
+		log.Warn("panic error: " + t.Error())
+	case string:
+		log.Warn("panic string: " + t)
+	default:
+		log.Warn(fmt.Sprint(rvr))
+	}
 }
