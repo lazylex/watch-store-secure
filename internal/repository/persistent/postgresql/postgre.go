@@ -359,7 +359,10 @@ func (p *PostgreSQL) InstancePermissionsForAccount(ctx context.Context, data *dt
 			return result, adaptErr(err)
 		}
 		result = append(result, dto.NameNumberDescription{Name: name, Number: number, Description: description})
+	}
 
+	if err = rows.Err(); err != nil {
+		return result, adaptErr(err)
 	}
 
 	return result, nil
@@ -404,7 +407,10 @@ func (p *PostgreSQL) InstancePermissionsNumbersForAccount(ctx context.Context, d
 			return result, adaptErr(err)
 		}
 		result = append(result, number)
+	}
 
+	if err = rows.Err(); err != nil {
+		return result, adaptErr(err)
 	}
 
 	return result, nil
@@ -477,7 +483,10 @@ func (p *PostgreSQL) ServicePermissionsForAccount(ctx context.Context, data *dto
 			return result, adaptErr(err)
 		}
 		result = append(result, dto.NameNumberDescription{Name: name, Number: number, Description: description})
+	}
 
+	if err = rows.Err(); err != nil {
+		return result, adaptErr(err)
 	}
 
 	return result, nil
@@ -558,7 +567,10 @@ func (p *PostgreSQL) ServicePermissionsNumbersForAccount(ctx context.Context, da
 			return result, adaptErr(err)
 		}
 		result = append(result, number)
+	}
 
+	if err = rows.Err(); err != nil {
+		return result, adaptErr(err)
 	}
 
 	return result, nil
@@ -607,9 +619,11 @@ func (p *PostgreSQL) ServiceNumberedPermissions(ctx context.Context, serviceName
 		if err = rows.Scan(&number, &name); err != nil {
 			return &result, adaptErr(err)
 		}
-
 		result = append(result, dto.NameNumber{Name: name, Number: number})
+	}
 
+	if err = rows.Err(); err != nil {
+		return &result, adaptErr(err)
 	}
 
 	if len(result) == 0 {
@@ -639,7 +653,10 @@ func (p *PostgreSQL) AccountsLoginsByState(ctx context.Context, state account_st
 			return result, adaptErr(err)
 		}
 		result = append(result, accLogin)
+	}
 
+	if err = rows.Err(); err != nil {
+		return result, adaptErr(err)
 	}
 
 	return result, nil
@@ -696,7 +713,10 @@ func (p *PostgreSQL) ServicesNames(ctx context.Context) ([]string, error) {
 			return result, adaptErr(err)
 		}
 		result = append(result, name)
+	}
 
+	if err = rows.Err(); err != nil {
+		return result, adaptErr(err)
 	}
 
 	return result, nil
