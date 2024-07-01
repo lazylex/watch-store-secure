@@ -1,0 +1,169 @@
+openapi: 3.0.3
+info:
+  title: Secure service - OpenAPI 3.0.0
+  description: Сервис безопасности, выдающий токены с разрешениями остальных сервисов приложения
+  version: 0.0.1
+  contact:
+    email: lazylex@mail.ru
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: 'http://localhost:8159'
+tags:
+  - name: login
+    description: Вход и выход из учетной записи
+  - name: permissions
+    description: Получение списка разрешений или токенов с разрешениями
+paths:
+  /login:
+    post:
+      tags:
+        - login
+      summary: Вход в учётную запись
+      description: Вход в учётную запись и получение токена для доступа к данному сервису
+      operationId: Login
+      security:
+        - basicAuth: []
+      responses:
+        '200':
+          description: Успешный вход в учётную запись и получение токена
+          content:
+            application/json:
+              schema:
+                properties:
+                  token:
+                    type: string
+                    description: Случайным образом сгенерированный токен для доступа к данному сервису. Длина должна быть четным
+                      числом, которое задается при конфигурации приложения.
+                    minLength: 24
+                    example: 6465f7fedba26613328165b5
+        '401':
+          description: Несанкционированный доступ
+        '408':
+          description: Таймаут запроса
+
+  /logout:
+    get:
+      tags:
+        - login
+      summary: Выход из учётной записи
+      description: Выход из учётной записи
+      operationId: Logout
+      security:
+        - ApiKey: []
+      responses:
+        '200':
+          description: Успешный выход из учетной записи
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /get-token:
+    get:
+      tags:
+        - permissions
+      summary: Получение токена с разрешениями
+      description: Получение JWT-токена с разрешениями для конкретного экземпляра сервиса
+      operationId: TokenWithPermissions
+      security:
+        - ApiKey: [ ]
+      parameters:
+        - in: query
+          name: instance
+          schema:
+            type: string
+          required: true
+          description: Название экземпляра сервиса
+          allowEmptyValue: false
+          example: store1
+      responses:
+        '200':
+          description: Успешное получение токена
+          content:
+            application/json:
+              schema:
+                properties:
+                  jwt-token:
+                    type: string
+                    description: JWT-токен с полезной нагрузкой (находится в массиве, доступном по ключу 'perm'),
+                      содержащей номера разрешений для запрашиваемого экземпляра сервиса и поле со сроком годности
+                      токена
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjA0NDEwMzEsInBlcm0iOltdfQ.VWU7iR8vM74BMCncTenGulrOtufbs_nJg6-UblrhIts
+        '400':
+          description: Неверное название экземпляра сервиса
+        '401':
+          description: Несанкционированный доступ
+        '404':
+          description: Нет токена
+        '408':
+          description: Таймаут запроса
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /get-numbered-permissions:
+    get:
+      tags:
+        - permissions
+      summary: Получение нумерованных разрешений
+      description: Получение списка названий разрешений и их номеров в формате JSON
+      operationId: ServiceNumberedPermissions
+      security:
+        - ApiKey: [ ]
+      parameters:
+        - in: query
+          name: service
+          schema:
+            type: string
+          required: true
+          description: Название сервиса
+          allowEmptyValue: false
+          example: store
+      responses:
+        '200':
+          description: Успешное получение нумерованного списка разрешений
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NameNumber'
+        '400':
+          description: Не передано название сервиса
+        '401':
+          description: Несанкционированный доступ
+        '404':
+          description: Сервис не найден
+        '408':
+          description: Таймаут запроса
+        '500':
+          description: Внутренняя ошибка сервера
+
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      description: Basic Authorization header
+      scheme: basic
+
+    ApiKey:
+      type: apiKey
+      name: Authorization
+      in: header
+      description: Токен для доступа к приложению должен содержать префикс "Bearer "
+
+  schemas:
+    NameNumber:
+      type: object
+      description: Название разрешения и его номер
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Название разрешения
+          example: получать количество товара
+        number:
+          type: integer
+          minimum: 1
+          description: Номер разрешения
+          example: 5
