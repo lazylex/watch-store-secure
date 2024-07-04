@@ -47,15 +47,16 @@ func testConfig() storageConfig.PersistentStorage {
 }
 
 // postgreSQL возвращает ссылку на готовую для работы с БД структуру PostgreSQL
-func postgreSQL() *PostgreSQL {
+func postgreSQL(t *testing.T) *PostgreSQL {
 	cfg := testConfig()
-	return MustCreateForTest(cfg)
+	p := MustCreateForTest(cfg)
+	t.Cleanup(p.DropCurrentTestSchema)
+	return p
 }
 
 func TestPostgreSQL_SetAndGetAccountLoginData(t *testing.T) {
 	var err error
-	p := postgreSQL()
-	defer p.DropCurrentTestSchema()
+	p := postgreSQL(t)
 	ctx := context.Background()
 
 	data := dto.UserIdLoginHashState{
@@ -77,8 +78,7 @@ func TestPostgreSQL_SetAndGetAccountLoginData(t *testing.T) {
 }
 
 func TestPostgreSQL_ErrGetAccountLoginData(t *testing.T) {
-	p := postgreSQL()
-	defer p.DropCurrentTestSchema()
+	p := postgreSQL(t)
 
 	if _, err := p.AccountLoginData(context.Background(), "non-existent user"); !errors.Is(err, persistent.ErrNoRowsInResultSet) {
 		t.Fail()
@@ -102,8 +102,7 @@ func TestPostgreSQL_ErrCreateConnection(t *testing.T) {
 }
 
 func TestPostgreSQL_CreateService(t *testing.T) {
-	p := postgreSQL()
-	defer p.DropCurrentTestSchema()
+	p := postgreSQL(t)
 	data := dto.NameDescription{
 		Name:        "test_service",
 		Description: "just test service",
@@ -114,8 +113,7 @@ func TestPostgreSQL_CreateService(t *testing.T) {
 }
 
 func TestPostgreSQL_ErrCreateDuplicateService(t *testing.T) {
-	p := postgreSQL()
-	defer p.DropCurrentTestSchema()
+	p := postgreSQL(t)
 	data := dto.NameDescription{
 		Name:        "test_service",
 		Description: "just test service",
@@ -129,8 +127,7 @@ func TestPostgreSQL_ErrCreateDuplicateService(t *testing.T) {
 }
 
 func TestPostgreSQL_BigTest(t *testing.T) {
-	p := postgreSQL()
-	defer p.DropCurrentTestSchema()
+	p := postgreSQL(t)
 	ctx := context.Background()
 
 	if p.CreateService(ctx, &dto.NameDescription{Name: "service1", Description: "description 1"}) != nil {
