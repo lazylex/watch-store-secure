@@ -19,9 +19,9 @@ const configFilename = "local.yaml"
 
 var baseConfig storageConfig.PersistentStorage
 
-// config возвращает конфигурацию для подключения к БД. Файл с конфигурацией должен лежать в каталоге config.
+// testConfig возвращает конфигурацию для подключения к БД. Файл с конфигурацией должен лежать в каталоге testConfig.
 // Название файла конфигурации указано в константе configFilename в этом тестовом файле
-func config() storageConfig.PersistentStorage {
+func testConfig() storageConfig.PersistentStorage {
 	var configPath string
 	var err error
 	var cfg storageConfig.PersistentStorage
@@ -48,7 +48,7 @@ func config() storageConfig.PersistentStorage {
 
 // postgreSQL возвращает ссылку на готовую для работы с БД структуру PostgreSQL
 func postgreSQL() *PostgreSQL {
-	cfg := config()
+	cfg := testConfig()
 	return MustCreateForTest(cfg)
 }
 
@@ -87,7 +87,7 @@ func TestPostgreSQL_ErrGetAccountLoginData(t *testing.T) {
 
 func TestPostgreSQL_ErrCreateConnection(t *testing.T) {
 	if os.Getenv("BE_CRASHER") == "1" {
-		cfg := config()
+		cfg := testConfig()
 		cfg.DatabaseName = ""
 		MustCreate(cfg)
 		return
@@ -220,7 +220,7 @@ func TestPostgreSQL_BigTest(t *testing.T) {
 	if p.CreateOrUpdateInstance(ctx, &dto.NameServiceSecret{
 		Name:    "instance1",
 		Service: "service1",
-		Secret:  "",
+		Secret:  "нет никакого секрета",
 	}) != nil {
 		t.Fatal()
 	}

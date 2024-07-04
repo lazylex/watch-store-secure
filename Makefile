@@ -7,7 +7,7 @@ help:
 	@echo "\t${bold}make cover${normal}\t\t - вывод покрытия кода тестами в браузер"
 
 test:
-	@go test ./internal/repository/persistent/postgresql
+	@go test -shuffle=on ./internal/repository/persistent/postgresql
 
 cover:
 	@go test -coverprofile cover.out ./... -covermode atomic

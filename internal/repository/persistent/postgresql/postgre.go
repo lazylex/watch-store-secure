@@ -175,8 +175,9 @@ func (p *PostgreSQL) CreateOrUpdateInstance(ctx context.Context, data *dto.NameS
 	stmt := cte + ` UPDATE instances
 					SET secret = $3
 					WHERE instance_id = (SELECT instance_id FROM s);`
+	_, err := p.pool.ExecEx(ctx, stmt, nil, data.Name, data.Service, data.Secret)
 
-	return p.processExecResult(p.pool.ExecEx(ctx, stmt, nil, data.Name, data.Service, data.Secret))
+	return adaptErr(err)
 }
 
 // AssignPermissionToRole назначает роли разрешение.
