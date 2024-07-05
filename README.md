@@ -18,6 +18,21 @@
 ![Git](https://img.shields.io/badge/git-%23F05033.svg?style=for-the-badge&logo=git&logoColor=white)
 ![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white)
 ![Apache Kafka](https://img.shields.io/badge/Apache%20Kafka-000?style=for-the-badge&logo=apachekafka)
+![Swagger](https://img.shields.io/badge/-Swagger-%23Clojure?style=for-the-badge&logo=swagger&logoColor=white)
+![openapi initiative](https://img.shields.io/badge/openapiinitiative-%23000000.svg?style=for-the-badge&logo=openapiinitiative&logoColor=white)
+
+## Описание
+
+Репозиторий содержит исходные коды приложения, которое является частью тренировочного pet-проекта. Данное приложение
+хранит разрешения для других микросервисов и выдаёт их в виде JWT-токена совершившим вход в систему пользователям
+(сервисам). Каждый токен содержит разрешения для конкретного экземпляра сервиса и не подходит для разных экземпляров
+одного и того же сервиса.
+
+## REST-api
+
+Точки доступа к приложению по протоколу HTTP описаны в виде спецификации OpenAPI 3 и находятся в файле:
+
+api/openapi.yaml
 
 ## Деплой приложения
 
