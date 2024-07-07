@@ -9,10 +9,12 @@ import (
 	"github.com/lazylex/watch-store/secure/internal/adapters/http/middleware/token_checker"
 	"github.com/lazylex/watch-store/secure/internal/adapters/http/router"
 	"github.com/lazylex/watch-store/secure/internal/config"
+	"github.com/lazylex/watch-store/secure/internal/helpers/prefixes"
 	"github.com/lazylex/watch-store/secure/internal/metrics"
 	"github.com/lazylex/watch-store/secure/internal/service"
 	"log/slog"
 	"net/http"
+	"net/http/pprof"
 	"os"
 )
 
@@ -48,6 +50,12 @@ func MustCreate(domainService *service.Service, cfg *config.HttpServer, m *metri
 	router.AssignPathToHandler("/get-token", server.mux, h.TokenWithPermissions)
 	router.AssignPathToHandler("/get-numbered-permissions", server.mux, h.ServiceNumberedPermissions)
 	router.AssignPathToHandler("/", server.mux, h.Index)
+
+	router.AssignPathToHandler(prefixes.PPROFPrefix, server.mux, pprof.Index)
+	router.AssignPathToHandler(prefixes.PPROFPrefix+"cmdline", server.mux, pprof.Cmdline)
+	router.AssignPathToHandler(prefixes.PPROFPrefix+"profile", server.mux, pprof.Profile)
+	router.AssignPathToHandler(prefixes.PPROFPrefix+"symbol", server.mux, pprof.Symbol)
+	router.AssignPathToHandler(prefixes.PPROFPrefix+"trace", server.mux, pprof.Trace)
 
 	tokenMiddleware := token_checker.New(domainService)
 	metricsMiddleware := requestMetrics.New(m)

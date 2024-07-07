@@ -2,6 +2,7 @@ package token_checker
 
 import (
 	v "github.com/lazylex/watch-store/secure/internal/helpers/constants/various"
+	"github.com/lazylex/watch-store/secure/internal/helpers/prefixes"
 	"github.com/lazylex/watch-store/secure/internal/service"
 	"log/slog"
 	"net/http"
@@ -25,6 +26,12 @@ func New(service *service.Service) *TokenChecker {
 // содержит токен, который соответствует открытой сессии.
 func (t *TokenChecker) Checker(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		uri := req.URL.RequestURI()
+		if strings.HasPrefix(uri, prefixes.PPROFPrefix) || strings.HasPrefix(uri, "/favicon.ico") {
+			next.ServeHTTP(w, req)
+			return
+		}
+
 		if req.RequestURI == loginURI {
 			next.ServeHTTP(w, req)
 			return
