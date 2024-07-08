@@ -60,6 +60,7 @@ type HttpServer struct {
 	IdleTimeout     time.Duration `yaml:"idle_timeout" env:"IDLE_TIMEOUT" env-required:"true"`
 	ShutdownTimeout time.Duration `yaml:"shutdown_timeout" env:"SHUTDOWN_TIMEOUT" env-required:"true"`
 	RequestTimeout  time.Duration `yaml:"request_timeout" env:"REQUEST_TIMEOUT" env-required:"true"`
+	EnableProfiler  bool          `yaml:"enable_profiler" env:"ENABLE_PROFILER"`
 }
 
 type PersistentStorage struct {

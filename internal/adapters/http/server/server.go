@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"net/http/pprof"
 	"os"
+	"time"
 )
 
 // Server структура для обработки http-запросов к приложению.
@@ -51,12 +52,17 @@ func MustCreate(domainService *service.Service, cfg *config.HttpServer, m *metri
 	router.AssignPathToHandler("/get-numbered-permissions", server.mux, h.ServiceNumberedPermissions)
 	router.AssignPathToHandler("/", server.mux, h.Index)
 
-	router.AssignPathToHandler(prefixes.PPROFPrefix, server.mux, pprof.Index)
-	router.AssignPathToHandler(prefixes.PPROFPrefix+"cmdline", server.mux, pprof.Cmdline)
-	router.AssignPathToHandler(prefixes.PPROFPrefix+"profile", server.mux, pprof.Profile)
-	router.AssignPathToHandler(prefixes.PPROFPrefix+"symbol", server.mux, pprof.Symbol)
-	router.AssignPathToHandler(prefixes.PPROFPrefix+"trace", server.mux, pprof.Trace)
+	if cfg.EnableProfiler {
+		if cfg.WriteTimeout <= time.Second*30 {
+			slog.Warn("standard profile duration exceeds server's WriteTimeout")
+		}
 
+		router.AssignPathToHandler(prefixes.PPROFPrefix, server.mux, pprof.Index)
+		router.AssignPathToHandler(prefixes.PPROFPrefix+"cmdline", server.mux, pprof.Cmdline)
+		router.AssignPathToHandler(prefixes.PPROFPrefix+"profile", server.mux, pprof.Profile)
+		router.AssignPathToHandler(prefixes.PPROFPrefix+"symbol", server.mux, pprof.Symbol)
+		router.AssignPathToHandler(prefixes.PPROFPrefix+"trace", server.mux, pprof.Trace)
+	}
 	tokenMiddleware := token_checker.New(domainService)
 	metricsMiddleware := requestMetrics.New(m)
 

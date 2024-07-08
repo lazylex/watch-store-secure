@@ -8,6 +8,7 @@ http_server:
   idle_timeout: 60s
   shutdown_timeout: 15s
   request_timeout: 50s
+  enable_profiler: true
 persistent_storage:
   database_login: "lex"
   database_password: "python"
